@@ -496,7 +496,7 @@ async function refreshOnce(): Promise<void> {
     messages = response.messages;
     supervisorEnabled = response.supervisorEnabled;
     required<HTMLInputElement>('supervisor-enabled').checked = supervisorEnabled;
-    const currentConversations = new Map(tabs.map((tab) => [tab.tabId, tab.snapshot.conversationKey]));
+    const currentConversations = new Map(tabs.map((tab) => [tab.tabId, tab.snapshot.conversationKey] as const));
     for (const [tabId, conversationKey] of selected) {
       if (currentConversations.get(tabId) !== conversationKey) selected.delete(tabId);
     }
