@@ -118,6 +118,15 @@ async function managedTabs(attempts?: readonly SendAttemptRecord[]): Promise<Man
 }
 
 async function updateBinding(tabId: number, conversationKey: string, binding: RoleBinding): Promise<void> {
+  const tab = await chrome.tabs.get(tabId);
+  const live = await snapshotForTab(tab);
+  if (live.conversationKey !== conversationKey) {
+    throw new Error('Conversation changed before binding was saved; refresh and select the intended chat');
+  }
+  const owned = await bindingRegistry.resolve(tabId, live);
+  if (owned.agentSlotId) {
+    throw new Error('Kernel-owned AgentSlot bindings cannot be edited in the manual browser panel');
+  }
   await bindingRegistry.update(tabId, conversationKey, binding);
 }
 
