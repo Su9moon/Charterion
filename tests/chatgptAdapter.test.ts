@@ -77,6 +77,54 @@ describe('ChatGPT page observation', () => {
     expect(observePageStatus(doc, 'https://chatgpt.com/').status).toBe('unknown');
   });
 
+  it('captures the assistant from a modern ChatGPT search transcript unit', () => {
+    const dom = new JSDOM(`<!doctype html><title>ChatGPT</title>
+      <div data-content-search-unit-key="fallback-turn-0:0:user">User text</div>
+      <div data-content-search-unit-key="fallback-turn-0:1:assistant"
+        data-chatgpt-search-unit-key="fallback-turn-0:1:assistant"
+        data-chatgpt-search-message-ids="fb9ce2aa-33b9-446c-95c7-0e8549b09cb3">
+        <div><p><span>CHARTERION_E2E_OK_20261026</span></p></div>
+      </div>
+      <div role="textbox" contenteditable="true" aria-label="询问 ChatGPT"></div>`);
+    const snapshot = snapshotFromDocument(dom.window.document, 'https://chatgpt.com/c/test', 'provisional:test');
+    expect(snapshot.status).toBe('idle');
+    expect(snapshot.assistantMessageCount).toBe(1);
+    expect(snapshot.latestAssistantText).toBe('CHARTERION_E2E_OK_20261026');
+    expect(snapshot.latestAssistantMessageId).toBe('message:fb9ce2aa-33b9-446c-95c7-0e8549b09cb3');
+  });
+
+  it('does not mistake user and non-assistant transcript units for assistant replies', () => {
+    const dom = new JSDOM(`<!doctype html><title>ChatGPT</title>
+      <div data-content-search-unit-key="fallback-turn-0:0:user">CHARTERION_E2E_OK_20261026</div>
+      <div data-chatgpt-search-unit-key="fallback-turn-0:2:tool">Tool output</div>
+      <div data-content-search-unit-key="fallback-turn-0:3:assistant-extra">Non-exact role</div>`);
+    const snapshot = snapshotFromDocument(dom.window.document, 'https://chatgpt.com/c/test', 'provisional:test');
+    expect(snapshot.assistantMessageCount).toBe(0);
+    expect(snapshot.latestAssistantText).toBe('');
+    expect(snapshot.latestAssistantMessageId).toBeUndefined();
+  });
+
+  it('deduplicates an assistant that has both modern transcript key attributes', () => {
+    const dom = new JSDOM(`<!doctype html><title>ChatGPT</title>
+      <div data-content-search-unit-key="fallback-turn-0:1:assistant"
+        data-chatgpt-search-unit-key="fallback-turn-0:1:assistant">One assistant</div>
+      <div data-chatgpt-search-unit-key="fallback-turn-0:2:assistant">Two assistants</div>`);
+    const snapshot = snapshotFromDocument(dom.window.document, 'https://chatgpt.com/c/test', 'provisional:test');
+    expect(snapshot.assistantMessageCount).toBe(2);
+    expect(snapshot.latestAssistantText).toBe('Two assistants');
+    expect(snapshot.latestAssistantMessageId).toBe('unit:fallback-turn-0:2:assistant');
+  });
+
+  it('preserves legacy assistant DOM precedence when legacy and search DOM coexist', () => {
+    const dom = new JSDOM(`<!doctype html><title>ChatGPT</title>
+      <div data-message-author-role="assistant" data-message-id="old">Legacy answer</div>
+      <div data-content-search-unit-key="fallback-turn-0:1:assistant">Search mirror</div>`);
+    const snapshot = snapshotFromDocument(dom.window.document, 'https://chatgpt.com/c/test', 'provisional:test');
+    expect(snapshot.assistantMessageCount).toBe(1);
+    expect(snapshot.latestAssistantText).toBe('Legacy answer');
+    expect(snapshot.latestAssistantMessageId).toBe('message:old');
+  });
+
   it('uses direct generation indicators instead of composer presence', () => {
     const dom = new JSDOM(`<!doctype html><title>ChatGPT</title>
       <textarea id="prompt-textarea"></textarea><button data-testid="stop-button"></button>`);
