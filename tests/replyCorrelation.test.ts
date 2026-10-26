@@ -34,6 +34,22 @@ describe('reply correlation', () => {
     })).toBe(true);
   });
 
+  it('rejects an unrelated conversation even when its assistant message ID and count advanced', () => {
+    expect(hasNewAssistantReply(snapshot({ conversationKey: 'conversation:other', latestAssistantMessageId: 'message:new', assistantMessageCount: 7 }), {
+      conversationKey: 'conversation:c1',
+      assistantMessageCount: 3,
+      latestAssistantMessageId: 'message:m3',
+    })).toBe(false);
+  });
+
+  it('accepts the next assistant reply only when the canonical conversation still matches', () => {
+    expect(hasNewAssistantReply(snapshot({ latestAssistantMessageId: 'message:m4' }), {
+      conversationKey: 'conversation:c1',
+      assistantMessageCount: 3,
+      latestAssistantMessageId: 'message:m3',
+    })).toBe(true);
+  });
+
   it('rejects historical latest replies when identity and count did not advance', () => {
     expect(hasNewAssistantReply(snapshot(), {
       assistantMessageCount: 3,
