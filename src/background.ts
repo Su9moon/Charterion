@@ -239,7 +239,11 @@ async function dispatchToTabOnce(
     let response: { ok?: boolean; duplicate?: boolean; error?: string; outcome?: 'proved-not-started' | 'uncertain'; contentEpoch?: string } | undefined;
     try {
       physicalWriteRequested = true;
-      response = await chrome.tabs.sendMessage(tabId, { type: 'content:send', text, attemptId: record.attemptId, expectedContentEpoch: record.contentEpoch });
+      response = await chrome.tabs.sendMessage(tabId, {
+        type: 'content:send', text, attemptId: record.attemptId,
+        expectedContentEpoch: record.contentEpoch,
+        expectedConversationKey: record.conversationKey,
+      });
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
       await transitionAttempt(record, 'uncertain', reason);
