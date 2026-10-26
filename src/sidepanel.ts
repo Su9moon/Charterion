@@ -136,9 +136,12 @@ function renderAgent(tab: ManagedTab): HTMLElement {
   saveInfo.textContent = tab.binding.role || tab.binding.project ? 'Binding loaded (conversation-scoped)' : 'No role/project bound to this conversation';
   card.append(saveInfo);
 
-  if (tab.snapshot.latestAssistantText) {
+  // A live page snapshot is not a receipt for the latest send: cached or
+  // virtualized transcript content can include unrelated assistant replies.
+  // Show only the reply text durably attributed to this conversation's attempt.
+  if (tab.lastAttempt?.state === 'reply-observed' && tab.lastAttempt.replyTextTail) {
     const latest = el('div', 'latest');
-    latest.textContent = tab.snapshot.latestAssistantText;
+    latest.textContent = `Recorded attempt reply (${tab.lastAttempt.attemptId}):\n${tab.lastAttempt.replyTextTail}`;
     card.append(latest);
   }
   if (tab.lastAttempt) {
