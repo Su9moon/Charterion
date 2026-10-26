@@ -121,6 +121,9 @@ function renderAgent(tab: ManagedTab): HTMLElement {
   const project = bindingInput('Project', tab.binding.project);
   const notes = bindingInput('Notes', tab.binding.notes, true);
   const inputs = [role.input, project.input, notes.input] as const;
+  if (tab.binding.agentSlotId) {
+    for (const input of inputs) input.disabled = true;
+  }
   for (const input of inputs) input.addEventListener('change', () => {
     void persistBinding(tab, inputs)
       .then(() => { saveInfo.textContent = 'Binding saved for this conversation'; void refresh(); })
