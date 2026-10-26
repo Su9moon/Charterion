@@ -124,7 +124,7 @@ export function assistantMessageId(message: HTMLElement | undefined): string | u
   if (identifiedAncestor?.dataset.messageId) return `message:${identifiedAncestor.dataset.messageId}`;
   // The virtualized transcript exposes canonical message ids separately from
   // the synthetic search unit key; prefer a message id when provided.
-  const searchMessageIds = message.getAttribute('data-chatgpt-search-message-ids')?.trim().split(/\\s+/);
+  const searchMessageIds = message.getAttribute('data-chatgpt-search-message-ids')?.trim().split(/\s+/);
   const searchMessageId = searchMessageIds?.find((id) => /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(id));
   if (searchMessageId) return `message:${searchMessageId}`;
   const turn = message.closest<HTMLElement>('[data-testid^="conversation-turn-"], [data-turn-id], [data-turn-key]');
