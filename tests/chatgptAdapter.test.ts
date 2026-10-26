@@ -82,7 +82,7 @@ describe('ChatGPT page observation', () => {
       <div data-content-search-unit-key="fallback-turn-0:0:user">User text</div>
       <div data-content-search-unit-key="fallback-turn-0:1:assistant"
         data-chatgpt-search-unit-key="fallback-turn-0:1:assistant"
-        data-chatgpt-search-message-ids="fb9ce2aa-33b9-446c-95c7-0e8549b09cb3">
+        data-chatgpt-search-message-ids="00000000-0000-4000-8000-000000000001">
         <div><p><span>CHARTERION_E2E_OK_20261026</span></p></div>
       </div>
       <div role="textbox" contenteditable="true" aria-label="询问 ChatGPT"></div>`);
@@ -90,7 +90,7 @@ describe('ChatGPT page observation', () => {
     expect(snapshot.status).toBe('idle');
     expect(snapshot.assistantMessageCount).toBe(1);
     expect(snapshot.latestAssistantText).toBe('CHARTERION_E2E_OK_20261026');
-    expect(snapshot.latestAssistantMessageId).toBe('message:fb9ce2aa-33b9-446c-95c7-0e8549b09cb3');
+    expect(snapshot.latestAssistantMessageId).toBe('message:00000000-0000-4000-8000-000000000001');
   });
 
   it('does not mistake user and non-assistant transcript units for assistant replies', () => {
