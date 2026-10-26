@@ -258,6 +258,7 @@ export type ManagerRequest =
   | { type: 'manager:list' }
   | { type: 'manager:update-binding'; tabId: number; conversationKey: string; binding: RoleBinding }
   | { type: 'manager:send'; tabIds: number[]; text: string; targets?: SendTarget[] }
+  | { type: 'manager:open-new-chat'; binding: RoleBinding }
   | { type: 'manager:create-task'; input: CreateTaskInput }
   | { type: 'manager:create-message'; input: CreateAgentMessageInput }
   | { type: 'manager:dispatch-message'; messageId: string }
