@@ -106,7 +106,14 @@ export function isGenerating(doc: Document): boolean {
 }
 
 export function assistantMessages(doc: Document): HTMLElement[] {
-  return Array.from(doc.querySelectorAll<HTMLElement>('[data-message-author-role="assistant"]'));
+  // Preserve the original DOM contract when it is present.
+  const legacy = Array.from(doc.querySelectorAll<HTMLElement>('[data-message-author-role="assistant"]'));
+  if (legacy.length > 0) return legacy;
+  // Newer ChatGPT transcript units explicitly expose the author in their key.
+  // Do not infer author from markdown, text content, or message action buttons.
+  return Array.from(doc.querySelectorAll<HTMLElement>(
+    '[data-content-search-unit-key$=":assistant"], [data-chatgpt-search-unit-key$=":assistant"]',
+  ));
 }
 
 export function assistantMessageId(message: HTMLElement | undefined): string | undefined {
@@ -115,9 +122,16 @@ export function assistantMessageId(message: HTMLElement | undefined): string | u
   if (direct) return `message:${direct}`;
   const identifiedAncestor = message.closest<HTMLElement>('[data-message-id]');
   if (identifiedAncestor?.dataset.messageId) return `message:${identifiedAncestor.dataset.messageId}`;
-  const turn = message.closest<HTMLElement>('[data-testid^="conversation-turn-"], [data-turn-id]');
-  const turnId = turn?.getAttribute('data-turn-id') ?? turn?.getAttribute('data-testid');
-  return turnId ? `turn:${turnId}` : undefined;
+  // The virtualized transcript exposes canonical message ids separately from
+  // the synthetic search unit key; prefer a message id when provided.
+  const searchMessageIds = message.getAttribute('data-chatgpt-search-message-ids')?.trim().split(/\\s+/);
+  const searchMessageId = searchMessageIds?.find((id) => /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(id));
+  if (searchMessageId) return `message:${searchMessageId}`;
+  const turn = message.closest<HTMLElement>('[data-testid^="conversation-turn-"], [data-turn-id], [data-turn-key]');
+  const turnId = turn?.getAttribute('data-turn-id') ?? turn?.getAttribute('data-testid') ?? turn?.getAttribute('data-turn-key');
+  if (turnId) return `turn:${turnId}`;
+  const unitKey = message.getAttribute('data-content-search-unit-key') ?? message.getAttribute('data-chatgpt-search-unit-key');
+  return unitKey ? `unit:${unitKey}` : undefined;
 }
 
 export function latestAssistantText(doc: Document): string {
