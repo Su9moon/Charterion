@@ -44,19 +44,27 @@ describe('attempt ledger index', () => {
     expect(index.latestFor(99, snapshot('conversation:abc', 'abc'))?.attemptId).toBe('a1');
   });
 
-  it('returns the newest match across tab and durable conversation identities', () => {
+  it('shows the matching canonical conversation attempt even after that conversation changes tabs', () => {
     const index = createAttemptLedgerIndex([
-      attempt('tab-old', 7, 'url:https://chatgpt.com/'),
+      attempt('tab-old', 7, 'conversation:old-id'),
       attempt('conversation-new', 9, 'conversation:new-id'),
     ]);
     expect(index.latestFor(7, snapshot('conversation:new-id', 'new-id'))?.attemptId).toBe('conversation-new');
   });
 
-  it('prefers a newer physical-tab attempt over an older conversation match', () => {
+  it('does not show a previous conversation attempt just because its tab is reused', () => {
     const index = createAttemptLedgerIndex([
-      attempt('conversation-old', 9, 'conversation:new-id'),
-      attempt('tab-new', 7, 'url:https://chatgpt.com/'),
+      attempt('old-on-tab', 7, 'conversation:old-id'),
     ]);
-    expect(index.latestFor(7, snapshot('conversation:new-id', 'new-id'))?.attemptId).toBe('tab-new');
+    expect(index.latestFor(7, snapshot('conversation:new-id', 'new-id'))).toBeUndefined();
+    expect(index.latestFor(7, snapshot('provisional:new-chat'))).toBeUndefined();
+  });
+
+  it('does not substitute a provisional previous attempt for a later canonical conversation', () => {
+    const index = createAttemptLedgerIndex([
+      attempt('old-canonical', 9, 'conversation:new-id'),
+      attempt('unrelated-provisional', 7, 'provisional:old-chat'),
+    ]);
+    expect(index.latestFor(7, snapshot('conversation:new-id', 'new-id'))?.attemptId).toBe('old-canonical');
   });
 });
