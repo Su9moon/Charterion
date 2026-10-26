@@ -57,6 +57,7 @@ function readPendingPrompt(): PendingPromptEvidence | undefined {
       startedAt: typeof item.startedAt === 'number' ? item.startedAt : 0,
     };
     if (typeof item.baselineAssistantMessageId === 'string') pending.baselineAssistantMessageId = item.baselineAssistantMessageId;
+    if (typeof item.conversationKey === 'string') pending.conversationKey = item.conversationKey;
     return pending;
   } catch { return pendingInMemory; }
 }
@@ -82,6 +83,7 @@ async function reportReplyIfReady(next = snapshot(), semanticSignature = snapsho
   const pending = readPendingPrompt();
   if (!pending || !hasNewAssistantReply(next, {
     assistantMessageCount: pending.baselineAssistantMessageCount,
+    ...(pending.conversationKey ? { conversationKey: pending.conversationKey } : {}),
     ...(pending.baselineAssistantMessageId ? { latestAssistantMessageId: pending.baselineAssistantMessageId } : {}),
   })) return;
   const notice: RuntimeNotice = { type: 'content:reply-observed', attemptId: pending.attemptId, observation: observationIdentity(next, semanticSignature), snapshot: next };
@@ -170,6 +172,7 @@ chrome.runtime.onMessage.addListener((message: ContentRequest, _sender, sendResp
         attemptId: message.attemptId,
         contentEpoch,
         baselineAssistantMessageCount: baseline.assistantMessageCount,
+        conversationKey: baseline.conversationKey,
         startedAt: Date.now(),
       };
       if (baseline.latestAssistantMessageId) pending.baselineAssistantMessageId = baseline.latestAssistantMessageId;
