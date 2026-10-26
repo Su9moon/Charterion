@@ -5,6 +5,7 @@ import {
   extractConversationId,
   normalizePageTitle,
   observePageStatus,
+  findComposer,
   findSendButton,
   readComposerText,
   sendPrompt,
@@ -52,6 +53,28 @@ describe('ChatGPT page observation', () => {
     expect(snapshot.assistantMessageCount).toBe(2);
     expect(snapshot.latestAssistantMessageId).toBe('message:m2');
     expect(snapshot.latestAssistantText).toBe('latest result');
+  });
+
+  it('recognizes a ChatGPT-labeled contenteditable without legacy prompt identifiers', () => {
+    const dom = new JSDOM(`<!doctype html><title>ChatGPT</title>
+      <div role="textbox" contenteditable="true" aria-label="询问 ChatGPT"></div>`);
+    const doc = dom.window.document;
+    const editor = doc.querySelector<HTMLElement>('[role="textbox"]');
+    expect(editor?.id).toBe('');
+    expect(editor?.getAttribute('data-testid')).toBeNull();
+    expect(findComposer(doc)).toBe(editor);
+    const observation = observePageStatus(doc, 'https://chatgpt.com/');
+    expect(observation.status).toBe('idle');
+    expect(observation.confidence).toBe('direct');
+    expect(observation.signals).toContain('composer-ready');
+  });
+
+  it('ignores unrelated or hidden ARIA textboxes when detecting composer readiness', () => {
+    const doc = new JSDOM(`<!doctype html><title>ChatGPT</title>
+      <div role="textbox" contenteditable="true" aria-label="Search conversations"></div>
+      <div role="textbox" contenteditable="true" aria-label="询问 ChatGPT" hidden></div>`).window.document;
+    expect(findComposer(doc)).toBeNull();
+    expect(observePageStatus(doc, 'https://chatgpt.com/').status).toBe('unknown');
   });
 
   it('uses direct generation indicators instead of composer presence', () => {
