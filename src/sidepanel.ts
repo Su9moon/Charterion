@@ -28,7 +28,8 @@ const sendStatus = required<HTMLParagraphElement>('send-status');
 const taskStatus = required<HTMLParagraphElement>('task-status');
 const messageStatus = required<HTMLParagraphElement>('message-status');
 const stateStatus = required<HTMLParagraphElement>('state-status');
-const selected = new Set<number>();
+// Selection is scoped to a specific conversation, not just a reusable Tab ID.
+const selected = new Map<number, string>();
 let tabs: ManagedTab[] = [];
 let tasks: ManagedTask[] = [];
 let messages: ManagedMessage[] = [];
@@ -99,8 +100,11 @@ function renderAgent(tab: ManagedTab): HTMLElement {
   const head = el('div', 'agent-head');
   const checkbox = el('input', 'agent-select');
   checkbox.type = 'checkbox';
-  checkbox.checked = selected.has(tab.tabId);
-  checkbox.addEventListener('change', () => checkbox.checked ? selected.add(tab.tabId) : selected.delete(tab.tabId));
+  checkbox.checked = selected.get(tab.tabId) === tab.snapshot.conversationKey;
+  checkbox.addEventListener('change', () => {
+    if (checkbox.checked) selected.set(tab.tabId, tab.snapshot.conversationKey);
+    else selected.delete(tab.tabId);
+  });
   const title = el('div', 'agent-title');
   const strong = el('strong');
   strong.textContent = tab.binding.role || tab.snapshot.title;
@@ -118,10 +122,19 @@ function renderAgent(tab: ManagedTab): HTMLElement {
   const notes = bindingInput('Notes', tab.binding.notes, true);
   const inputs = [role.input, project.input, notes.input] as const;
   for (const input of inputs) input.addEventListener('change', () => {
-    void persistBinding(tab, inputs).catch((error) => setStatus(sendStatus, String(error), true));
+    void persistBinding(tab, inputs)
+      .then(() => { saveInfo.textContent = 'Binding saved for this conversation'; void refresh(); })
+      .catch((error) => { saveInfo.textContent = 'Binding save failed'; setStatus(sendStatus, String(error), true); });
   });
   grid.append(role.wrap, project.wrap, notes.wrap);
   card.append(grid);
+  const targetInfo = el('small');
+  const conversationIdentity = tab.snapshot.conversationKey;
+  targetInfo.textContent = `Tab #${tab.tabId} · ${tab.snapshot.conversationId ? 'Saved per conversation' : 'Temporary new-chat binding'} · ${conversationIdentity}`;
+  card.append(targetInfo);
+  const saveInfo = el('small');
+  saveInfo.textContent = tab.binding.role || tab.binding.project ? 'Binding loaded (conversation-scoped)' : 'No role/project bound to this conversation';
+  card.append(saveInfo);
 
   if (tab.snapshot.latestAssistantText) {
     const latest = el('div', 'latest');
@@ -483,8 +496,10 @@ async function refreshOnce(): Promise<void> {
     messages = response.messages;
     supervisorEnabled = response.supervisorEnabled;
     required<HTMLInputElement>('supervisor-enabled').checked = supervisorEnabled;
-    const present = new Set(tabs.map((tab) => tab.tabId));
-    for (const tabId of [...selected]) if (!present.has(tabId)) selected.delete(tabId);
+    const currentConversations = new Map(tabs.map((tab) => [tab.tabId, tab.snapshot.conversationKey]));
+    for (const [tabId, conversationKey] of selected) {
+      if (currentConversations.get(tabId) !== conversationKey) selected.delete(tabId);
+    }
     render();
   } catch (error) {
     setStatus(sendStatus, error instanceof Error ? error.message : String(error), true);
@@ -516,11 +531,12 @@ function scheduleRefresh(): void {
 async function sendSelected(): Promise<void> {
   const text = instruction.value.trim();
   if (!text) return setStatus(sendStatus, 'Enter an instruction first.', true);
-  const tabIds = [...selected];
+  const targets = [...selected].map(([tabId, conversationKey]) => ({ tabId, conversationKey }));
+  const tabIds = targets.map((target) => target.tabId);
   if (tabIds.length === 0) return setStatus(sendStatus, 'Select at least one agent.', true);
   setStatus(sendStatus, `Sending to ${tabIds.length} selected agent(s)…`);
   try {
-    const response = await request<{ results: SendResult[] }>({ type: 'manager:send', tabIds, text });
+    const response = await request<{ results: SendResult[] }>({ type: 'manager:send', tabIds, targets, text });
     const failed = response.results.filter((result) => !result.ok);
     setStatus(
       sendStatus,
@@ -636,7 +652,7 @@ required<HTMLInputElement>('supervisor-enabled').addEventListener('change', (eve
 required<HTMLSelectElement>('task-kind').addEventListener('change', updateTaskKindFields);
 required<HTMLSelectElement>('task-review-target').addEventListener('change', ensureReviewTargetDependency);
 required<HTMLButtonElement>('select-idle').addEventListener('click', () => {
-  for (const tab of tabs) if (tab.snapshot.status === 'idle') selected.add(tab.tabId);
+  for (const tab of tabs) if (tab.snapshot.status === 'idle') selected.set(tab.tabId, tab.snapshot.conversationKey);
   render();
 });
 required<HTMLButtonElement>('clear-selection').addEventListener('click', () => {
