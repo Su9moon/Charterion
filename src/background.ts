@@ -309,7 +309,7 @@ async function activeGenerationsForBatch(): Promise<number | undefined> {
 async function sendToTabs(tabIds: number[], text: string, targets?: SendTarget[]): Promise<SendResult[]> {
   const batchId = crypto.randomUUID();
   const uniqueTabIds = [...new Set(tabIds)];
-  const expectedByTab = new Map(targets?.map(({ tabId, conversationKey }) => [tabId, conversationKey]) ?? []);
+  const expectedByTab = new Map(targets?.map(({ tabId, conversationKey }) => [tabId, conversationKey] as const) ?? []);
   const activeGenerations = activeGenerationsForBatch();
   // Selected ChatGPT conversations must still match immediately before send.
   // Other machine-owned paths have their own AgentSlot authority checks.
