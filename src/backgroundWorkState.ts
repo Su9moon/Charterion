@@ -138,6 +138,9 @@ export async function markReplyObserved(attemptId: string, contentEpoch: string,
     const state = await readWorkState();
     const current = state.attempts.find((item) => item.attemptId === attemptId);
     if (!current || current.contentEpoch !== contentEpoch || (senderTabId !== undefined && current.tabId !== senderTabId)) return false;
+    // Prevent acknowledging a reply from another conversation in the same tab.
+    if (current.conversationKey.startsWith('conversation:') &&
+        snapshot.conversationKey !== current.conversationKey) return false;
     if (current.state === 'reply-observed') return true;
     const advanced = advanceAttempt(current, 'reply-observed');
     if (advanced.state !== 'reply-observed') return false;
