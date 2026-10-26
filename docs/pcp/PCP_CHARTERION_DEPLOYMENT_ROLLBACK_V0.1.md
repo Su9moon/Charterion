@@ -103,7 +103,12 @@ if (Test-Path (Join-Path $env:GAM_HOME 'runtime.json')) {
 foreach ($p in @(
  "HKCU:\Software\Google\Chrome\NativeMessagingHosts\com.charterion.control",
  "HKCU:\Software\Microsoft\Edge\NativeMessagingHosts\com.charterion.control")) {
-  if (Test-Path $p) { Get-Item $p | Select-Object Name,Property }
+  if (Test-Path $p) {
+    [pscustomobject]@{
+      Key = $p
+      ManifestPath = (Get-Item $p).GetValue('')
+    }
+  }
 }
 if (Test-Path $ctl) {
   (node $ctl agent.list --admin | ConvertFrom-Json).result |
