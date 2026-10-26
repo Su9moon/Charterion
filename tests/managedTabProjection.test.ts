@@ -33,6 +33,16 @@ function attempt(id: string, tabId: number, conversationKey: string): SendAttemp
 }
 
 describe('managed tab projection', () => {
+  it('does not associate an earlier conversation send with the newly navigated tab conversation', () => {
+    const observed = [{
+      tabId: 4, windowId: 1, active: true, snapshot: snapshot('conversation:new', 'new'),
+    }];
+    const projected = projectManagedTabs(observed, [
+      attempt('sent-in-old-conversation', 4, 'conversation:old'),
+    ], () => ({ role: '', project: '', notes: '' }));
+    expect(projected[0]?.lastAttempt).toBeUndefined();
+  });
+
   it('sorts observations and attaches bindings plus the latest matching attempt', () => {
     const observations = [
       { tabId: 9, windowId: 2, active: false, snapshot: snapshot('conversation:abc', 'abc') },
