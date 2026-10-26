@@ -153,6 +153,13 @@ chrome.runtime.onMessage.addListener((message: ContentRequest, _sender, sendResp
         sendResponse({ ok: false, error: 'Content runtime generation changed before dispatch', contentEpoch });
         return;
       }
+      // The browser tab is not a durable conversation identity: fail closed
+      // if the user navigated after the control-plane preflight.
+      if (message.expectedConversationKey !== undefined &&
+          snapshotFromDocument(document, location.href, `provisional:${contentEpoch}`).conversationKey !== message.expectedConversationKey) {
+        sendResponse({ ok: false, error: 'ChatGPT conversation changed before browser send', outcome: 'proved-not-started', contentEpoch });
+        return;
+      }
       if (wasDelivered(message.attemptId)) {
         sendResponse({ ok: true, duplicate: true, contentEpoch, snapshot: snapshot() });
         return;
