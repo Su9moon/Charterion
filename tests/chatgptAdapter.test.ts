@@ -77,6 +77,20 @@ describe('ChatGPT page observation', () => {
     expect(observePageStatus(doc, 'https://chatgpt.com/').status).toBe('unknown');
   });
 
+  it('isolates active transcript replies from unrelated cached or preview assistant units', () => {
+    const dom = new JSDOM(`<!doctype html><title>ChatGPT</title>
+      <div data-content-search-unit-key="stale:assistant">Unrelated GPS response</div>
+      <div data-thread-user-message-navigation-content="true">
+        <div data-content-search-unit-key="fallback-turn-0:0:user">Test prompt</div>
+        <div data-content-search-unit-key="fallback-turn-0:1:assistant"
+          data-chatgpt-search-message-ids="00000000-0000-4000-8000-000000000002">Expected reply</div>
+      </div>`);
+    const snapshot = snapshotFromDocument(dom.window.document, 'https://chatgpt.com/c/test', 'provisional:test');
+    expect(snapshot.assistantMessageCount).toBe(1);
+    expect(snapshot.latestAssistantText).toBe('Expected reply');
+    expect(snapshot.latestAssistantMessageId).toBe('message:00000000-0000-4000-8000-000000000002');
+  });
+
   it('captures the assistant from a modern ChatGPT search transcript unit', () => {
     const dom = new JSDOM(`<!doctype html><title>ChatGPT</title>
       <div data-content-search-unit-key="fallback-turn-0:0:user">User text</div>
