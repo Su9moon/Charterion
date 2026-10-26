@@ -252,7 +252,7 @@ export interface PortableManagerState {
 export type ContentRequest =
   | { type: 'content:get-snapshot' }
   | { type: 'content:get-recovery-state' }
-  | { type: 'content:send'; text: string; attemptId: string; expectedContentEpoch: string };
+  | { type: 'content:send'; text: string; attemptId: string; expectedContentEpoch: string; expectedConversationKey?: string };
 
 export type ManagerRequest =
   | { type: 'manager:list' }
