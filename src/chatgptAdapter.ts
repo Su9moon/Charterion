@@ -9,6 +9,9 @@ const COMPOSER_SELECTORS = [
   'textarea#mobile-composer-prompt',
   '[data-testid="prompt-textarea"]',
   'textarea[placeholder*="Message"]',
+  // ChatGPT's 2026 accessible composer may have no legacy id or testid.
+  // Require a ChatGPT-specific label rather than accepting every editable textbox.
+  '[role="textbox"][contenteditable="true"][aria-label*="ChatGPT"]',
 ];
 const SEND_BUTTON_SELECTORS = [
   'button[data-testid="send-button"]',
