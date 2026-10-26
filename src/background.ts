@@ -533,6 +533,26 @@ const supervisorRunner = new CoalescingRunner(async () => {
 function kickSupervisor(): void {
   supervisorRunner.kick();
 }
+async function openNewChat(binding: RoleBinding): Promise<{ tabId: number }> {
+  // Manual browser orchestration only. Never clone a Kernel-owned AgentSlot
+  // into another tab through this path.
+  if (binding.agentSlotId) throw new Error('Kernel-owned agents require the fleet lifecycle');
+  if (!binding.role.trim() || !binding.project.trim()) {
+    throw new Error('Set a role and project before opening a managed test conversation');
+  }
+  const tab = await chrome.tabs.create({ url: 'https://chatgpt.com/', active: true });
+  if (tab.id === undefined) throw new Error('Chrome did not assign an ID to the new tab');
+  try {
+    await bindingRegistry.update(tab.id, 'provisional:new-chat', {
+      role: binding.role.trim(), project: binding.project.trim(), notes: binding.notes.trim(),
+    });
+  } catch (error) {
+    // Do not close user-visible tabs after uncertain browser effects.
+    throw new Error(`New tab #${tab.id} opened, but its temporary binding was not saved: ${String(error)}`);
+  }
+  return { tabId: tab.id };
+}
+
 async function focusTab(tabId: number): Promise<void> {
   const tab = await chrome.tabs.get(tabId);
   await chrome.tabs.update(tabId, { active: true });
@@ -753,6 +773,12 @@ chrome.runtime.onMessage.addListener((message: ManagerRequest | RuntimeNotice, s
     void updateBinding(message.tabId, message.conversationKey, message.binding)
       .then(() => notifyManagerChanged())
       .then(() => sendResponse({ ok: true }))
+      .catch((error) => sendResponse({ ok: false, error: String(error) }));
+    return true;
+  }
+  if (message.type === 'manager:open-new-chat') {
+    void openNewChat(message.binding)
+      .then(async (opened) => { await notifyManagerChanged(); sendResponse({ ok: true, ...opened }); })
       .catch((error) => sendResponse({ ok: false, error: String(error) }));
     return true;
   }
