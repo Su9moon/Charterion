@@ -106,12 +106,14 @@ export function isGenerating(doc: Document): boolean {
 }
 
 export function assistantMessages(doc: Document): HTMLElement[] {
-  // Preserve the original DOM contract when it is present.
-  const legacy = Array.from(doc.querySelectorAll<HTMLElement>('[data-message-author-role="assistant"]'));
+  // Prefer the active transcript root when present. Cached search/preview
+  // units elsewhere in the page must not be mistaken for active replies.
+  const root = doc.querySelector<HTMLElement>('[data-thread-user-message-navigation-content="true"]') ?? doc;
+  const legacy = Array.from(root.querySelectorAll<HTMLElement>('[data-message-author-role="assistant"]'));
   if (legacy.length > 0) return legacy;
-  // Newer ChatGPT transcript units explicitly expose the author in their key.
-  // Do not infer author from markdown, text content, or message action buttons.
-  return Array.from(doc.querySelectorAll<HTMLElement>(
+  // Modern ChatGPT provides an explicit author suffix in the transcript unit.
+  // Do not infer author from markdown, text content, or action buttons.
+  return Array.from(root.querySelectorAll<HTMLElement>(
     '[data-content-search-unit-key$=":assistant"], [data-chatgpt-search-unit-key$=":assistant"]',
   ));
 }
