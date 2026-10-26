@@ -21,14 +21,13 @@ export function createAttemptLedgerIndex(attempts: readonly SendAttemptRecord[])
 
   return {
     latestFor(tabId, snapshot) {
-      let latest = byTab.get(tabId);
+      // A physical tab may display many different ChatGPT conversations.
+      // Never show a previous conversation's attempt as this one's last send.
       if (snapshot.conversationId) {
-        const conversationAttempt = byConversation.get(snapshot.conversationKey);
-        if (conversationAttempt && (!latest || conversationAttempt.ordinal > latest.ordinal)) {
-          latest = conversationAttempt;
-        }
+        return byConversation.get(snapshot.conversationKey)?.attempt;
       }
-      return latest?.attempt;
+      const inTab = byTab.get(tabId)?.attempt;
+      return inTab?.conversationKey === snapshot.conversationKey ? inTab : undefined;
     },
   };
 }
