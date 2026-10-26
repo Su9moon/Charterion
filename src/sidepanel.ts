@@ -174,6 +174,9 @@ function renderAgent(tab: ManagedTab): HTMLElement {
       };
       void request<{ tabId: number }>({ type: 'manager:open-new-chat', binding })
         .then(async (opened) => {
+          // The user requested a new chat: do not keep an old conversation
+          // selected as a future send target.
+          selected.clear();
           setStatus(sendStatus, `Opened new ChatGPT tab #${opened.tabId}. Select its agent card once IDLE.`);
           await refresh();
         })
