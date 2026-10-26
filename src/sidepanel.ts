@@ -156,6 +156,25 @@ function renderAgent(tab: ManagedTab): HTMLElement {
       .catch((error) => setStatus(sendStatus, String(error), true));
   });
   actions.append(focus);
+  if (!tab.binding.agentSlotId) {
+    const newChat = el('button');
+    newChat.type = 'button';
+    newChat.textContent = 'New chat (copy role/project)';
+    newChat.addEventListener('click', () => {
+      const binding: RoleBinding = {
+        role: role.input.value.trim(),
+        project: project.input.value.trim(),
+        notes: notes.input.value.trim(),
+      };
+      void request<{ tabId: number }>({ type: 'manager:open-new-chat', binding })
+        .then(async (opened) => {
+          setStatus(sendStatus, `Opened new ChatGPT tab #${opened.tabId}. Select its agent card once IDLE.`);
+          await refresh();
+        })
+        .catch((error) => setStatus(sendStatus, String(error), true));
+    });
+    actions.append(newChat);
+  }
   card.append(actions);
   return card;
 }
