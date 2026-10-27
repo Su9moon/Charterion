@@ -26,6 +26,16 @@ function configureWorkspace(plane: ControlPlane, agentId: string, now: number) {
   }, now);
 }
 describe('persistent Organization Agent conversation continuity', () => {
+  it('rejects client-local ids before storing Organization Agent continuity', () => {
+    const plane = harness();
+    const org = plane.organization.createOrganization({ name: 'Company' }, 1);
+    const agent = plane.organization.registerAgent({ organizationId: org.id, displayName: 'Engineer' }, 2);
+    for (const id of ['local-chatgpt:pending', 'LOCAL-CHATGPT%3Apending']) {
+      expect(() => plane.agentContinuity.bind({ agentId: agent.id, conversationKey: `conversation:${id}` }, 3)).toThrow(/durable and canonical/i);
+    }
+    expect(plane.agentContinuity.list(agent.id)).toEqual([]);
+  });
+
   it('moves one canonical conversation across runtime slots without changing Agent identity', () => {
     const plane = harness();
     const project = plane.createProject({ name: 'Repo', rootPath: 'E:/repo', maxSlots: 2 }, 1);

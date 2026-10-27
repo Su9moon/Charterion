@@ -31,6 +31,20 @@ function harness() {
 afterEach(() => { while (cleanup.length) cleanup.pop()?.(); });
 
 describe('project role Conversation authority', () => {
+  it('rejects client-local ids without consuming first-conversation authorization', () => {
+    const h = harness();
+    h.plane.authorizeConversationBootstrap(h.authorization, 12);
+    h.dispatch();
+    for (const id of ['local-chatgpt:pending', 'LOCAL-CHATGPT%3Apending']) {
+      expect(() => h.plane.bindAgentConversation(h.slot.id, `conversation:${id}`, 19)).toThrow(/canonical durable/i);
+      expect(() => h.plane.reportAgentBrowser({ ...h.report, conversationKey: `conversation:${id}` }, 20)).toThrow(/canonical durable/i);
+      expect(h.plane.getAgentSlot(h.slot.id).conversationKey).toBeUndefined();
+      expect(h.db.db.prepare('SELECT consumed_key FROM conversation_bootstrap_authorizations').get()).toMatchObject({ consumed_key: null });
+    }
+    expect(h.plane.reportAgentBrowser({ ...h.report, conversationKey: 'conversation:server-assigned' }, 21))
+      .toMatchObject({ conversationKey: 'conversation:server-assigned', conversationGeneration: 1 });
+  });
+
   it('does not promote a canonical URL based on browser observation alone', () => {
     const h = harness();
     h.dispatch();

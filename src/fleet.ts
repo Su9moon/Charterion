@@ -13,7 +13,7 @@ export type FleetAction =
 export function agentConversationUrl(conversationKey?: string): string {
   if (!conversationKey?.startsWith('conversation:')) return 'https://chatgpt.com/';
   const id = conversationKey.slice('conversation:'.length);
-  if (!id || id === 'new' || /^WEB:/i.test(id)) return 'https://chatgpt.com/';
+  if (!id || id === 'new' || /^WEB:/i.test(id) || /^local-chatgpt(?::|%3A)/i.test(id)) return 'https://chatgpt.com/';
   return `https://chatgpt.com/c/${encodeURIComponent(id)}`;
 }
 
