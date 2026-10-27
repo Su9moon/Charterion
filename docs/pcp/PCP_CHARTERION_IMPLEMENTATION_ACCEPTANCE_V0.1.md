@@ -1,5 +1,8 @@
 # PCP × Charterion｜实施工单分解、验证矩阵与开工条件 V0.1
 
+> **历史实施计划提示（2026-10-27）**：项目中心、内置控制面板、Git 按角色取上下文已纳入 [实施/验收 V0.2](PCP_CHARTERION_IMPLEMENTATION_ACCEPTANCE_V0.2.md)，后续开工以 V0.2 的 CH-PCP-00～09 为准。此文件保留原始分解供参照。
+
+
 - **日期**：2026-10-27
 - **状态**：DELIVERY PLAN FIXED；**所有代码改造与新 E2E 均为 NOT_RUN**
 - **开发分支**：`pcp/role-session-enhancement-v0.1`
