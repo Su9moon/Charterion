@@ -1,4 +1,5 @@
 import type { RadarAgent, RadarSnapshot } from '../shared/radar';
+import { mountFleetControls } from './fleetControls';
 
 const labels: Record<string, string> = { active: '启用', suspended: '暂停', retired: '退役', idle: '空闲', assigned: '已分配',
   generating: '生成中', blocked: '受阻', unauthorized: '未登录', error: '错误', unknown: '未知', unavailable: '不可用',
@@ -39,8 +40,13 @@ export function mountRadar(doc: Document, win: Window, fetcher: typeof fetch) {
   } catch { /* A supplied fragment still works when session storage is unavailable. */ }
   // Read sessions are process-scoped; never leave even a read-only token in browser history.
   win.history.replaceState(null, '', win.location.pathname);
+  let refreshing: Promise<void> | undefined;
+  const controls = mountFleetControls(doc, win, fetcher, { readToken: () => token, reload: async () => {
+    await refreshing; await refresh(); return connected ? snapshot : undefined;
+  } });
 
   function render(): void {
+    controls.update(snapshot, connected);
     if (!snapshot) return;
     const focusedSlot = doc.activeElement?.getAttribute('data-inspect-slot');
     const data = snapshot;
@@ -109,8 +115,12 @@ export function mountRadar(doc: Document, win: Window, fetcher: typeof fetch) {
     if (focusedSlot) Array.from(doc.querySelectorAll<HTMLButtonElement>('[data-inspect-slot]')).find(b => b.dataset.inspectSlot === focusedSlot)?.focus({ preventScroll: true });
   }
 
-  async function refresh(): Promise<void> {
-    if (disposed || controller) return;
+  function refresh(): Promise<void> {
+    if (refreshing) return refreshing;
+    refreshing = readSnapshot().finally(() => { refreshing = undefined; }); return refreshing;
+  }
+  async function readSnapshot(): Promise<void> {
+    if (disposed) return;
     if (timer !== undefined) win.clearTimeout(timer);
     controller = new AbortController(); button.disabled = true;
     const timeout = win.setTimeout(() => controller?.abort(), 8000);
@@ -140,5 +150,5 @@ export function mountRadar(doc: Document, win: Window, fetcher: typeof fetch) {
   button.addEventListener('click', () => { void refresh(); });
   filter.addEventListener('change', () => { selected = ''; render(); });
   void refresh();
-  return { refresh, dispose() { disposed = true; if (timer !== undefined) win.clearTimeout(timer); controller?.abort(); } };
+  return { refresh, dispose() { disposed = true; controls.dispose(); if (timer !== undefined) win.clearTimeout(timer); controller?.abort(); } };
 }

@@ -3,6 +3,7 @@ import type { ControlPlane } from './controlPlane';
 import type { RpcFailure, RpcRequest, RpcResponse } from './contracts';
 import { enumParam, numberParam, objectArrayParam, objectParam, record, stringParam } from './rpcParams';
 import { RpcRouter as LegacyRpcRouter } from './rpcLegacy';
+import { RadarControlError, type RadarControlGrant } from './radarControl';
 
 export * from './rpcLegacy';
 
@@ -25,11 +26,22 @@ export class RpcRouter {
     private readonly browserToken: string,
     private readonly instanceId?: string,
     private readonly radarUrl?: () => string | undefined,
+    private readonly radarControlGrant?: (projectId: string, actor: string) => RadarControlGrant,
   ) {
     this.legacy = new LegacyRpcRouter(plane, adminToken, browserToken, instanceId);
   }
 
   handle(request: RpcRequest): RpcResponse {
+    if (request?.method === 'radar.authorize-control') {
+      const id = typeof request.id === 'string' ? request.id : 'unknown';
+      if (this.instanceId && request.instanceId !== this.instanceId) return failure(id, 'INSTANCE_MISMATCH', 'RPC instance mismatch');
+      if (!request.auth?.adminToken || !safeEqual(request.auth.adminToken, this.adminToken)) return failure(id, 'UNAUTHORIZED', 'Administrator authorization required');
+      if (!this.radarUrl?.() || !this.radarControlGrant) return failure(id, 'UNAVAILABLE', 'Radar is disabled');
+      try {
+        const params = record(request.params);
+        return { id, ok: true, result: this.radarControlGrant(stringParam(params, 'projectId')!, stringParam(params, 'actor')!) };
+      } catch (error) { return failure(id, error instanceof RadarControlError ? error.code : 'INVALID_REQUEST', 'Control authorization could not be issued'); }
+    }
     if (request?.method === 'radar.open') {
       const id = typeof request.id === 'string' ? request.id : 'unknown';
       if (this.instanceId && request.instanceId !== this.instanceId) return failure(id, 'INSTANCE_MISMATCH', 'RPC instance mismatch');
