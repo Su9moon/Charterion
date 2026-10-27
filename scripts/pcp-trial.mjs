@@ -1,6 +1,6 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, unlinkSync, writeFileSync } from 'node:fs';
+import { closeSync, cpSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -106,9 +106,14 @@ async function start(c, headless) {
     const url = new URL(rpc(c, 'radar.open').url); state.origin = url.origin;
     delete state.chrome; delete state.cdpPort;
     const portFile = join(c.profile, 'DevToolsActivePort'); if (existsSync(portFile)) unlinkSync(portFile);
-    const child = spawn(c.chrome, [`--user-data-dir=${c.profile}`, `--load-extension=${c.app}`, `--disable-extensions-except=${c.app}`,
+    mkdirSync(c.logs, { recursive: true });
+    const chromeLog = openSync(join(c.logs, 'chrome-startup.log'), 'a');
+    let child;
+    try { child = spawn(c.chrome, [`--user-data-dir=${c.profile}`, `--load-extension=${c.app}`, `--disable-extensions-except=${c.app}`,
       '--remote-debugging-address=127.0.0.1', '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check',
-      ...(headless ? ['--headless=new'] : ['--new-window']), 'about:blank'], { detached: true, windowsHide: headless, stdio: 'ignore' });
+      // The extension intentionally removes orphan about:blank tabs on startup.
+      ...(headless ? ['--headless=new'] : ['--new-window']), 'chrome://newtab/'], { detached: true, windowsHide: headless, stdio: ['ignore', 'ignore', chromeLog] });
+    } finally { closeSync(chromeLog); }
     child.on('error', () => {}); child.unref();
     for (let n = 0; n < 60; n++) { const process = processById(child.pid); if (process) { state.chrome = process; break; } await sleep(100); }
     if (!state.chrome) throw new Error('Chrome did not start');
