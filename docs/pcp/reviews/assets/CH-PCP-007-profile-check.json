@@ -21,10 +21,15 @@
   "cookieFileContents": "NOT_READ",
   "tokenContents": "NOT_READ",
   "storageContents": "NOT_READ",
-  "manualLoginReuse": "NOT_RUN",
-  "roleMessageE2E": "NOT_RUN",
+  "manualLoginReuse": "BLOCKED_GOOGLE_MANUAL_SIGN_IN",
+  "roleMessageE2E": "NOT_RUN_LOGIN_BLOCKED",
   "messagesSent": 0,
   "unitFiles": 87,
   "unitTests": 506,
-  "observedAt": "2026-10-27T14:38:35.189Z"
+  "observedAt": "2026-10-27T14:38:35.189Z",
+  "loginFailure": {
+    "source": "user reported Google sign-in rejection",
+    "specificTrigger": "UNKNOWN",
+    "profileChanged": false
+  }
 }

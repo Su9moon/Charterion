@@ -91,3 +91,13 @@ execution_evidence:
 ```
 
 Tokdash 共用会话 `01a17c6a-87b5-7641-8c5e-e7d170079b63`，project-history-shared-session；采样 tokens=51762843、token_events=377，last_seen_at=2026-10-27T22:38:48.356+08:00，不归为本轮独占用量。未新建任务跟踪体系。该 Draft PR 交付 Profile 修复和部分验收证据，不代表角色登录/消息 E2E 完成。
+
+### 人工登录结果：Google 安全拒绝
+
+用户随后报告当前登录页提示“此浏览器或应用可能不安全，请尝试使用其他浏览器”，附 Google 帮助页面。该结果来自用户人工登录，不是脚本登录测试；未自动重试登录、点击验证、读取账号信息或提取凭据。
+
+[Google 官方说明](https://support.google.com/accounts/answer/7675428?hl=en) 指出 JavaScript、扩展、自动化控制或内嵌客户端等都可能导致拒绝。当前实际进程仍是 Chrome for Testing 156.0.8078.47，携带原 Trial-006 user-data-dir、回环 CDP 和扩展加载参数；这些是待排查因素，**具体触发原因 UNKNOWN**，不能仅凭提示断定某一参数或扩展是根因，也不能把它归因为 Profile/Cookie 被清空。
+
+当前 stage=`blocked-google-manual-sign-in`。人工登录后的重启复用记为 **BLOCKED_GOOGLE_MANUAL_SIGN_IN**；消息/回复/角色 E2E 为 **NOT_RUN_LOGIN_BLOCKED**。Profile 机制与元数据已测结果保持，不改写为登录成功。不更换或新建 Profile、不复制 Cookie/Token、不改 UA/自动化识别、不降低账号安全设置、不自动更换浏览器二进制或关闭当前登录窗口。原 Runtime 未操作。
+
+后续若评估同 Profile 的纯人工、无调试登录入口，须先确认浏览器版本/Profile 兼容及实例停止边界；那是尚未执行的方案，不能保证 Google 接受。当前维持用户要求的登录/消息暂停，PR #10 为修复与部分验收 Draft，CH-PCP-007 整体未完成。
