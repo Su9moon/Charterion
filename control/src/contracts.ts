@@ -1,4 +1,17 @@
 export type ProjectStatus = 'active' | 'draining' | 'paused' | 'archived';
+export type PcpFleetMode = 'elastic' | 'controlled';
+/** Per-project PCP fleet override; row absence means legacy elastic behavior. */
+export interface PcpProjectFleetControl {
+  projectId: string;
+  mode: PcpFleetMode;
+  lifecycleLocked: boolean;
+  revision: number;
+  updatedAt?: number;
+  actor?: string;
+  reason?: string;
+}
+
+
 export type IsolationTier = 'c0-host' | 'c1-container' | 'c2-hypervisor' | 'c3-ephemeral-vm';
 export type AgentSlotStatus = 'idle' | 'assigned' | 'suspended' | 'retired';
 export type AgentDesiredState = 'active' | 'suspended' | 'retired';
