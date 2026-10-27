@@ -95,6 +95,32 @@ describe('PCP project Fleet control (first live code slice)', () => {
     if (view.ok) expect(view.result).toMatchObject({ mode: 'controlled', revision: 1 });
   });
 
+  it('blocks scoped fleet capabilities from overriding the manual controller', () => {
+    const { plane } = harness();
+    const p = plane.createProject({ name: 'Controlled', rootPath: 'C:/pcp-control', minSlots: 0, maxSlots: 2 });
+    const token = plane.issueCapability({
+      projectId: p.id, subject: 'fleet-worker', scopes: ['agent:fleet'], ttlMs: 60_000,
+    }).token;
+    const router = new RpcRouter(plane, 'secret-admin', 'secret-browser');
+    const create = () => router.handle({
+      id: 'create', method: 'agent.create', auth: { capabilityToken: token },
+      params: { projectId: p.id, role: 'CHIEF_ENGINEER' },
+    });
+    expect(create().ok).toBe(true);
+    plane.setPcpProjectFleetControl(p.id, {
+      mode: 'controlled', expectedRevision: 0, actor: 'human', reason: 'manual control',
+    });
+    expect(create().ok).toBe(false);
+    plane.setPcpProjectFleetControl(p.id, {
+      mode: 'elastic', lifecycleLocked: true, expectedRevision: 1, actor: 'human', reason: 'lock project',
+    });
+    expect(create().ok).toBe(false);
+    plane.setPcpProjectFleetControl(p.id, {
+      lifecycleLocked: false, expectedRevision: 2, actor: 'human', reason: 'unlock project',
+    });
+    expect(create().ok).toBe(true);
+  });
+
   it('survives reopening SQLite and does not overwrite the project or agents', () => {
     const dir = mkdtempSync(join(tmpdir(), 'pcp-fleet-restart-'));
     const path = join(dir, 'global.db');
