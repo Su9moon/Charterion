@@ -1,4 +1,4 @@
-# Charterion × PCP｜项目化角色协作、内置控制台和 Git 交接
+# Charterion × PCP｜项目化角色协作、独立 HTML 控制台和 Git 交接
 
 > **当前入口**：2026-10-27 用户确认的 Charterion 增强架构 **V0.3**。代码改造与真实 E2E **尚未执行**；现有 main、Kernel/DB、Chrome Profile 和两个 Draft PR 未改变。  
 > **分支**：`pcp/role-session-enhancement-v0.1`。
@@ -6,7 +6,7 @@
 ## 最重要的设计结论
 
 1. **项目中心**：PCP 保留五种固定职责类型，每个项目自行配置所需 WebGPT 角色会话（不强制配齐五个）；Conversation 按项目和角色显式绑定。
-2. **Charterion 内建 PCP 控制/雷达面板**：查看项目、会话、Git 工单、真实状态和可得的 Worker 指标；操作绑定、手动锁定、暂停/恢复和配置。先在 Side Panel/现有 Kernel 上增量实现，不再默认另建管理后台。
+2. **独立动态 HTML 控制/雷达页面**：浏览器单独打开 HTML 页面查看项目、会话、Git 工单、真实状态和可得的 Worker 指标；操作绑定、手动锁定、暂停/恢复和配置。**Chrome 插件仅提供“打开控制台”入口，绝不将面板做进 Side Panel**。HTML 页面经同一 Kernel 的本机回环接口获取真实数据及提交受控操作，不另建第二套后台。
 3. **Git/GitHub 作为工程过程交接中心**：正式需求、方案、Workorder 引用、阶段成果、审查和证据留在对应项目 Git/Issue/PR（EO/ES/CB 原有权威保持）；不同角色之间只发送短 `work_ref`，各角色按授权独立读取自己需要的上下文。
 4. **可配置，但不能越权**：全局默认→项目→角色会话；人工绑定/派发/页面生命周期锁优先于自动策略。页面观测状态是真实数据，不因手动锁定伪造。
 5. **需要时才连接现有 CB**：Charterion 不重复实现 Codex Worker、通用任务队列或第二套 EO/ES。
@@ -16,9 +16,9 @@
 
 | 文档 | 内容 | 定位 |
 | --- | --- | --- |
-| **[目标架构 V0.3](PCP_CHARTERION_TARGET_ARCHITECTURE_V0.3.md)** | 项目模型、内置 Radar/Controller、Git 角色上下文、手动锁、配置、接口和架构差异 | **当前权威设计** |
+| **[目标架构 V0.3](PCP_CHARTERION_TARGET_ARCHITECTURE_V0.3.md)** | 项目模型、独立 HTML Radar/Controller、Git 角色上下文、手动锁、配置、接口和架构差异 | **当前权威设计** |
 | **[实施/验收 V0.2](PCP_CHARTERION_IMPLEMENTATION_ACCEPTANCE_V0.2.md)** | CH-PCP-00～09、迭代次序、源码候选和实际 E2E Gate | **当前开工入口** |
-| **[部署蓝图 V0.2](PCP_CHARTERION_DEPLOYMENT_V0.2.md)** | Windows 单机控制台、专用 Chrome、Kernel、Git/CB 连接和部署步骤 | 当前部署设计 |
+| **[部署蓝图 V0.2](PCP_CHARTERION_DEPLOYMENT_V0.2.md)** | Windows 独立 HTML 控制台、插件启动入口、单 Kernel 回环 API、专用 Chrome、Git/CB 连接和部署步骤 | 当前部署设计 |
 | [部署/回滚规范 V0.1](PCP_CHARTERION_DEPLOYMENT_ROLLBACK_V0.1.md) | 旧运行环境、Native Host HKCU、备份和回滚保护 | 仍生效 |
 | [增强研究 V0.1](PCP_CHARTERION_ENHANCEMENT_BASELINE_V0.1.md) | 原版已验能力和未确证问题 | 历史研究及不冲突边界 |
 | [架构 V0.2](PCP_CHARTERION_TARGET_ARCHITECTURE_V0.2.md) | 原先偏“底层 Session Adapter、外部 UI”的方案 | **被 V0.3 修改的旧版** |
@@ -43,7 +43,7 @@ Git 管正式工程事实与成果；Kernel/SQLite 管项目配置、绑定、�
 ## 真正开始编码
 
 1. **CH-PCP-00**：对齐真实本机运行包与代码/既有 PR #1/#2，源代码只读清点。
-2. **CH-PCP-01～03**：项目化绑定、手动锁/策略、内置最小可用项目/角色雷达。
+2. **CH-PCP-01～03**：项目化绑定、手动锁/策略、**独立 HTML 项目/角色雷达及 Chrome 插件启动入口**；控制台的数据和写操作由 Kernel 提供。
 3. **CH-PCP-04**：一次真实正确会话的 ChatGPT 消息/回复闭环。
 4. **CH-PCP-05～06**：Git 正式引用/按角色读取，三 WebGPT 交接及项目隔离。
 5. **CH-PCP-07～09**：按需 CB、Reviewer、恢复和 Radar/Operations 深化。
