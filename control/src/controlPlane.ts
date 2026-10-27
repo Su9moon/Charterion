@@ -59,7 +59,7 @@ function canonicalConversationKey(value: string): string {
   const key = nonEmpty(value, 'Conversation key');
   if (!key.startsWith('conversation:')) throw new Error('Only durable ChatGPT conversation identities may bind an agent slot');
   const id = key.slice('conversation:'.length);
-  if (!id || id === 'new' || /^WEB:/i.test(id)) throw new Error('Conversation key must be a canonical durable ChatGPT identity');
+  if (!id || id === 'new' || /^WEB:/i.test(id) || /^local-chatgpt(?::|%3A)/i.test(id)) throw new Error('Conversation key must be a canonical durable ChatGPT identity');
   return key;
 }
 
