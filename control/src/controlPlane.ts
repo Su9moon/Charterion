@@ -203,7 +203,15 @@ export class ControlPlane {
     this.findings = new FindingAuthority(database);
     this.reviewPool = new ReviewPoolAuthority(database);
     this.organizationExecution = new OrganizationExecutionBridge(database, this.organization, this.work);
-    this.organizationRuntime = new OrganizationRuntimeAcquisitionAuthority(database, this.organization, (projectId, role, now) => this.createAgentSlot(projectId, role, now));
+    this.organizationRuntime = new OrganizationRuntimeAcquisitionAuthority(database, this.organization, (projectId, role, now) => {
+      // Organization intake/review recovery can acquire runtime without going
+      // through the Fleet RPCs. Reuse is safe; new capacity needs manual intent.
+      const control = this.getPcpProjectFleetControl(projectId);
+      if (control.mode === 'controlled' || control.lifecycleLocked) {
+        throw new Error('Cannot automatically create an AgentSlot in a controlled or lifecycle-locked PCP project');
+      }
+      return this.createAgentSlot(projectId, role, now);
+    });
     this.autonomousIntake = new AutonomousIntakeAuthority(this);
     this.organizationWorkflow = new OrganizationWorkflowCoordinator(database, this.changes, this.reviewPool, this.organization, this.organizationRuntime, this.organizationExecution, this.promotions, gitPath);
   }
