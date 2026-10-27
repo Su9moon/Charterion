@@ -1,6 +1,7 @@
-# Charterion × PCP｜项目中心、Git 交接与内置控制台目标架构 V0.3
+# Charterion × PCP｜项目中心、Git 交接与独立 HTML 控制台目标架构 V0.3
 
 - **状态**：产品目标及架构方向已由用户确认；技术结构为待实施设计；`NOT_IMPLEMENTED / NOT_E2E_VERIFIED`
+- **界面边界更正（2026-10-27）**：**交互式状态面板是浏览器中独立打开的 HTML 页面，不嵌入 Chrome 扩展 Side Panel。扩展只提供“打开控制台”入口。** 本文件此前的“内置”意指随 Charterion 一同交付、使用同一 Kernel 权威，而非把页面写进插件内部。
 - **确认日期**：2026-10-27
 - **取代**：`PCP_CHARTERION_TARGET_ARCHITECTURE_V0.2.md` 在控制台归属、角色实例/项目关系、上下文交接方面的旧方案；其他不冲突的安全、持久化及运行边界继续有效。
 - **上级权威**：PCP Git 主仓 `PCP_WEBGPT_ROLE_ORGANIZATION_V0.2_FIXED.md` 的**五种角色类型、职责和权责分离**不变。Controller 是控制界面而不是第六个 WebGPT。
@@ -9,13 +10,13 @@
 
 ## 1. 一句话定位和本版关键决策
 
-**Charterion 成为 PCP 的项目化 WebGPT 角色协作运行层和内置管理/雷达控制界面；以项目为工作容器，以 Git/正式工单为工程过程交接中心，以短工作引用触发各角色自行检索所需材料；必要时调用现有 CB/Codex 执行；所有绑定、锁定、角色权限和行为参数应有可配置的明确策略。**
+**Charterion 成为 PCP 的项目化 WebGPT 角色协作运行层，并配套独立动态 HTML 雷达/控制页面（Chrome 插件仅负责启动）；以项目为工作容器，以 Git/正式工单为工程过程交接中心，以短工作引用触发各角色自行检索所需材料；必要时调用现有 CB/Codex 执行；所有绑定、锁定、角色权限和行为参数应有可配置的明确策略。**
 
 从原版 Charterion 复用：本地 Kernel、SQLite、Native Host、原生 Chrome/Content Script、AgentSlot、Conversation 观察、投递/Attempt 证据、有限 Fleet 功能。重划 Charterion 原有 Task DAG/Git Workspace/工程 Scheduler 的权威，不让其与 PCP 现有 EO/ES/CB 重复。原版自动弹性 Fleet 改为显式可选的运行资源策略。
 
 ## 2. 面向用户的实际使用方式（产品场景）
 
-1. 打开 Charterion 的 PCP 管理界面，**先看项目列表**：计费、经营看板、CB、其他工程项目及每项健康/进度/阻断。
+1. 从 Charterion Chrome 插件点击“打开控制台”，在**独立 HTML 页面**查看项目列表：计费、经营看板、CB、其他工程项目及每项健康/进度/阻断。
 2. 点选项目，在项目配置中为需要的角色建立 WebGPT 工作会话（不强制一项目五会话），填 Role Charter 版本、Conversation 映射、Git 上下文源及必要的执行权限。
 3. 管理界面显示每个项目的各会话：角色、实际 ChatGPT Conversation、最近任务、在线/未知/未授权/阻断、投递/回复、Git 工单与证据，以及按授权可见的 CB Worker。
 4. 用户在界面上可显式绑定/换绑/解绑 Conversation、暂停/恢复角色参与、锁定某会话、锁定某项派发或项目维护状态；每个动作记录操作者/原因/时间。**手动锁比自动管理优先**。
@@ -28,7 +29,7 @@
 
 | 维度 | 原版 Charterion | 此前增强 V0.2 | 本次确定 V0.3 |
 | --- | --- | --- | --- |
-| 用户入口 | 原版 Side Panel + CLI，内部工程平台视角 | Charterion 偏底层适配器，Controller 独立规划 | **Charterion 内建 PCP 管理/雷达控制台**，可供 PCP 上层复用，不另造第二套管理后台 |
+| 用户入口 | 原版 Side Panel + CLI，内部工程平台视角 | Charterion 偏底层适配器，Controller 独立规划 | **独立动态 HTML 雷达/控制台**，插件仅提供打开入口，Kernel 提供实时数据及受控操作 API，不把控制台写入 Side Panel |
 | 组织主轴 | ProjectCell/AgentSlot、内部任务 | 五固定角色与独立 Conversation | **项目优先**：项目内选择并配置角色会话；五种是角色类型而非五个全局唯一 Tab |
 | 任务/过程交接 | 内部 Task DAG / Work Authority / Git Workspaces | Git/EO/ES/CB 作正式权威 | **以 Git/GitHub/正式引用贯穿中间工程过程**，短消息触发角色自行读取 |
 | ChatGPT 上下文 | 内部 task prompt 组合 | 角色简短通知、Conversation 隔离 | **项目 × 角色按需取上下文**；不相互复制完整聊天记录；跨项目隔离 |
@@ -42,7 +43,7 @@
 PCP 整体治理（PCP Git：角色类型/角色契约/边界/全局授权）
                           │
                           ▼
-          Charterion 内置 PCP Controller / Radar
+   独立 HTML 页面：PCP Controller / Radar（由插件打开）
         项目选择 / 健康状态 / 手动锁定 / 参数配置 / 回执
                           │
                  project_id / role_id / work_ref
@@ -78,7 +79,7 @@ PCP 整体治理（PCP Git：角色类型/角色契约/边界/全局授权）
                          └──> Git 正式结果 + 雷达状态投影
 ```
 
-图是**职责模型**，不要求新建 6 个服务；第一期尽量复用 Kernel/SQLite/扩展与现有侧边栏。桌面雷达 UI 的具体技术（原生桌面容器/本地界面/复用现有 UI）在实现阶段比较；最终应是实际可操作的应用界面而非只读 HTML 文档。
+图是**职责模型**，不要求新增一套服务集群。控制台明确为**独立 HTML/CSS/JS 页面**，由本机 Charterion Kernel 提供同源静态页面和状态/受控操作接口，浏览器单独打开。Chrome 扩展只需要一个启动动作打开页面地址；既有 Side Panel 保留原版兼容与必要调试功能，**不开发完整雷达 UI**。HTML 页面必须是真实动态交互页面，不是仅演示数据的静态报告。
 
 ## 5. 项目中心的会话模型
 
@@ -131,7 +132,7 @@ PCP 整体治理（PCP Git：角色类型/角色契约/边界/全局授权）
 
 **正式工程中间过程走 Git** 不意味着把所有高频状态或密钥写入 Git。Git 是成果/决策/证据的权威来源之一，运行瞬态留 Kernel；CB/EO/ES 的已有专用权威仍有效。
 
-## 7. 内置雷达/控制台应有什么？
+## 7. 独立动态 HTML 雷达/控制台应有什么？
 
 ### 7.1 四级视图
 
@@ -140,7 +141,17 @@ PCP 整体治理（PCP Git：角色类型/角色契约/边界/全局授权）
 - **角色会话视图**：Role Version、Conversation 绑定、当前 Tab/页面/模型可得信息、投递/回复、锁定/恢复动作、最近一次读取的工作引用。
 - **运行与审计视图**：Kernel/Native Host/Chrome Profile/extension、连接健康、投递 attempt、错误原因、版本/重启/回滚证据。
 
-UI 应支持列表、按项目筛选、重要状态聚合、可追踪任务图或时间线、深度状态详情和手动操作。借鉴 Codex Radar/ChatCMD 的交互体验，但数据来自真实事件与正式工单引用；用户不希望仅生成一个静态 HTML 监控页。
+独立 HTML 页面应支持列表、按项目筛选、重要状态聚合、可追踪任务图或时间线、深度状态详情和手动操作。借鉴 Codex Radar/ChatCMD 的交互体验，页面数据来自真实事件与正式工单引用，并可定期刷新或通过事件推送更新；不能用模拟静态报表充当运行监控。Chrome 插件负责一键启动该页面，不承担页面渲染及状态编辑。
+
+### 7.4 面板运行形态与数据接口
+
+- **入口**：点击 Chrome 扩展工具栏的“打开 PCP 控制台”，执行 `chrome.tabs.create` 或等价动作，打开已验证的本机控制台地址（例如 `http://127.0.0.1:<configured_port>/pcp/`）。无需在扩展 Side Panel 构建控制面板。
+- **页面**：随 Charterion 分发独立的 HTML/CSS/JS 资产，可单独在浏览器标签页运行；状态数据由本机 Kernel 读取，调用已有或扩展的 Project/RoleBinding/Lock/Delivery/Runtime 投影接口；操作成功必须由 Kernel 返回新版本事实后才显示成功。
+- **本机传输**：第一版建议在**同一个 gamd 进程**中增加可选的回环 HTTP 服务，提供页面静态资源、经授权的只读状态接口与受控配置/锁定操作；不另建一个管理后台、任务数据库或跨机器服务。具体端口可配置；监听限 `127.0.0.1`，不可默认绑定 `0.0.0.0`。
+- **安全**：回环地址不是身份鉴别。面板操作需要实际认证、会话/CSRF 防护、Origin 校验、对危险 API 的授权、禁止凭 URL 携带长期 admin token；不可让网页 JS 获得 Kernel admin.token、Native Host 凭据或 Cookie。只读状态按权限最小化返回。
+- **断连**：Kernel 不可达则显示 OFFLINE/UNAVAILABLE；禁止缓存数据被误称为“实时”。锁定、解绑、派发等写操作有操作确认、审计、幂等/版本校验及失败反馈。
+
+
 
 ### 7.2 手动锁定语义（必须与实际观测分离）
 
@@ -177,7 +188,8 @@ UI 应支持列表、按项目筛选、重要状态聚合、可追踪任务图�
 | `src/background.ts`、`src/fleet.ts` | 改为按项目角色路由、绑定版本校验、锁定及来源一致性检查 | 发送/观察/周期 reconcile |
 | `src/bindingRegistry.ts` / `src/fleetTabRegistry.ts` | 长期 project-role-conversation 绑定与短期 tab 映射分离 | 原有 Browser 缓存及重启恢复 |
 | `src/chatgptAdapter.ts` / `src/content.ts` | 先修 ChatGPT 新页面 `unknown`，再可观察地投递/读回复 | DOM/Content Script 框架 |
-| `src/sidepanel.ts` + 新 UI 视图 | **直接扩展为 PCP Radar / Controller 操作入口**，先提供项目/会话/锁定/状态，再丰富图表 | 原版 Side Panel |
+| 独立 `dashboard/` HTML/CSS/JS + 同进程 gamd HTTP/API（候选路径，实施时确认目录） | **实现独立 PCP Radar / Controller 动态页面**；使用 Kernel 真实状态投影、读写鉴权与锁定操作 | 复用现有 Kernel/SQLite，避免另造管理后台 |
+| Chrome 扩展 action（`src/background.ts` / manifest） | **仅负责“打开控制台”入口**，打开本机已验证 URL；Side Panel 继续兼容原功能但不承载新 Radar | Chrome 标签管理及消息投递 |
 | `control/src/workAuthority.ts` / Task DAG | 仅留会话级投递事务/兼容，不提升为工程正式任务权威 | 现有 attempt、local recovery |
 | Native Host/config | 保障本地实例来源身份、权限/命名空间；不重复服务部署 | 原有 Native RPC 与 Kernel |
 | Git 接入/Role resolver | 解析项目工作引用、项目/角色白名单，角色自主读取或最小安全摘录 | 已有 Git/Worktree/授权能力中可用部分 |
@@ -189,7 +201,7 @@ UI 与项目模型可以并行设计，但**第一次真实消息闭环仍是里
 
 **I0 事实盘点**：核对当前源码、构建包、两 Draft PR、本机 Kernel/Native Host；建立实际可复用映射。旧环境不修改。
 
-**I1 项目控制骨架**：项目配置 + 项目角色会话索引 + 显式绑定/解绑 + `binding_lock/dispatch_lock/lifecycle_lock` 持久化；在 Charterion Side Panel/内置本地 UI 上看到、操作及审计。没有真实角色会话时明确 OFFLINE/UNBOUND。回归自动缩容超过 120s 不覆盖锁定。
+**I1 项目控制骨架**：项目配置 + 项目角色会话索引 + 显式绑定/解绑 + `binding_lock/dispatch_lock/lifecycle_lock` 持久化；在**独立动态 HTML 控制台**上看到、操作及审计，由 Chrome 插件提供打开入口。没有真实角色会话时明确 OFFLINE/UNBOUND。回归自动缩容超过 120s 不覆盖锁定。
 
 **I2 单 WebGPT 真实闭环**：修 DOM `unknown`、canonical Conversation 身份、错误会话拒发；项目/角色/工作引用短通知到正确网页，一次发送与回复，结果/证据状态可见；非前台发送和不确定重试测试。
 
@@ -209,7 +221,7 @@ UI 与项目模型可以并行设计，但**第一次真实消息闭环仍是里
 
 ## 11. 尚待实测/实现期决定
 
-- 具体 UI 容器和技术选型；是否复用原生 Side Panel 并增加独立可展开控制窗口。
+- **页面载体已经确认是独立动态 HTML，不使用 Side Panel 承载**；待实现时只确认同进程回环 HTTP 接口的具体路径、鉴权交互、前端技术细节和状态推送方式。
 - 项目级角色会话是否需要多会话/多浏览器实例、以及 `session_key` 的最终 schema。
 - WebGPT 从 GitHub 直接读取的真实能力、工具权限、无权限时的最小引用/摘要 fallback；不能假设所有登录对话都自动连接 GitHub。
 - 哪些“工作草稿”确实需要 Git 提交，哪些只是未完成的暂时记录；不可把瞬态日志塞到 Git。
