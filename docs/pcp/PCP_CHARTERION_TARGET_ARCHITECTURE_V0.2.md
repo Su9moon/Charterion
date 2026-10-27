@@ -1,5 +1,8 @@
 # PCP × Charterion｜目标架构、接口及模块改造设计 V0.2
 
+> **历史版本提示（2026-10-27）**：用户已确认新目标架构 [V0.3：项目中心、内置 Radar/Controller、Git 交接与手动锁定](PCP_CHARTERION_TARGET_ARCHITECTURE_V0.3.md)。本 V0.2 仍保留为调整前设计记录，控制面板单独规划、角色实例只按全局处理等与 V0.3 不一致之处，以 V0.3 为准。
+
+
 - **状态**：APPROVED DESIGN SCOPE / IMPLEMENTATION PENDING（本次确定“要做什么、职责、约束及验收”；具体代码/API shape 仍须通过测试确定）
 - **日期**：2026-10-27；**工程仓**：`Su9moon/Charterion`；**设计分支**：`pcp/role-session-enhancement-v0.1`
 - **上位约束**：PCP 主仓 `governance/baselines/PCP_WEBGPT_ROLE_ORGANIZATION_V0.2_FIXED.md`；非冲突部分沿用 V0.1 多对话基线；EO/ES/CB 权威不变。
