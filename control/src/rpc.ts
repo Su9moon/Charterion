@@ -21,14 +21,24 @@ export class RpcRouter {
 
   constructor(
     private readonly plane: ControlPlane,
-    adminToken: string,
+    private readonly adminToken: string,
     private readonly browserToken: string,
     private readonly instanceId?: string,
+    private readonly radarUrl?: () => string | undefined,
   ) {
     this.legacy = new LegacyRpcRouter(plane, adminToken, browserToken, instanceId);
   }
 
   handle(request: RpcRequest): RpcResponse {
+    if (request?.method === 'radar.open') {
+      const id = typeof request.id === 'string' ? request.id : 'unknown';
+      if (this.instanceId && request.instanceId !== this.instanceId) return failure(id, 'INSTANCE_MISMATCH', 'RPC instance mismatch');
+      const auth = request.auth;
+      if (!(auth?.adminToken && safeEqual(auth.adminToken, this.adminToken)) && !(auth?.browserToken && safeEqual(auth.browserToken, this.browserToken)))
+        return failure(id, 'UNAUTHORIZED', 'Radar discovery authentication required');
+      const url = this.radarUrl?.();
+      return url ? { id, ok: true, result: { url } } : failure(id, 'UNAVAILABLE', '状态雷达未启用，请在此 Kernel 启动时设置 GAM_RADAR_PORT=0');
+    }
     if (request?.method !== 'work.batch-mutate') return this.legacy.handle(request);
     const id = typeof request?.id === 'string' && request.id ? request.id : 'unknown';
     try {

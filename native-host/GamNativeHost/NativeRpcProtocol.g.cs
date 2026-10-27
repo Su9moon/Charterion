@@ -10,6 +10,7 @@ internal static class NativeRpcProtocol
     public static readonly HashSet<string> AllowedMethods = new(StringComparer.Ordinal)
     {
         "health",
+        "radar.open",
         "control.snapshot",
         "browser.report",
         "browser.status",

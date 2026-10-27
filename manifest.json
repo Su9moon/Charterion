@@ -17,7 +17,7 @@
     "service_worker": "dist/background.js"
   },
   "action": {
-    "default_title": "Open Charterion"
+    "default_title": "打开控制台"
   },
   "side_panel": {
     "default_path": "dist/sidepanel.html"

@@ -264,6 +264,7 @@ export type ManagerRequest =
   | { type: 'manager:skip-task'; taskId: string; reason?: string }
   | { type: 'manager:cancel-task'; taskId: string; reason?: string }
   | { type: 'manager:control-snapshot' }
+  | { type: 'manager:open-console' }
   | { type: 'manager:export-state' }
   | { type: 'manager:import-state'; document: string }
   | { type: 'manager:set-supervisor-enabled'; enabled: boolean }

@@ -26,6 +26,8 @@ import { RUNTIME_POLICY } from './runtimePolicy';
 import { ensureAutomationAlarms, isAutomationAlarm } from './runtimeAutomation';
 import { controlFeedbackMessages } from './controlFeedback';
 import { ContentRuntimeFence } from './contentRuntimeFence';
+import { readNativeRadarUrl } from './nativeControl';
+import { validatedRadarUrl } from './radarLauncher';
 import { browserOperationPolicy } from './browserOperationPolicy';
 import { createBindingRegistry } from './bindingRegistry';
 import { recoveryStateForTab, snapshotForTab } from './contentRuntimeBridge';
@@ -694,6 +696,13 @@ async function notifyManagerChanged(): Promise<void> {
 }
 
 chrome.runtime.onMessage.addListener((message: ManagerRequest | RuntimeNotice, sender, sendResponse) => {
+  if (message.type === 'manager:open-console') {
+    if (sender.id !== chrome.runtime.id || !sender.url?.startsWith(chrome.runtime.getURL(''))) {
+      sendResponse({ ok: false, error: 'Console launch requires the extension UI' }); return false;
+    }
+    void openConsole().then(() => sendResponse({ ok: true })).catch(error => sendResponse({ ok: false, error: String(error) }));
+    return true;
+  }
   if (message.type === 'content:changed') {
     const tabId = sender.tab?.id;
     if (tabId === undefined || !contentRuntimeFence.observe(tabId, message.observation)) return false;
@@ -858,7 +867,19 @@ chrome.runtime.onMessage.addListener((message: ManagerRequest | RuntimeNotice, s
   return false;
 });
 
-void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch((error) => reportIncident('side-panel-configuration-failed', 'extension', { error: String(error) }));
+async function openConsole(): Promise<void> {
+  const url = validatedRadarUrl(await readNativeRadarUrl());
+  await chrome.tabs.create({ url });
+}
+void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch((error) => reportIncident('side-panel-configuration-failed', 'extension', { error: String(error) }));
+chrome.action.onClicked.addListener(() => {
+  void openConsole().then(async () => {
+    await chrome.action.setBadgeText({ text: '' }); await chrome.action.setTitle({ title: '打开控制台' });
+  }).catch(async () => {
+    await chrome.action.setBadgeText({ text: '!' });
+    await chrome.action.setTitle({ title: '控制台不可用：请检查 Native Host，并以 GAM_RADAR_PORT=0 启动 Kernel' });
+  });
+});
 chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
   if (tab.url?.startsWith('https://chatgpt.com/') && (changeInfo.status === 'complete' || changeInfo.url !== undefined)) {
     void notifyManagerChanged();

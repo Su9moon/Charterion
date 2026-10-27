@@ -11,6 +11,7 @@ export {
 export type { NativeRpcMethod, NativeRpcDomain } from './nativeRpcProtocol.generated';
 export {
   readNativeControlSnapshot,
+  readNativeRadarUrl,
   reportNativeBrowserRuntime,
   reportNativeAgentBrowser,
   requestNativeAgentRollover,
