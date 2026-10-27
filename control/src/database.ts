@@ -789,6 +789,23 @@ export class ControlDatabase {
     });
   }
 
+  /** Additive PCP project controls: existing installations remain in legacy elastic mode. */
+  private migrateV28(): void {
+    this.transaction(() => {
+      this.db.exec(`
+        CREATE TABLE IF NOT EXISTS pcp_project_fleet_controls (
+          project_id TEXT PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+          mode TEXT NOT NULL CHECK(mode IN ('elastic','controlled')),
+          lifecycle_locked INTEGER NOT NULL DEFAULT 0 CHECK(lifecycle_locked IN (0,1)),
+          revision INTEGER NOT NULL CHECK(revision > 0),
+          actor TEXT NOT NULL,
+          reason TEXT NOT NULL,
+          updated_at INTEGER NOT NULL
+        ) STRICT;
+      `);
+    });
+  }
+
   private createConversationContinuityTables(): void {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS agent_conversations (

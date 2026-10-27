@@ -31,6 +31,8 @@ import type {
   IssuedCapability,
   ProjectCell,
   ProjectStatus,
+  PcpFleetMode,
+  PcpProjectFleetControl,
   ResourceKind,
   ResourceLease,
   ResourceRecord,
@@ -201,7 +203,15 @@ export class ControlPlane {
     this.findings = new FindingAuthority(database);
     this.reviewPool = new ReviewPoolAuthority(database);
     this.organizationExecution = new OrganizationExecutionBridge(database, this.organization, this.work);
-    this.organizationRuntime = new OrganizationRuntimeAcquisitionAuthority(database, this.organization, (projectId, role, now) => this.createAgentSlot(projectId, role, now));
+    this.organizationRuntime = new OrganizationRuntimeAcquisitionAuthority(database, this.organization, (projectId, role, now) => {
+      // Organization intake/review recovery can acquire runtime without going
+      // through the Fleet RPCs. Reuse is safe; new capacity needs manual intent.
+      const control = this.getPcpProjectFleetControl(projectId);
+      if (control.mode === 'controlled' || control.lifecycleLocked) {
+        throw new Error('Cannot automatically create an AgentSlot in a controlled or lifecycle-locked PCP project');
+      }
+      return this.createAgentSlot(projectId, role, now);
+    });
     this.autonomousIntake = new AutonomousIntakeAuthority(this);
     this.organizationWorkflow = new OrganizationWorkflowCoordinator(database, this.changes, this.reviewPool, this.organization, this.organizationRuntime, this.organizationExecution, this.promotions, gitPath);
   }
@@ -540,6 +550,75 @@ export class ControlPlane {
     });
   }
 
+  /**
+   * Legacy projects without a row remain elastic. A controlled PCP project is
+   * never autonomously spawned, resumed, or suspended by Elastic Fleet.
+   * This is separate from the explicit administrative AgentSlot lifecycle.
+   */
+  getPcpProjectFleetControl(projectId: string): PcpProjectFleetControl {
+    this.requireProject(projectId);
+    const row = this.database.db.prepare(
+      'SELECT * FROM pcp_project_fleet_controls WHERE project_id=?'
+    ).get(projectId) as Row | undefined;
+    if (!row) return { projectId, mode: 'elastic', lifecycleLocked: false, revision: 0 };
+    return {
+      projectId,
+      mode: String(row.mode) as PcpFleetMode,
+      lifecycleLocked: Number(row.lifecycle_locked) === 1,
+      revision: Number(row.revision),
+      updatedAt: Number(row.updated_at),
+      actor: String(row.actor),
+      reason: String(row.reason),
+    };
+  }
+
+  listPcpProjectFleetControls(): PcpProjectFleetControl[] {
+    return this.listProjects().map((project) => this.getPcpProjectFleetControl(project.id));
+  }
+
+  setPcpProjectFleetControl(
+    projectId: string,
+    update: { mode?: PcpFleetMode; lifecycleLocked?: boolean; expectedRevision: number; actor: string; reason: string },
+    now = Date.now(),
+  ): PcpProjectFleetControl {
+    if (!Number.isInteger(update.expectedRevision) || update.expectedRevision < 0) {
+      throw new Error('expectedRevision must be a non-negative integer');
+    }
+    const actor = nonEmpty(update.actor, 'Fleet control actor');
+    const reason = nonEmpty(update.reason, 'Fleet control reason');
+    if (update.mode !== undefined && update.mode !== 'elastic' && update.mode !== 'controlled') {
+      throw new Error('Fleet mode is invalid');
+    }
+    if (update.lifecycleLocked !== undefined && typeof update.lifecycleLocked !== 'boolean') {
+      throw new Error('lifecycleLocked must be a boolean');
+    }
+    if (update.mode === undefined && update.lifecycleLocked === undefined) {
+      throw new Error('At least one fleet control setting is required');
+    }
+    return this.database.transaction(() => {
+      const before = this.getPcpProjectFleetControl(projectId);
+      if (before.revision !== update.expectedRevision) {
+        throw new Error(`Fleet control revision conflict for project ${projectId}: expected ${update.expectedRevision}, got ${before.revision}`);
+      }
+      const mode = update.mode ?? before.mode;
+      const lifecycleLocked = update.lifecycleLocked ?? before.lifecycleLocked;
+      if (mode === before.mode && lifecycleLocked === before.lifecycleLocked) return before;
+      const revision = before.revision + 1;
+      this.database.db.prepare(`
+        INSERT INTO pcp_project_fleet_controls(project_id,mode,lifecycle_locked,revision,actor,reason,updated_at)
+        VALUES(?,?,?,?,?,?,?)
+        ON CONFLICT(project_id) DO UPDATE SET
+          mode=excluded.mode, lifecycle_locked=excluded.lifecycle_locked,
+          revision=excluded.revision, actor=excluded.actor, reason=excluded.reason,
+          updated_at=excluded.updated_at
+      `).run(projectId, mode, Number(lifecycleLocked), revision, actor, reason, now);
+      this.event(projectId, 'PCP_PROJECT_FLEET_CONTROL_CHANGED', projectId,
+        { from: { mode: before.mode, lifecycleLocked: before.lifecycleLocked, revision: before.revision },
+          to: { mode, lifecycleLocked, revision }, actor, reason }, now);
+      return this.getPcpProjectFleetControl(projectId);
+    });
+  }
+
   reconcileElasticFleet(now = Date.now(), idleGraceMs?: number): ElasticFleetDecision[] {
     const work = this.work.snapshot();
     const agents = this.listAgentSlots();
@@ -549,6 +628,8 @@ export class ControlPlane {
     const unsettledBrowserSlotIds = new Set(unsettledRows.map((row) => String(row.slot_id)));
     const decisions: ElasticFleetDecision[] = [];
     for (const project of this.listProjects()) {
+      const control = this.getPcpProjectFleetControl(project.id);
+      if (control.mode === 'controlled' || control.lifecycleLocked) continue;
       const planned = planElasticFleet({ project, agents, work, activeLeaseHolderIds, unsettledBrowserSlotIds, now, ...(idleGraceMs === undefined ? {} : { idleGraceMs }) });
       for (const decision of planned) {
         if (decision.kind === 'suspend') {

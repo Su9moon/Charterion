@@ -15,6 +15,7 @@ import type {
   UpdateChangeRequestInput,
   LeaseMode,
   ProjectStatus,
+  PcpFleetMode,
   RegisterArtifactInput,
   ResourceKind,
   SubmitClaimInput,
@@ -30,6 +31,7 @@ import type {
 
 const ISOLATION_TIERS = ['c0-host', 'c1-container', 'c2-hypervisor', 'c3-ephemeral-vm'] as const;
 const PROJECT_STATUSES = ['active', 'draining', 'paused', 'archived'] as const;
+const PCP_FLEET_MODES = ['elastic', 'controlled'] as const;
 const RESOURCE_KINDS = ['workspace','repo','branch','server','gpu','port','service','database','dataset','browser-capacity','remote-lane'] as const;
 const LEASE_MODES = ['shared', 'exclusive'] as const;
 const ARTIFACT_KINDS = ['file','test-log','report','git-bundle','other'] as const;
@@ -131,6 +133,8 @@ export class RpcRouter {
       case 'project.create': return this.projectCreate(request, params);
       case 'project.list': this.requireBrowserOrAdmin(request); return this.plane.listProjects();
       case 'project.status': return this.projectStatus(request, params);
+      case 'project.fleet-control-get': this.requireBrowserOrAdmin(request); return this.plane.getPcpProjectFleetControl(stringParam(params, 'projectId')!);
+      case 'project.fleet-control-set': return this.projectFleetControlSet(request, params);
       case 'agent.create':
       case 'agent.spawn': return this.agentCreate(request, params);
       case 'agent.list': return this.agentList(request, params);
@@ -198,9 +202,37 @@ export class RpcRouter {
     );
   }
 
+  private projectFleetControlSet(request: RpcRequest, params: Record<string, unknown>): unknown {
+    this.requireAdmin(request);
+    const mode = enumParam<PcpFleetMode>(params, 'mode', PCP_FLEET_MODES, true);
+    const lifecycleLocked = params.lifecycleLocked;
+    if (lifecycleLocked !== undefined && typeof lifecycleLocked !== 'boolean') {
+      throw new Error('lifecycleLocked must be a boolean');
+    }
+    const expectedRevision = numberParam(params, 'expectedRevision')!;
+    return this.plane.setPcpProjectFleetControl(stringParam(params, 'projectId')!, {
+      ...(mode === undefined ? {} : { mode }),
+      ...(lifecycleLocked === undefined ? {} : { lifecycleLocked }),
+      expectedRevision,
+      actor: stringParam(params, 'actor')!,
+      reason: stringParam(params, 'reason')!,
+    });
+  }
+
+  private requirePcpFleetOperationAllowed(request: RpcRequest, projectId: string): void {
+    // Admin may explicitly operate a controlled/locked project. A scoped fleet
+    // capability cannot bypass PCP's manual lifecycle intent.
+    if (request.auth?.adminToken) return;
+    const control = this.plane.getPcpProjectFleetControl(projectId);
+    if (control.mode === 'controlled' || control.lifecycleLocked) {
+      throw new Error('PCP project fleet is controlled or lifecycle-locked');
+    }
+  }
+
   private agentCreate(request: RpcRequest, params: Record<string, unknown>): unknown {
     const projectId = stringParam(params, 'projectId')!;
     this.requireFleetAuthority(request, projectId);
+    this.requirePcpFleetOperationAllowed(request, projectId);
     return this.plane.createAgentSlot(projectId, stringParam(params, 'role')!);
   }
   private agentList(request: RpcRequest, params: Record<string, unknown>): unknown {
@@ -219,18 +251,21 @@ export class RpcRouter {
   private agentSuspend(request: RpcRequest, params: Record<string, unknown>): unknown {
     const slot = this.plane.getAgentSlot(stringParam(params, 'slotId')!);
     this.requireFleetAuthority(request, slot.projectId);
+    this.requirePcpFleetOperationAllowed(request, slot.projectId);
     return this.plane.suspendAgentSlot(slot.id);
   }
 
   private agentResume(request: RpcRequest, params: Record<string, unknown>): unknown {
     const slot = this.plane.getAgentSlot(stringParam(params, 'slotId')!);
     this.requireFleetAuthority(request, slot.projectId);
+    this.requirePcpFleetOperationAllowed(request, slot.projectId);
     return this.plane.resumeAgentSlot(slot.id);
   }
 
   private agentRetire(request: RpcRequest, params: Record<string, unknown>): unknown {
     const slot = this.plane.getAgentSlot(stringParam(params, 'slotId')!);
     this.requireFleetAuthority(request, slot.projectId);
+    this.requirePcpFleetOperationAllowed(request, slot.projectId);
     return this.plane.retireAgentSlot(slot.id);
   }
 
