@@ -2,7 +2,7 @@
 
 > **当前入口**：2026-10-27 用户确认的 Charterion 增强架构 **V0.3**。设计基线与各工单实际结果分开记录；既有 Runtime 保留，本轮另建独立试运行实例。
 > **当前试运行**：[CH-PCP-006：Windows 集成试运行](reviews/CH-PCP-006-INTEGRATED-TRIAL-2026-10-27.md)。独立目录 `F:\0 codex\Charterion-PCP-Trial-006`，双击 `PCP-Start.cmd` 后由插件“打开控制台”；`PCP-Stop.cmd` 停止，`PCP-Diagnose.cmd` 诊断。独立 Host、数据和专用 Chrome Profile，验收结束已停止。项目管理边界见 [CH-PCP-005](reviews/CH-PCP-005-RADAR-CONTROLS-2026-10-27.md)，只读底座见 [CH-PCP-004](reviews/CH-PCP-004-READONLY-RADAR-2026-10-27.md)。
-> **后续断点**：[CH-PCP-007：Profile 检查与角色验收](reviews/CH-PCP-007-WEBGPT-ACCEPTANCE-2026-10-27.md)。原 Trial-006 已应用正常关闭 Chrome 的修复，复用原 Profile；目录/存储元数据和回归通过。实例可见运行，人工登录后的复用及消息验收尚未执行、保持暂停；不创建新登录 Profile。
+> **后续断点**：[CH-PCP-007：Profile 检查与角色验收](reviews/CH-PCP-007-WEBGPT-ACCEPTANCE-2026-10-27.md)。按用户最新指令改用现有 Chrome Dev，不再运行会启动 Chrome for Testing 的 `PCP-Start.cmd`。只读预检发现 Dev 旧插件仍指向另一 Host/实例；Trial Kernel 健康，测试角色尚无 Conversation 绑定。先核对旧扩展任务/绑定，再审阅同 ID 插件原位切换方案；配置尚未变更，消息验收暂停。不新建 Profile、不开启 CDP、不操作普通 Chrome。
 
 ## 最重要的设计结论
 
