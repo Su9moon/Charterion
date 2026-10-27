@@ -1,40 +1,59 @@
-# Charterion / PCP 专项增强：设计与开工入口
+# Charterion × PCP｜项目化角色协作、内置控制台和 Git 交接
 
-> **当前状态**：架构/部署/实施计划已形成设计基线；尚未完成本增强方案的编译、真实 WebGPT 自动投递及部署验收。  
-> **分支**：`pcp/role-session-enhancement-v0.1`。**不能以文档提交声明代码已上线。**
+> **当前入口**：2026-10-27 用户确认的 Charterion 增强架构 **V0.3**。代码改造与真实 E2E **尚未执行**；现有 main、Kernel/DB、Chrome Profile 和两个 Draft PR 未改变。  
+> **分支**：`pcp/role-session-enhancement-v0.1`。
 
-## 从这里开始读
+## 最重要的设计结论
 
-| 文档 | 作用 | 状态 |
+1. **项目中心**：PCP 保留五种固定职责类型，每个项目自行配置所需 WebGPT 角色会话（不强制配齐五个）；Conversation 按项目和角色显式绑定。
+2. **Charterion 内建 PCP 控制/雷达面板**：查看项目、会话、Git 工单、真实状态和可得的 Worker 指标；操作绑定、手动锁定、暂停/恢复和配置。先在 Side Panel/现有 Kernel 上增量实现，不再默认另建管理后台。
+3. **Git/GitHub 作为工程过程交接中心**：正式需求、方案、Workorder 引用、阶段成果、审查和证据留在对应项目 Git/Issue/PR（EO/ES/CB 原有权威保持）；不同角色之间只发送短 `work_ref`，各角色按授权独立读取自己需要的上下文。
+4. **可配置，但不能越权**：全局默认→项目→角色会话；人工绑定/派发/页面生命周期锁优先于自动策略。页面观测状态是真实数据，不因手动锁定伪造。
+5. **需要时才连接现有 CB**：Charterion 不重复实现 Codex Worker、通用任务队列或第二套 EO/ES。
+6. **不复制上下文**：权限按项目/角色/正式工作源执行；无 GitHub/MCP 工具权限则显式阻断或提供已授权最小摘要，不假定所有 WebGPT 都能直接操作 Git。
+
+## 当前文件（从上往下读）
+
+| 文档 | 内容 | 定位 |
 | --- | --- | --- |
-| [PCP_CHARTERION_ENHANCEMENT_BASELINE_V0.1.md](PCP_CHARTERION_ENHANCEMENT_BASELINE_V0.1.md) | 2026-10-27 原版研究结果与 PCP 适配范围、既定前提、未解问题 | 研究/目标基线 |
-| [PCP_CHARTERION_TARGET_ARCHITECTURE_V0.2.md](PCP_CHARTERION_TARGET_ARCHITECTURE_V0.2.md) | 角色身份、绑定、会话、事件、权限和责任边界；模块改动图 | 目标架构 |
-| [PCP_CHARTERION_DEPLOYMENT_ROLLBACK_V0.1.md](PCP_CHARTERION_DEPLOYMENT_ROLLBACK_V0.1.md) | Windows 本地开发/单实例受控部署/双实例隔离/备份和回滚 | 部署规范 |
-| [PCP_CHARTERION_IMPLEMENTATION_ACCEPTANCE_V0.1.md](PCP_CHARTERION_IMPLEMENTATION_ACCEPTANCE_V0.1.md) | CH-PCP-00～08 工单、P0～P4 阶段 Gate、验收矩阵 | **下一步执行入口** |
+| **[目标架构 V0.3](PCP_CHARTERION_TARGET_ARCHITECTURE_V0.3.md)** | 项目模型、内置 Radar/Controller、Git 角色上下文、手动锁、配置、接口和架构差异 | **当前权威设计** |
+| **[实施/验收 V0.2](PCP_CHARTERION_IMPLEMENTATION_ACCEPTANCE_V0.2.md)** | CH-PCP-00～09、迭代次序、源码候选和实际 E2E Gate | **当前开工入口** |
+| **[部署蓝图 V0.2](PCP_CHARTERION_DEPLOYMENT_V0.2.md)** | Windows 单机控制台、专用 Chrome、Kernel、Git/CB 连接和部署步骤 | 当前部署设计 |
+| [部署/回滚规范 V0.1](PCP_CHARTERION_DEPLOYMENT_ROLLBACK_V0.1.md) | 旧运行环境、Native Host HKCU、备份和回滚保护 | 仍生效 |
+| [增强研究 V0.1](PCP_CHARTERION_ENHANCEMENT_BASELINE_V0.1.md) | 原版已验能力和未确证问题 | 历史研究及不冲突边界 |
+| [架构 V0.2](PCP_CHARTERION_TARGET_ARCHITECTURE_V0.2.md) | 原先偏“底层 Session Adapter、外部 UI”的方案 | **被 V0.3 修改的旧版** |
+| [实施/验收 V0.1](PCP_CHARTERION_IMPLEMENTATION_ACCEPTANCE_V0.1.md) | 旧次序和已研究的局部任务 | 历史参考 |
 
-## 已确定的三条不可突破的边界
+## 一条最短的真实工作链
 
-1. PCP Controller 是控制面板，不是第六个 WebGPT Agent；五个 WebGPT 核心逻辑角色的定义来自 [PCP V0.2 固定基线](https://github.com/Su9moon/personal-ai-control-plane/blob/main/governance/baselines/PCP_WEBGPT_ROLE_ORGANIZATION_V0.2_FIXED.md)，不由 Charterion 创建或重定义。
-2. Charterion 是**会话/角色/投递运行适配器**，正式工程工单与证据以 GitHub/Engineering Operations/Execution Server 语义/现有 Codex Bridge 为准，不再建设同类工作流调度器。
-3. 角色与 Conversation 的长期绑定不等于 Tab ID；测试策略允许 pin 页，但最终支持断线保留、按授权恢复；拒绝未授权改绑、错误会话发送、盲重发真实工具动作。
+```text
+用户在 Charterion 管理面板选项目 / 授权
+  → 根据 ProjectConfig 找到 RoleSession
+  → 向该 WebGPT 对话发送短工作引用
+  → 角色按工具权限自行打开对应 Git Issue/文件
+  → 在 Git 留下方案/阶段结果/证据
+  → 事件通知下一个具权限的角色
+  → 必要时 Execution Coordinator 调用 CB/Codex
+  → 原始 Git/CB 回执和状态投影返回 Charterion 雷达
+  → 人工可随时锁定/接管
+```
 
-## 实施者第一条指令
+Git 管正式工程事实与成果；Kernel/SQLite 管项目配置、绑定、锁、浏览器租约、消息投递和状态记录。不要让每次心跳触发 Git commit，不在 Git 保存 token/Cookie/全量聊天文本。
 
-**先完成 CH-PCP-00：只读确定源码/已安装 Extension/Native Host/Kernel 的精确版本与两个既有 Draft PR 的代码差异，输出 REUSE/MODIFY/SUPPRESS/DO-NOT-DUPLICATE 映射。** 然后从 CH-PCP-01/02 开始独立小补丁，逐项通过单测及原生 Chrome E2E。不要再次绕回“把原版 Elastic Fleet 整套跑通”。
+## 真正开始编码
 
-## 部署保护
+1. **CH-PCP-00**：对齐真实本机运行包与代码/既有 PR #1/#2，源代码只读清点。
+2. **CH-PCP-01～03**：项目化绑定、手动锁/策略、内置最小可用项目/角色雷达。
+3. **CH-PCP-04**：一次真实正确会话的 ChatGPT 消息/回复闭环。
+4. **CH-PCP-05～06**：Git 正式引用/按角色读取，三 WebGPT 交接及项目隔离。
+5. **CH-PCP-07～09**：按需 CB、Reviewer、恢复和 Radar/Operations 深化。
 
-- 现有 `GAM_HOME`、Chrome Profile、AgentSlot、历史 Conversation 和 Git 工作目录不做重置。
-- 新工作树做源码开发，不通过 `setup-windows.ps1 -NoStart` 安装平行 Host：该操作仍会改当前用户注册表。
-- 新代码在真实 Windows 单活环境应用前，须完成受控快照、准确归属检查、迁移与回滚评估。
-- 双实例同时工作先解决 Host 命名空间/来源冲突，**不是只建第二个 Chrome Profile 就能解决**。
-- 任何验收状态以真实回执写明 `PASS / FAIL / BLOCKED / NOT_RUN`，Git 文档不等于运行成功。
+不得以文件提交、UI mockup、单元测试通过冒充 WebGPT 真实运行。原有 AgentSlot、历史会话和主机 Host 注册表不能清理/覆盖；本地升级必须遵循部署文档。
 
-## 既有代码和证据
+## 上游链接
 
-- [Charterion fork](https://github.com/Su9moon/Charterion)
-- [Draft PR #1：ChatGPT DOM](https://github.com/Su9moon/Charterion/pull/1)
-- [Draft PR #2：conversation-fenced routing](https://github.com/Su9moon/Charterion/pull/2)
-- [PCP 仓研究记录](https://github.com/Su9moon/personal-ai-control-plane/blob/research/charterion-facts-20261027/assets/candidates/2026-10-27-charterion-research-facts.md)
+- [PCP 角色 V0.2 FIXED](https://github.com/Su9moon/personal-ai-control-plane/blob/main/governance/baselines/PCP_WEBGPT_ROLE_ORGANIZATION_V0.2_FIXED.md)
+- [Charterion Draft PR #1](https://github.com/Su9moon/Charterion/pull/1) / [#2](https://github.com/Su9moon/Charterion/pull/2)
+- [Charterion 研究冻结事实](https://github.com/Su9moon/personal-ai-control-plane/blob/research/charterion-facts-20261027/assets/candidates/2026-10-27-charterion-research-facts.md)
 
-**完成代码与实测前，本文所有实施状态均 NOT_RUN。**
+**状态**：V0.3 用户需求方向确认；研发和部署 NOT_RUN。
