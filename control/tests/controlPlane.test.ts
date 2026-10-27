@@ -197,6 +197,7 @@ describe('supervisor-managed agent fleet lifecycle', () => {
     const second = plane.createAgentSlot(project.id, 'ROLE02', 3);
     expect(first).toMatchObject({ desiredState: 'active', browserState: 'absent', status: 'idle' });
     expect(() => plane.createAgentSlot(project.id, 'ROLE03', 4)).toThrow(/maxSlots/i);
+    plane.bindAgentConversation(first.id, 'conversation:first', 4);
 
     const opening = plane.reportAgentBrowser({ slotId: first.id, profileId: 'gam-default', browserState: 'opening', tabId: 10 }, 5);
     expect(opening).toMatchObject({ desiredState: 'active', browserState: 'opening', browserTabId: 10 });

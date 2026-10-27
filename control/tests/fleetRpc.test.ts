@@ -30,6 +30,7 @@ describe('Supervisor fleet authority', () => {
     expect(spawned.ok).toBe(true);
     if (!spawned.ok) return;
     const slot = spawned.result as { id: string };
+    h.plane.bindAgentConversation(slot.id, 'conversation:worker-1');
 
     const browserOpen = h.router.handle({ id: 'b', method: 'agent.browser-report', auth: { browserToken: 'browser' }, params: {
       slotId: slot.id, profileId: 'gam-default', browserState: 'open', tabId: 33, conversationKey: 'conversation:worker-1', observedAt: Date.now(),

@@ -449,6 +449,7 @@ export class ControlPlane {
     const key = canonicalConversationKey(conversationKey);
     return this.database.transaction(() => {
       const slot = this.getAgentSlot(slotId);
+      this.assertConversationProject(slot, key);
       const project = this.requireProject(slot.projectId);
       if (project.status === 'archived') throw new Error('Cannot bind an agent in an archived project');
       if (slot.desiredState !== 'active') throw new Error('Cannot bind a non-active agent slot');
@@ -489,6 +490,62 @@ export class ControlPlane {
     const slot = this.getAgentSlot(slotId); const project = this.requireProject(slot.projectId);
     if (project.status !== 'active' || slot.desiredState !== 'active') throw new Error('Conversation rollover requires an active project and AgentSlot');
     return this.conversations.request(slot, reason, handoffText, state, now);
+  }
+
+  private assertConversationProject(slot: AgentSlot, key: string): void {
+    // Historical identities count too: a closed/retired conversation must not
+    // become another project's context merely because its tab disappeared.
+    const conflict = this.database.db.prepare(`
+      SELECT project_id FROM agent_slots WHERE conversation_key=? AND project_id<>?
+      UNION ALL SELECT project_id FROM agent_conversations WHERE conversation_key=? AND project_id<>?
+      LIMIT 1
+    `).get(key, slot.projectId, key, slot.projectId);
+    if (conflict) throw new Error('Conversation belongs to another project');
+  }
+
+  authorizeConversationBootstrap(input: {
+    slotId: string; projectId: string; role: string; expectedLeaseEpoch: number;
+    profileId: string; tabId: number; provisionalKey: string; actor: string; reason: string;
+  }, now = Date.now()): void {
+    if (!/^provisional:[^\s]+$/.test(input.provisionalKey)) throw new Error('A scoped provisional Conversation key is required');
+    const actor = nonEmpty(input.actor, 'Bootstrap actor');
+    const reason = nonEmpty(input.reason, 'Bootstrap reason');
+    this.database.transaction(() => {
+      const slot = this.getAgentSlot(input.slotId);
+      if (slot.projectId !== input.projectId || slot.role !== input.role) throw new Error('Bootstrap project/role does not match AgentSlot');
+      if (this.requireProject(slot.projectId).status !== 'active') throw new Error('Bootstrap requires an active project');
+      if (slot.leaseEpoch !== input.expectedLeaseEpoch) throw new Error('Bootstrap lease epoch conflict');
+      if (slot.conversationKey || slot.desiredState !== 'active' || slot.rolloverState !== 'idle' || !slot.browserLeaseId ||
+          !['open','opening'].includes(slot.browserState) || slot.browserTabId !== input.tabId || slot.browserProfileId !== input.profileId) {
+        throw new Error('Bootstrap requires an unbound active AgentSlot at its leased browser address');
+      }
+      this.database.db.prepare(`INSERT INTO conversation_bootstrap_authorizations
+        (slot_id,lease_epoch,browser_lease_id,profile_id,tab_id,provisional_key,actor,reason,authorized_at,expires_at,consumed_key)
+        VALUES(?,?,?,?,?,?,?,?,?,?,NULL)
+        ON CONFLICT(slot_id) DO UPDATE SET lease_epoch=excluded.lease_epoch,browser_lease_id=excluded.browser_lease_id,
+          profile_id=excluded.profile_id,tab_id=excluded.tab_id,provisional_key=excluded.provisional_key,
+          actor=excluded.actor,reason=excluded.reason,authorized_at=excluded.authorized_at,expires_at=excluded.expires_at,consumed_key=NULL
+      `).run(slot.id, slot.leaseEpoch, slot.browserLeaseId, input.profileId, input.tabId, input.provisionalKey, actor, reason, now, now + 600_000);
+      this.event(slot.projectId, 'CONVERSATION_BOOTSTRAP_AUTHORIZED', slot.id,
+        { role: slot.role, provisionalKey: input.provisionalKey, tabId: input.tabId, actor, reason, leaseEpoch: slot.leaseEpoch }, now);
+    });
+  }
+
+  private consumeConversationBootstrap(slot: AgentSlot, input: ReportAgentBrowserInput, key: string, now: number): void {
+    const grant = this.database.db.prepare('SELECT * FROM conversation_bootstrap_authorizations WHERE slot_id=?').get(slot.id) as Row | undefined;
+    if (!grant || grant.consumed_key || Number(grant.expires_at) < now || Number(grant.authorized_at) > now ||
+        Number(grant.lease_epoch) !== slot.leaseEpoch || grant.browser_lease_id !== slot.browserLeaseId ||
+        grant.profile_id !== input.profileId || Number(grant.tab_id) !== input.tabId || input.browserState !== 'open') {
+      throw new Error('First canonical Conversation requires explicit bootstrap authorization at the current leased tab');
+    }
+    const attempt = this.database.db.prepare(`SELECT id FROM browser_operations WHERE slot_id=? AND operation='prompt.send'
+      AND tab_id=? AND conversation_key=? AND planned_at>=? AND content_epoch=?
+      AND (state='dispatched' OR (state='settled' AND outcome IN ('acknowledged','uncertain','reply-observed')))
+      LIMIT 1`).get(slot.id, input.tabId!, String(grant.provisional_key), Number(grant.authorized_at), slot.browserContentEpoch ?? '') as { id?: string } | undefined;
+    if (!attempt) throw new Error('First canonical Conversation requires a dispatched bootstrap prompt for the authorized provisional identity');
+    this.database.db.prepare('UPDATE conversation_bootstrap_authorizations SET consumed_key=? WHERE slot_id=?').run(key, slot.id);
+    this.event(slot.projectId, 'CONVERSATION_BOOTSTRAP_BOUND', slot.id,
+      { conversationKey: key, role: slot.role, attemptId: attempt.id, actor: grant.actor, reason: grant.reason }, now);
   }
 
   beginAgentConversationRollover(slotId: string, rolloverId: string, now = Date.now()) {
@@ -688,7 +745,7 @@ export class ControlPlane {
     });
   }
 
-  reportAgentBrowser(input: ReportAgentBrowserInput, now = input.observedAt ?? Date.now()): AgentSlot {
+  reportAgentBrowser(input: ReportAgentBrowserInput, now = input.observedAt ?? Date.now(), authorizationNow = now): AgentSlot {
     const profileId = nonEmpty(input.profileId, 'Browser profile id');
     if (!['absent','opening','open','closing','error'].includes(input.browserState)) throw new Error('Agent browser state is invalid');
     if (input.tabId !== undefined && (!Number.isInteger(input.tabId) || input.tabId <= 0)) throw new Error('Agent browser tabId is invalid');
@@ -710,6 +767,7 @@ export class ControlPlane {
       let nextEpoch = slot.leaseEpoch;
       if (input.conversationKey) {
         const key = canonicalConversationKey(input.conversationKey);
+        this.assertConversationProject(slot, key);
         const organizationConversation = organizationAgent?.id ? this.agentContinuity.active(organizationAgent.id) : undefined;
         const activeRollover = this.conversations.activeRollover(slot.id);
         const organizationRolloverAllowed = Boolean(
@@ -723,6 +781,10 @@ export class ControlPlane {
         const conflict = this.database.db.prepare('SELECT id FROM agent_slots WHERE project_id=? AND conversation_key=? AND id<>?').get(slot.projectId, key, slot.id) as { id?: string } | undefined;
         if (conflict?.id) throw new Error(`Conversation ${key} is already bound inside project ${slot.projectId}`);
         if (!conversationKey) {
+          if (!activeRollover) this.consumeConversationBootstrap(slot, input, key, authorizationNow);
+          else if (!slot.browserLeaseId || slot.browserTabId !== input.tabId || slot.browserProfileId !== profileId || input.browserState !== 'open') {
+            throw new Error('Conversation rollover requires its current leased browser address');
+          }
           const accepted = this.conversations.acceptCanonical(slot, key, now);
           conversationKey = key; conversationGeneration = accepted.generation; nextEpoch += 1;
         }

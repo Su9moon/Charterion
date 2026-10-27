@@ -32,6 +32,8 @@ export interface ContentObservationIdentity {
 }
 
 export interface RoleBinding {
+  /** Stable Kernel project identity; the display name is not an authority key. */
+  projectId?: string;
   role: string;
   project: string;
   notes: string;

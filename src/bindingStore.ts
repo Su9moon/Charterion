@@ -7,9 +7,11 @@ type StorageArea = {
 
 export type BindingStores = {
   persistent: Record<string, RoleBinding>;
-  ephemeral: Record<string, RoleBinding>;
+  ephemeral: Record<string, TabBinding>;
   dirty: boolean;
 };
+
+export type TabBinding = RoleBinding & { provisionalKey?: string };
 
 export type BindingStore = ReturnType<typeof createBindingStore>;
 
@@ -23,7 +25,7 @@ type BindingKeys = {
   ephemeral: string;
 };
 
-function parseBinding(value: unknown): RoleBinding | undefined {
+function parseBinding(value: unknown): TabBinding | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   const item = value as Record<string, unknown>;
   if (typeof item.role !== 'string' || typeof item.project !== 'string' || typeof item.notes !== 'string') return undefined;
@@ -32,13 +34,15 @@ function parseBinding(value: unknown): RoleBinding | undefined {
     role: item.role,
     project: item.project,
     notes: item.notes,
+    ...(typeof item.projectId === 'string' ? { projectId: item.projectId } : {}),
+    ...(typeof item.provisionalKey === 'string' ? { provisionalKey: item.provisionalKey } : {}),
     ...(typeof item.agentSlotId === 'string' ? { agentSlotId: item.agentSlotId } : {}),
   };
 }
 
-function parseBindingMap(value: unknown): Record<string, RoleBinding> {
+function parseBindingMap(value: unknown): Record<string, TabBinding> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
-  const result: Record<string, RoleBinding> = {};
+  const result: Record<string, TabBinding> = {};
   for (const [key, raw] of Object.entries(value)) {
     const binding = parseBinding(raw);
     if (binding) result[key] = binding;
@@ -51,6 +55,7 @@ function sameBinding(left: RoleBinding | undefined, right: RoleBinding): boolean
     left &&
     left.role === right.role &&
     left.project === right.project &&
+    left.projectId === right.projectId &&
     left.notes === right.notes &&
     left.agentSlotId === right.agentSlotId,
   );
@@ -62,7 +67,7 @@ export function createBindingStore(storage: BindingStorage, keys: BindingKeys) {
     return parseBindingMap(stored[keys.persistent]);
   }
 
-  async function readEphemeral(): Promise<Record<string, RoleBinding>> {
+  async function readEphemeral(): Promise<Record<string, TabBinding>> {
     const stored = await storage.session.get(keys.ephemeral);
     return parseBindingMap(stored[keys.ephemeral]);
   }
@@ -82,15 +87,17 @@ export function createBindingStore(storage: BindingStorage, keys: BindingKeys) {
 
   function resolve(tabId: number, snapshot: ChatSnapshot, stores: BindingStores): RoleBinding {
     const durable = stores.persistent[snapshot.conversationKey];
-    if (durable) return durable;
     const temporary = stores.ephemeral[String(tabId)];
-    if (!temporary) return { ...EMPTY_BINDING };
-    if (snapshot.conversationId) {
-      stores.persistent[snapshot.conversationKey] = temporary;
-      delete stores.ephemeral[String(tabId)];
-      stores.dirty = true;
+    if (durable) {
+      if (temporary && (temporary.project !== durable.project || temporary.projectId !== durable.projectId || temporary.role !== durable.role || temporary.agentSlotId !== durable.agentSlotId)) return { ...EMPTY_BINDING };
+      return durable;
     }
-    return temporary;
+    if (!temporary) return { ...EMPTY_BINDING };
+    // Observation is never permission to persist or to follow navigation.
+    if (snapshot.conversationKey.startsWith('conversation:') ||
+        (temporary.provisionalKey && temporary.provisionalKey !== snapshot.conversationKey)) return { ...EMPTY_BINDING };
+    const { provisionalKey: _, ...binding } = temporary;
+    return binding;
   }
 
   async function persist(stores: BindingStores): Promise<void> {
@@ -99,18 +106,32 @@ export function createBindingStore(storage: BindingStorage, keys: BindingKeys) {
     stores.dirty = false;
   }
 
-  async function update(tabId: number, conversationKey: string, binding: RoleBinding): Promise<void> {
+  async function update(tabId: number, conversationKey: string, binding: RoleBinding, confirmedByKernel = false): Promise<void> {
     const tabKey = String(tabId);
     if (!conversationKey.startsWith('conversation:')) {
       const ephemeral = await readEphemeral();
-      if (sameBinding(ephemeral[tabKey], binding)) return;
-      ephemeral[tabKey] = binding;
+      if (sameBinding(ephemeral[tabKey], binding) && ephemeral[tabKey]?.provisionalKey === conversationKey) return;
+      ephemeral[tabKey] = { ...binding, provisionalKey: conversationKey };
       await writeEphemeral(ephemeral);
       return;
     }
 
     const [persistent, ephemeral] = await Promise.all([readPersistent(), readEphemeral()]);
-    const persistentChanged = !sameBinding(persistent[conversationKey], binding);
+    const existing = persistent[conversationKey];
+    const legacyProjection = confirmedByKernel && existing && !existing.projectId && existing.role === binding.role && existing.project === binding.project && existing.agentSlotId === binding.agentSlotId;
+    if (existing && !legacyProjection && (existing.role !== binding.role || existing.project !== binding.project || existing.projectId !== binding.projectId || existing.agentSlotId !== binding.agentSlotId)) {
+      throw new Error('Conversation already has a different project/role binding; explicit unbind is required');
+    }
+    let removedProjection = false;
+    for (const [key, current] of Object.entries(persistent)) {
+      if (key !== conversationKey && current.project === binding.project && current.projectId === binding.projectId && current.role === binding.role) {
+        if (!confirmedByKernel || !binding.agentSlotId || binding.agentSlotId !== current.agentSlotId) throw new Error('Project role already has a durable Conversation binding');
+        // A verified Kernel rollover changes only this Slot's local projection.
+        delete persistent[key];
+        removedProjection = true;
+      }
+    }
+    const persistentChanged = removedProjection || !sameBinding(persistent[conversationKey], binding);
     if (persistentChanged) persistent[conversationKey] = binding;
     const hadTemporary = Object.hasOwn(ephemeral, tabKey);
     if (hadTemporary) delete ephemeral[tabKey];

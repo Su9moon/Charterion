@@ -6,6 +6,26 @@ import { describe, expect, it } from 'vitest';
 import { CONTROL_SCHEMA_VERSION, ControlDatabase } from '../src/database';
 
 describe('control database migrations', () => {
+  it('adds V29 bootstrap authorizations without altering V28 project, role or Conversation rows', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'gam-db-v28-'));
+    const path = join(dir, 'global.db');
+    let db = new ControlDatabase(path);
+    try {
+      db.db.exec("DROP TABLE conversation_bootstrap_authorizations; UPDATE schema_meta SET value='28' WHERE key='schema_version';");
+      db.db.exec(`INSERT INTO projects VALUES('v28-project','Preserved','C:/v28','active','c0-host',0,2,1,1,1);
+        INSERT INTO agent_slots(id,project_id,role,status,desired_state,browser_state,conversation_key,created_at,updated_at)
+          VALUES('v28-slot','v28-project','chief_engineer','assigned','active','absent','conversation:v28',2,2);`);
+      const before = db.db.prepare('SELECT * FROM agent_slots').all();
+      const project = db.db.prepare('SELECT * FROM projects').all();
+      db.close();
+      db = new ControlDatabase(path);
+      expect(db.db.prepare('SELECT * FROM agent_slots').all()).toEqual(before);
+      expect(db.db.prepare('SELECT * FROM projects').all()).toEqual(project);
+      expect(db.db.prepare('SELECT * FROM conversation_bootstrap_authorizations').all()).toEqual([]);
+      expect(db.db.prepare("SELECT value FROM schema_meta WHERE key='schema_version'").get()).toMatchObject({ value: String(CONTROL_SCHEMA_VERSION) });
+      expect(db.health().ok).toBe(true);
+    } finally { db.close(); rmSync(dir, { recursive: true, force: true }); }
+  });
   it('derives the supported schema version from one contiguous migration registry', () => {
     const versions = Object.getOwnPropertyNames(ControlDatabase.prototype)
       .flatMap((name) => /^migrateV(\d+)$/.exec(name)?.[1] ?? [])

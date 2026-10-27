@@ -15,7 +15,7 @@ import type { AttemptRecoveryObservation } from './recovery';
 import { applyRestartRecovery, restartRecoveryCandidates } from './restartRecoveryPolicy';
 import { beginNativeAgentRollover, dispatchNativeBrowserOperation, planNativeBrowserOperation, mutateNativeWorkDocument, readNativeControlSnapshot, readNativeWorkSnapshot, replaceNativeWorkState, reportNativeAgentBrowser, reportNativeBrowserRuntime, reconcileNativeElasticFleet, settleNativeBrowserOperation } from './nativeControl';
 import { planFleetReconciliation, workerRequestMessage } from './fleet';
-import { bootstrapPendingConversationRollover, bootstrapReplyAttemptId, completeConversationRolloverForReply, requestAutomaticConversationRollover } from './conversationRollover';
+import { bootstrapPendingConversationRollover, bootstrapReplyAttemptId, completeConversationRolloverForReply } from './conversationRollover';
 import { deriveBrowserRuntimeObservation, fleetExpansionAllowed } from './browserRuntime';
 import { CoalescingRunner } from './coalescingRunner';
 import { ScheduledTrigger } from './scheduledTrigger';
@@ -29,7 +29,7 @@ import { ContentRuntimeFence } from './contentRuntimeFence';
 import { browserOperationPolicy } from './browserOperationPolicy';
 import { createBindingRegistry } from './bindingRegistry';
 import { recoveryStateForTab, snapshotForTab } from './contentRuntimeBridge';
-import { reportIncident, reportSlotRuntime, sha256Text } from './browserRuntimeReporting';
+import { confirmRoleBinding, reportIncident, reportSlotRuntime, sha256Text } from './browserRuntimeReporting';
 import { PROMPT_DISPATCH_GOVERNOR_KEY, PromptDispatchGovernor } from './promptDispatchGovernor';
 import {
   EMPTY_BINDING,
@@ -69,6 +69,7 @@ const promptDispatchGovernor = new PromptDispatchGovernor({
 const bindingRegistry = createBindingRegistry(
   { local: chrome.storage.local, session: chrome.storage.session },
   { persistent: BINDINGS_KEY, ephemeral: TAB_BINDINGS_KEY },
+  confirmRoleBinding,
 );
 
 
@@ -113,11 +114,12 @@ async function managedTabs(attempts?: readonly SendAttemptRecord[]): Promise<Man
     active: tab.active,
     snapshot: await snapshotForTab(tab),
   }));
-  return bindingRegistry.project((resolveBinding) => projectManagedTabs(observed, ledger, resolveBinding));
+  const bindings = new Map(await Promise.all(observed.map(async (item) => [item.tabId, await bindingFor(item.tabId, item.snapshot)] as const)));
+  return projectManagedTabs(observed, ledger, (tabId) => bindings.get(tabId) ?? { role: '', project: '', notes: '' });
 }
 
 async function updateBinding(tabId: number, conversationKey: string, binding: RoleBinding): Promise<void> {
-  await bindingRegistry.update(tabId, conversationKey, binding);
+  await bindingRegistry.update(tabId, conversationKey, binding, true);
 }
 
 async function prepareAttempt(
@@ -556,7 +558,8 @@ function scheduleBrowserRuntimeReport(): void {
 }
 
 async function clearFleetBinding(conversationKey: string | undefined, tabId: number | undefined): Promise<void> {
-  await bindingRegistry.clear(conversationKey, tabId);
+  // Closing a runtime tab does not revoke the durable project/role binding.
+  await bindingRegistry.clear(undefined, tabId);
 }
 
 async function syncWorkerRequestMessages(snapshot: import('./nativeControl').NativeControlSnapshot): Promise<void> {
@@ -637,8 +640,8 @@ async function reconcileAgentFleetOnce(): Promise<void> {
         if (tab.id === undefined) throw new Error(`Chrome did not return a tab id for agent slot ${agent.id}`);
         mapping[agent.id] = tab.id; await fleetTabs.write(mapping);
         const key = agent.conversationKey ?? `url:${action.url}`;
-        await updateBinding(tab.id, key, { role: agent.role, project: project.name, notes: `GAM fleet slot ${agent.id}`, agentSlotId: agent.id });
         await reportNativeAgentBrowser({ slotId: agent.id, profileId: 'gam-default', browserState: 'opening', tabId: tab.id, observedAt: Date.now() });
+        await updateBinding(tab.id, key, { role: agent.role, project: project.name, projectId: project.id, notes: `GAM fleet slot ${agent.id}`, agentSlotId: agent.id });
       } else if (action.kind === 'rollover-start') {
         await beginNativeAgentRollover(agent.id, action.rolloverId); scheduleFleetReconcile(0);
       } else if (action.kind === 'rollover-close') {
@@ -654,10 +657,10 @@ async function reconcileAgentFleetOnce(): Promise<void> {
       } else if (action.kind === 'report-open') {
         mapping[agent.id] = action.tabId; await fleetTabs.write(mapping);
         const tab = currentTabs.find((item) => item.tabId === action.tabId);
-        if (tab && (tab.binding.agentSlotId !== agent.id || tab.binding.role !== agent.role || tab.binding.project !== project.name)) {
-          await updateBinding(tab.tabId, action.conversationKey ?? tab.snapshot.conversationKey, { role: agent.role, project: project.name, notes: `GAM fleet slot ${agent.id}`, agentSlotId: agent.id });
-        }
         await reportNativeAgentBrowser({ slotId: agent.id, profileId: 'gam-default', browserState: 'open', tabId: action.tabId, ...(action.conversationKey ? { conversationKey: action.conversationKey } : {}), observedAt: Date.now() });
+        if (tab && (tab.binding.agentSlotId !== agent.id || tab.binding.role !== agent.role || tab.binding.project !== project.name)) {
+          await updateBinding(tab.tabId, action.conversationKey ?? tab.snapshot.conversationKey, { role: agent.role, project: project.name, projectId: project.id, notes: `GAM fleet slot ${agent.id}`, agentSlotId: agent.id });
+        }
       } else {
         delete mapping[agent.id]; await fleetTabs.write(mapping);
         await reportNativeAgentBrowser({ slotId: agent.id, profileId: 'gam-default', browserState: 'absent', observedAt: Date.now() });
@@ -695,7 +698,7 @@ chrome.runtime.onMessage.addListener((message: ManagerRequest | RuntimeNotice, s
     const tabId = sender.tab?.id;
     if (tabId === undefined || !contentRuntimeFence.observe(tabId, message.observation)) return false;
     void reportSlotRuntime(tabId, message.observation, message.snapshot, bindingFor)
-      .then(async (binding) => { await reconcileGenerationReservation(tabId, binding, message.snapshot); scheduleFleetReconcile(0); await requestAutomaticConversationRollover(tabId, binding, message.snapshot); await bootstrapPendingConversationRollover(tabId, binding, message.snapshot, (id, text) => dispatchToTab(id, text, crypto.randomUUID())); const bootstrapAttempt = await bootstrapReplyAttemptId(binding, message.snapshot); if (bootstrapAttempt) { const persisted = await markReplyObserved(bootstrapAttempt, message.observation.contentEpoch, message.snapshot, tabId); if (persisted) await completeConversationRolloverForReply(binding, bootstrapAttempt); } })
+      .then(async (binding) => { await reconcileGenerationReservation(tabId, binding, message.snapshot); scheduleFleetReconcile(0); await bootstrapPendingConversationRollover(tabId, binding, message.snapshot, (id, text) => dispatchToTab(id, text, crypto.randomUUID())); const bootstrapAttempt = await bootstrapReplyAttemptId(binding, message.snapshot); if (bootstrapAttempt) { const persisted = await markReplyObserved(bootstrapAttempt, message.observation.contentEpoch, message.snapshot, tabId); if (persisted) await completeConversationRolloverForReply(binding, bootstrapAttempt); } })
       .catch((error) => reportIncident('agent-runtime-report-failed', String(tabId), { error: error instanceof Error ? error.message : String(error), contentEpoch: message.observation.contentEpoch }));
     void notifyManagerChanged();
     scheduleBrowserRuntimeReport(); scheduleFleetReconcile();
@@ -740,7 +743,20 @@ chrome.runtime.onMessage.addListener((message: ManagerRequest | RuntimeNotice, s
     return true;
   }
   if (message.type === 'manager:update-binding') {
-    void updateBinding(message.tabId, message.conversationKey, message.binding)
+    void (async () => {
+      if (sender.id !== chrome.runtime.id || !sender.url?.startsWith(chrome.runtime.getURL(''))) throw new Error('Binding updates require the extension manager');
+      const snapshot = await snapshotForTab(await chrome.tabs.get(message.tabId));
+      if (snapshot.conversationKey !== message.conversationKey) throw new Error('Stale Conversation binding request');
+      const control = await readNativeControlSnapshot();
+      const projects = control.projects.filter((p) => p.name === message.binding.project);
+      if (projects.length !== 1) throw new Error('Select one unambiguous Kernel project');
+      const project = projects[0]!;
+      const slots = control.agents.filter((a) => a.projectId === project.id && a.role === message.binding.role && a.desiredState === 'active');
+      if (slots.length !== 1) throw new Error('Project role must have one explicitly created active Kernel AgentSlot');
+      const binding = { ...message.binding, projectId: project.id, agentSlotId: slots[0]!.id };
+      if (!await confirmRoleBinding(message.tabId, snapshot, binding)) throw new Error('Kernel project/role binding or leased Tab does not match; authorize it through the admin CLI');
+      await updateBinding(message.tabId, message.conversationKey, binding);
+    })()
       .then(() => notifyManagerChanged())
       .then(() => sendResponse({ ok: true }))
       .catch((error) => sendResponse({ ok: false, error: String(error) }));

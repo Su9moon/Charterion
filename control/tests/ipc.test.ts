@@ -148,6 +148,7 @@ describe('browser runtime reporting', () => {
     const { plane, router } = setup();
     const project = plane.createProject({ name: 'Fleet Browser', rootPath: 'E:/fleet-browser' });
     const slot = plane.createAgentSlot(project.id, 'ROLE01');
+    plane.bindAgentConversation(slot.id, 'conversation:role01');
     const observed = router.handle({ id: 'agent-observe', method: 'agent.browser-report', auth: { browserToken: 'browser-secret' }, params: {
       slotId: slot.id, profileId: 'gam-default', browserState: 'open', tabId: 42, conversationKey: 'conversation:role01', observedAt: 100,
     }});
@@ -171,14 +172,14 @@ describe('browser runtime reporting', () => {
 
 
 describe('conversation rollover RPC', () => {
-  it('requires Kernel reply evidence before completing a browser-driven rollover', () => {
+  it('requires admin intent and Kernel reply evidence before completing a rollover', () => {
     const { plane, router } = setup();
     const project = plane.createProject({ name: 'Rollover', rootPath: 'E:/rollover' });
     const slot = plane.createAgentSlot(project.id, 'ROLE01');
     plane.bindAgentConversation(slot.id, 'conversation:old');
     const auth = { browserToken: 'browser-secret' };
 
-    const requested = router.handle({ id: 'request-roll', method: 'agent.rollover-request', auth, params: {
+    const requested = router.handle({ id: 'request-roll', method: 'agent.rollover-request', auth: { adminToken: 'admin-secret' }, params: {
       slotId: slot.id, reason: 'manual-test', handoffText: 'resume ROLE01', state: { task: 'T1' },
     }});
     expect(requested).toMatchObject({ ok: true, result: { status: 'requested', fromConversationKey: 'conversation:old' } });
@@ -187,7 +188,7 @@ describe('conversation rollover RPC', () => {
     expect(router.handle({ id: 'status-roll', method: 'agent.rollover-status', auth, params: { slotId: slot.id } }))
       .toMatchObject({ ok: true, result: { rollover: { id: rolloverId }, checkpoint: { handoffText: 'resume ROLE01' } } });
 
-    expect(router.handle({ id: 'begin-roll', method: 'agent.rollover-begin', auth, params: { slotId: slot.id, rolloverId } })).toMatchObject({ ok: true });
+    expect(router.handle({ id: 'begin-roll', method: 'agent.rollover-begin', auth: { adminToken: 'admin-secret' }, params: { slotId: slot.id, rolloverId } })).toMatchObject({ ok: true });
     expect(router.handle({ id: 'opening', method: 'agent.browser-report', auth, params: { slotId: slot.id, profileId: 'gam-default', browserState: 'opening', tabId: 19 } })).toMatchObject({ ok: true });
     expect(router.handle({ id: 'canonical', method: 'agent.browser-report', auth, params: { slotId: slot.id, profileId: 'gam-default', browserState: 'open', tabId: 19, conversationKey: 'conversation:canonical-b' } }))
       .toMatchObject({ ok: true, result: { conversationKey: 'conversation:canonical-b', conversationGeneration: 2 } });
