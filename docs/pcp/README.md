@@ -1,7 +1,7 @@
 # Charterion × PCP｜项目化角色协作、独立 HTML 控制台和 Git 交接
 
-> **当前入口**：2026-10-27 用户确认的 Charterion 增强架构 **V0.3**。设计基线与各工单的实际结果分开记录；现有 Runtime 尚未部署本轮改动。
-> **当前 MVP**：[CH-PCP-005：HTML 雷达手动控制](reviews/CH-PCP-005-RADAR-CONTROLS-2026-10-27.md)。用 `GAM_RADAR_PORT=0` 在独立 Kernel 中启用，由插件“打开控制台”；仅项目 Fleet/生命周期锁可经独立短期授权修改，无 CB 集成。只读底座见 [CH-PCP-004](reviews/CH-PCP-004-READONLY-RADAR-2026-10-27.md)。
+> **当前入口**：2026-10-27 用户确认的 Charterion 增强架构 **V0.3**。设计基线与各工单实际结果分开记录；既有 Runtime 保留，本轮另建独立试运行实例。
+> **当前试运行**：[CH-PCP-006：Windows 集成试运行](reviews/CH-PCP-006-INTEGRATED-TRIAL-2026-10-27.md)。独立目录 `F:\0 codex\Charterion-PCP-Trial-006`，双击 `PCP-Start.cmd` 后由插件“打开控制台”；`PCP-Stop.cmd` 停止，`PCP-Diagnose.cmd` 诊断。独立 Host、数据和专用 Chrome Profile，验收结束已停止。项目管理边界见 [CH-PCP-005](reviews/CH-PCP-005-RADAR-CONTROLS-2026-10-27.md)，只读底座见 [CH-PCP-004](reviews/CH-PCP-004-READONLY-RADAR-2026-10-27.md)。
 
 ## 最重要的设计结论
 
