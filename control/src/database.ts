@@ -806,6 +806,24 @@ export class ControlDatabase {
     });
   }
 
+  private migrateV29(): void {
+    this.transaction(() => this.db.exec(`
+      CREATE TABLE IF NOT EXISTS conversation_bootstrap_authorizations (
+        slot_id TEXT PRIMARY KEY REFERENCES agent_slots(id) ON DELETE CASCADE,
+        lease_epoch INTEGER NOT NULL,
+        browser_lease_id TEXT NOT NULL,
+        profile_id TEXT NOT NULL,
+        tab_id INTEGER NOT NULL,
+        provisional_key TEXT NOT NULL,
+        actor TEXT NOT NULL,
+        reason TEXT NOT NULL,
+        authorized_at INTEGER NOT NULL,
+        expires_at INTEGER NOT NULL,
+        consumed_key TEXT
+      ) STRICT;
+    `));
+  }
+
   private createConversationContinuityTables(): void {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS agent_conversations (

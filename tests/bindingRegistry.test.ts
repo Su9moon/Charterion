@@ -27,6 +27,35 @@ function snapshot(key: string, conversationId?: string): ChatSnapshot {
 }
 
 describe('binding registry', () => {
+  it('promotes only after explicit provisional assignment and Kernel confirmation, once', async () => {
+    const local = memoryArea();
+    const session = memoryArea();
+    const confirmations: Array<string | undefined> = [];
+    let allowed = false;
+    const registry = createBindingRegistry({ local, session }, { persistent: 'bindings', ephemeral: 'tabs' }, async (_tab, _snapshot, _binding, provisional) => {
+      confirmations.push(provisional); return allowed;
+    });
+    const binding = { role: 'chief_engineer', project: 'P', projectId: 'p', notes: '', agentSlotId: 'slot' };
+    await registry.update(7, 'provisional:one', binding);
+    expect((await registry.resolve(7, snapshot('conversation:one', 'one'))).role).toBe('');
+    expect(local.read().bindings).toBeUndefined();
+    allowed = true;
+    expect(await registry.resolve(7, snapshot('conversation:one', 'one'))).toEqual(binding);
+    expect(local.read().bindings).toEqual({ 'conversation:one': binding });
+    expect(session.read().tabs).toEqual({});
+    expect((await registry.resolve(7, snapshot('conversation:two', 'two'))).role).toBe('');
+    expect(confirmations).toEqual(['provisional:one', 'provisional:one']);
+  });
+
+  it('does not persist when Kernel confirmation fails', async () => {
+    const local = memoryArea();
+    const session = memoryArea();
+    const registry = createBindingRegistry({ local, session }, { persistent: 'bindings', ephemeral: 'tabs' }, async () => { throw new Error('Kernel unavailable'); });
+    await registry.update(7, 'provisional:one', { role: 'A', project: 'P', notes: '' });
+    await expect(registry.resolve(7, snapshot('conversation:one', 'one'))).rejects.toThrow('Kernel unavailable');
+    expect(local.read().bindings).toBeUndefined();
+    expect(session.read().tabs).toMatchObject({ '7': { provisionalKey: 'provisional:one' } });
+  });
   it('projects multiple bindings through one serialized store scope', async () => {
     const local = memoryArea();
     const session = memoryArea({ tabs: { '7': { role: 'WORKER', project: 'P', notes: '' } } });
@@ -40,11 +69,9 @@ describe('binding registry', () => {
       resolve(8, snapshot('url:https://chatgpt.com/')).role,
     ]);
 
-    expect(roles).toEqual(['WORKER', '']);
-    expect(local.read().bindings).toEqual({
-      'conversation:abc': { role: 'WORKER', project: 'P', notes: '' },
-    });
-    expect(session.read().tabs).toEqual({});
+    expect(roles).toEqual(['', '']);
+    expect(local.read().bindings).toBeUndefined();
+    expect(session.read().tabs).toEqual({ '7': { role: 'WORKER', project: 'P', notes: '' } });
   });
 
   it('serializes concurrent updates so ephemeral bindings cannot overwrite each other', async () => {
@@ -61,8 +88,8 @@ describe('binding registry', () => {
     ]);
 
     expect(session.read().tabs).toEqual({
-      '7': { role: 'A', project: 'P', notes: '' },
-      '8': { role: 'B', project: 'P', notes: '' },
+      '7': { role: 'A', project: 'P', notes: '', provisionalKey: 'url:https://chatgpt.com/' },
+      '8': { role: 'B', project: 'P', notes: '', provisionalKey: 'url:https://chatgpt.com/' },
     });
   });
 });

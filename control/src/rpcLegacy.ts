@@ -139,6 +139,15 @@ export class RpcRouter {
       case 'agent.spawn': return this.agentCreate(request, params);
       case 'agent.list': return this.agentList(request, params);
       case 'agent.bind': return this.agentBind(request, params);
+      case 'agent.conversation-bootstrap-authorize':
+        this.requireAdmin(request);
+        this.plane.authorizeConversationBootstrap({
+          slotId: stringParam(params, 'slotId')!, projectId: stringParam(params, 'projectId')!, role: stringParam(params, 'role')!,
+          expectedLeaseEpoch: numberParam(params, 'expectedLeaseEpoch')!, profileId: stringParam(params, 'profileId')!,
+          tabId: numberParam(params, 'tabId')!, provisionalKey: stringParam(params, 'provisionalKey')!,
+          actor: stringParam(params, 'actor')!, reason: stringParam(params, 'reason')!,
+        });
+        return { authorized: true };
       case 'agent.suspend': return this.agentSuspend(request, params);
       case 'agent.resume': return this.agentResume(request, params);
       case 'agent.retire': return this.agentRetire(request, params);
@@ -275,14 +284,27 @@ export class RpcRouter {
     const tabId = numberParam(params, 'tabId', true);
     const conversationKey = stringParam(params, 'conversationKey', true);
     const error = stringParam(params, 'error', true);
-    return this.plane.reportAgentBrowser({ slotId: stringParam(params, 'slotId')!, profileId: stringParam(params, 'profileId')!, browserState: enumParam(params, 'browserState', ['absent','opening','open','closing','error'] as const)!, ...(tabId !== undefined ? { tabId } : {}), ...(conversationKey !== undefined ? { conversationKey } : {}), ...(error !== undefined ? { error } : {}), ...(observedAt !== undefined ? { observedAt } : {}) });
+    // Authorization expiry uses the server clock, never a browser-supplied timestamp.
+    return this.plane.reportAgentBrowser({ slotId: stringParam(params, 'slotId')!, profileId: stringParam(params, 'profileId')!, browserState: enumParam(params, 'browserState', ['absent','opening','open','closing','error'] as const)!, ...(tabId !== undefined ? { tabId } : {}), ...(conversationKey !== undefined ? { conversationKey } : {}), ...(error !== undefined ? { error } : {}), ...(observedAt !== undefined ? { observedAt } : {}) }, undefined, Date.now());
   }
 
   private agentRolloverRequest(request: RpcRequest, params: Record<string, unknown>): unknown {
-    this.requireBrowserOrAdmin(request);
-    return this.plane.requestAgentConversationRollover(stringParam(params,'slotId')!, stringParam(params,'reason')!, stringParam(params,'handoffText')!, objectParam(params,'state',true) ?? {});
+    this.requireAdmin(request);
+    const slot = this.plane.getAgentSlot(stringParam(params, 'slotId')!);
+    const rollover = this.plane.requestAgentConversationRollover(slot.id, stringParam(params,'reason')!, stringParam(params,'handoffText')!, objectParam(params,'state',true) ?? {});
+    this.plane.database.db.prepare('INSERT INTO events(project_id,type,subject,payload_json,created_at) VALUES(?,?,?,?,?)')
+      .run(slot.projectId, 'CONVERSATION_ROLLOVER_AUTHORIZED', rollover.id, JSON.stringify({ actor: 'admin', slotId: slot.id }), Date.now());
+    return rollover;
   }
-  private agentRolloverBegin(request: RpcRequest, params: Record<string, unknown>): unknown { this.requireBrowserOrAdmin(request); return this.plane.beginAgentConversationRollover(stringParam(params,'slotId')!, stringParam(params,'rolloverId')!); }
+  private agentRolloverBegin(request: RpcRequest, params: Record<string, unknown>): unknown {
+    this.requireBrowserOrAdmin(request);
+    const slot = this.plane.getAgentSlot(stringParam(params, 'slotId')!);
+    const rolloverId = stringParam(params, 'rolloverId')!;
+    if (!request.auth?.adminToken && !this.plane.database.db.prepare("SELECT seq FROM events WHERE project_id=? AND type='CONVERSATION_ROLLOVER_AUTHORIZED' AND subject=? LIMIT 1").get(slot.projectId, rolloverId)) {
+      throw new Error('Admin authentication is required to authorize this Conversation rollover');
+    }
+    return this.plane.beginAgentConversationRollover(slot.id, rolloverId);
+  }
   private agentRolloverBootstrap(request: RpcRequest, params: Record<string, unknown>): unknown { this.requireBrowserOrAdmin(request); return this.plane.markAgentRolloverBootstrap(stringParam(params,'slotId')!, stringParam(params,'rolloverId')!, stringParam(params,'attemptId')!); }
   private agentRolloverComplete(request: RpcRequest, params: Record<string, unknown>): unknown { this.requireBrowserOrAdmin(request); return this.plane.completeAgentConversationRollover(stringParam(params,'slotId')!, stringParam(params,'attemptId')!); }
   private agentRolloverFail(request: RpcRequest, params: Record<string, unknown>): unknown { this.requireBrowserOrAdmin(request); return this.plane.failAgentConversationRollover(stringParam(params,'slotId')!, stringParam(params,'error')!); }

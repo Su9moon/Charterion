@@ -26,7 +26,7 @@ describe('PCP project Fleet control (first live code slice)', () => {
       projectId: project.id, mode: 'elastic', lifecycleLocked: false, revision: 0,
     });
     expect(database.db.prepare('SELECT COUNT(*) AS n FROM pcp_project_fleet_controls').get()).toMatchObject({ n: 0 });
-    expect(CONTROL_SCHEMA_VERSION).toBe(28);
+    expect(CONTROL_SCHEMA_VERSION).toBe(29);
   });
 
   it('persists explicit controlled mode, respects revisions, and audits changes', () => {
@@ -268,7 +268,7 @@ describe('PCP project Fleet control (first live code slice)', () => {
     db.close();
     db = new ControlDatabase(path);
     expect(snapshot()).toEqual(before);
-    expect(db.db.prepare("SELECT value FROM schema_meta WHERE key='schema_version'").get()).toMatchObject({ value: '28' });
+    expect(db.db.prepare("SELECT value FROM schema_meta WHERE key='schema_version'").get()).toMatchObject({ value: String(CONTROL_SCHEMA_VERSION) });
     expect(db.health()).toEqual({ ok: true, quickCheck: ['ok'], foreignKeyViolations: 0 });
     const reopened = new ControlPlane(db);
     expect(reopened.getPcpProjectFleetControl(p.id)).toEqual({ projectId: p.id, mode: 'elastic', lifecycleLocked: false, revision: 0 });
