@@ -3,9 +3,14 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
-import { ownedProcess, verifyFiles, install } from '../scripts/pcp-trial.mjs';
+import { browserEndpoint, ownedProcess, verifyFiles, install } from '../scripts/pcp-trial.mjs';
 const dirs=[];afterEach(()=>{while(dirs.length)rmSync(dirs.pop(),{recursive:true,force:true});});
 describe('isolated PCP trial protection',()=>{
+  it('accepts only the recorded loopback browser endpoint before graceful shutdown',()=>{
+    expect(browserEndpoint('ws://127.0.0.1:12345/devtools/browser/abc-123',12345)).toBe('ws://127.0.0.1:12345/devtools/browser/abc-123');
+    for(const url of ['ws://evil.invalid:12345/devtools/browser/abc','ws://127.0.0.1:12346/devtools/browser/abc','ws://127.0.0.1:12345/devtools/page/abc','ws://user:pass@127.0.0.1:12345/devtools/browser/abc','ws://127.0.0.1:12345/devtools/browser/abc?redirect=other'])expect(()=>browserEndpoint(url,12345)).toThrow();
+    expect(()=>browserEndpoint('ws://127.0.0.1:12345/devtools/browser/abc',NaN)).toThrow();
+  });
   it('refuses a modified release asset before startup',()=>{
     const root=mkdtempSync(join(tmpdir(),'pcp-trial-'));dirs.push(root);writeFileSync(join(root,'bundle'),'verified');
     const hashes={bundle:createHash('sha256').update('verified').digest('hex')};expect(()=>verifyFiles(root,hashes)).not.toThrow();

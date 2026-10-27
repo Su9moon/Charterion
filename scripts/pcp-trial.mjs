@@ -78,10 +78,65 @@ function verify(c) {
 }
 function stateAt(c) { return existsSync(join(c.root, 'processes.json')) ? json(join(c.root, 'processes.json')) : {}; }
 function saveState(c, state) { writeJson(join(c.root, 'processes.json'), state); }
+export function browserEndpoint(value, port) {
+  const url = new URL(value);
+  if (!Number.isInteger(port) || port < 1 || port > 65535 || url.protocol !== 'ws:' || url.hostname !== '127.0.0.1' ||
+      url.port !== String(port) || url.username || url.password || url.search || url.hash || !/^\/devtools\/browser\/[a-zA-Z0-9-]+$/.test(url.pathname))
+    throw new Error('Unexpected trial browser endpoint');
+  return url.href;
+}
+async function closeTrialBrowser(c, state) {
+  const recorded = state.chrome;
+  if (!recorded || !processById(recorded.ProcessId)) return;
+  const assertOwner = () => {
+    if (!ownedProcess(processById(recorded.ProcessId), recorded, c.chrome, `--user-data-dir=${c.profile}`))
+      throw new Error('Process ownership mismatch; refusing to close');
+  };
+  assertOwner();
+  if (!Number.isInteger(state.cdpPort) || state.cdpPort < 1 || state.cdpPort > 65535) throw new Error('No trial browser endpoint; close its window manually and retry stop');
+  const response = await fetch(`http://127.0.0.1:${state.cdpPort}/json/version`, { signal: AbortSignal.timeout(3000), redirect: 'error' });
+  if (!response.ok) throw new Error('Trial browser endpoint unavailable; close its window manually and retry stop');
+  const endpoint = browserEndpoint((await response.json()).webSocketDebuggerUrl, state.cdpPort);
+  const socket = new WebSocket(endpoint);
+  try {
+    await new Promise((resolve, reject) => {
+      let closeSent = false;
+      const timer = setTimeout(() => reject(new Error('Trial browser close timed out; no process was forced')), 6000);
+      const fail = error => { clearTimeout(timer); reject(error); };
+      socket.onerror = () => fail(new Error('Trial browser connection failed; no process was forced'));
+      socket.onclose = () => {
+        if (closeSent) { clearTimeout(timer); resolve(); }
+        else fail(new Error('Trial browser disconnected before close was requested'));
+      };
+      socket.onopen = () => socket.send(JSON.stringify({ id: 1, method: 'SystemInfo.getProcessInfo' }));
+      socket.onmessage = ({ data }) => {
+        try {
+          const message = JSON.parse(String(data));
+          if (message.id === 1) {
+            if (message.error || !message.result?.processInfo?.some(p => p.type === 'browser' && p.id === recorded.ProcessId))
+              throw new Error('Browser endpoint PID mismatch; refusing to close');
+            assertOwner();
+            closeSent = true;
+            socket.send(JSON.stringify({ id: 2, method: 'Browser.close' }));
+          } else if (message.id === 2) {
+            if (message.error) throw new Error('Trial browser rejected graceful close');
+            clearTimeout(timer); resolve();
+          }
+        } catch (error) { fail(error); }
+      };
+    });
+  } finally { socket.close(); }
+  for (let n = 0; n < 30; n++) {
+    if (!processById(recorded.ProcessId)) return;
+    assertOwner(); await sleep(200);
+  }
+  throw new Error('Chrome is still closing; retry stop after it exits. No process was forced');
+}
 async function stop(c) {
   // Stop remains available even when package integrity fails; process ownership is checked independently.
   const state = stateAt(c);
-  stopOwned(state.chrome, c.chrome, `--user-data-dir=${c.profile}`);
+  // Let Chrome flush its Profile; never turn a failed graceful close into a forced browser kill.
+  await closeTrialBrowser(c, state);
   stopOwned(state.kernel, c.node, join(c.app, 'dist-control/gamd.cjs'));
   for (let n = 0; n < 40; n++) { if (!processById(state.chrome?.ProcessId) && !processById(state.kernel?.ProcessId)) break; await sleep(100); }
   if (processById(state.chrome?.ProcessId) || processById(state.kernel?.ProcessId)) throw new Error('Owned processes did not exit');
