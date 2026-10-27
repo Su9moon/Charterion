@@ -13,7 +13,7 @@
 
 **CH-PCP-02 / I1b（锁与参数配置）**：支持 `binding_lock/dispatch_lock/lifecycle_lock/project_maintenance`，Kernel 持久化+手动解除+重启验证；配置继承 `Global → Project → RoleSession`，具有类型、边界、来源、审计。观察 `page_health` 独立于人为 `desired_control_state`，不会被“手动设成已完成”污染。
 
-**CH-PCP-03 / I1c（内置最小雷达）**：在 Charterion 内提供**真实**项目总览→会话列表→状态/锁操作。先用现有 Side Panel 作为运行控制入口，后续再扩成独立的本地操作面板或桌面窗口；不把纯静态 HTML 当交付。全局统计从 Kernel 和正式工作源读取，缺失显示 unavailable。锁操作反馈要能回读状态和操作者。
+**CH-PCP-03 / I1c（独立动态 HTML 控制台）**：随 Charterion 提供**独立 HTML/CSS/JS 页面**，在浏览器新标签页打开，展示真实项目总览→角色会话→状态/手动锁与配置操作。Chrome 插件只增加“打开控制台”入口，**不得在 Side Panel 中开发完整面板**。优先让同一个 gamd Kernel 的回环 HTTP 接口提供页面和受控状态读写，不引入第二套后端。全局数据取自 Kernel 和正式 Git/CB 权威源，断线显示 unavailable。写操作须经 Kernel 鉴权/版本校验/审计并回读后确认。
 
 **CH-PCP-04 / I2（DOM + 唯一消息闭环）**：修 `unknown` 和 canonical Conversation bootstrap；正确项目×角色×绑定版本校验、一次真实无害测试发送、回复关联、非前台页面和 fail-closed；不把“发送成功”当成 Git 中已有成果。
 
@@ -25,7 +25,7 @@
 
 **CH-PCP-08 / I4b（故障与恢复）**：Chrome/扩展 SW/Kernel 重启、消息不确定、重复事件、锁继承、Git 403、MCP 不可用、CB quota、限流、浏览器 Profile 冲突；旧绑定保持，错误投递=0，不盲重发真实动作，人工可接管。
 
-**CH-PCP-09 / I5（Radar/Operations 完善）**：项目全局、角色会话、Issue/PR/CB、状态时间线、错误、真实可得用量、告警；受控非生产 Operations 事件与回滚；用户可在同一 Charterion 管理界面操作和查看反馈。
+**CH-PCP-09 / I5（独立 HTML Radar/Operations 完善）**：在同一**独立动态 HTML 控制台**持续完善项目全局、角色会话、Issue/PR/CB、状态时间线、错误、真实可得用量与告警；包含受控非生产 Operations 事件及回滚证据。
 
 ## 第一批实际要做的文件/模块（非新增服务）
 
@@ -33,7 +33,7 @@
 | --- | --- | --- |
 | project × role session | `control/src/controlPlane.ts`, `control/src/contracts.ts`, `src/bindingRegistry.ts` | 一个项目绑定一角色，另一个项目同 role 不污染 |
 | manual lock/config | `control/src/elasticFleet.ts`, `src/fleet.ts`, Kernel RPC | 空闲 120s 不自动关闭被 pin 的 Tab；dispatch lock 拒发 |
-| built-in dashboard | `src/sidepanel.ts`, Kernel snapshot projection | 显示项目/角色/真实状态，人工锁定并回读 |
+| standalone HTML dashboard | 独立 `dashboard/` HTML/CSS/JS（候选路径）、gamd 同进程本地 HTTP/API；扩展 action 仅启动链接 | 项目/角色真实状态、手动锁定与 Kernel 回读，不在 Side Panel 绘制 Radar |
 | DOM and attempt | `src/chatgptAdapter.ts`, `src/content.ts`, `src/background.ts` | 唯一探针送达正确 Conversation，观察 reply |
 | Git context | GitHub/已有连接、role/version 工作引用 | 三角色独立读当前授权工作引用，提交相应正式成果 |
 
@@ -43,7 +43,7 @@
 
 - Source-only worktree 使用独立路径进行开发/构建/静态单测；**不运行**会写用户级 Native Host 注册表的 setup/install 脚本。
 - 第一套 E2E：单 Windows 用户注册的 Host、专用 Chrome Profile、单 GAM_HOME，受控切换并保留历史 DB/会话，确保同一项目角色绑定的迁移安全。
-- 主控面板若有本地服务监听，应默认回环 `127.0.0.1`、有明确授权和会话策略；不假设 Chrome 扩展 sidepanel 需要新端口；需要外部访问必须单独设计鉴权。
+- **面板架构已定为独立动态 HTML 页面**，需要与 Kernel 实时通信；第一版采用同一 gamd 进程的本地 HTTP 静态页面/状态与操作 API（实施时核对兼容性），只绑定 `127.0.0.1`，端口可配置。回环监听仍必须有认证、Origin/CSRF 防护和写操作授权，不通过 URL 传递管理员令牌。Chrome 扩展 action 只负责打开页面，不在 Side Panel 承载仪表板；禁止未经授权暴露局域网/公网访问。
 - 迁移必须能保持旧 ProjectCell/AgentSlot/Conversation，兼容方案和回滚证据先行；手动锁/项目配置的持久化必须随数据库快照核验。
 - Native Host HKCU 同名注册限制未解决之前不采用两个 GAM_HOME 同账号平行安装来声称双实例隔离。
 - 先取得本地 source exact SHA、extension build hash、runtime ID、真实事件序号，再验 E2E；GitHub Actions 额度不决定本地测试可否执行。
@@ -63,7 +63,7 @@
 | G09 | 三 WebGPT 角色分工 | 3 真实独立对话、不同工作、短引用交接、至少一次非前台 |
 | G10 | 正式 Git Issue→阶段结果 | Git 记录源和结果引用可核查，不复制聊天全文 |
 | G11 | 按项目连接 CB | 有真实 Task ID/Commit/Test/Review，未授权项目不调用 |
-| G12 | 内置 Radar/UI | 项目、角色、锁、运行状态、Git 工作、异常均真实可操作 |
+| G12 | 独立动态 HTML Radar/UI | 在普通浏览器标签页独立加载，Chrome 插件一键打开；项目、角色、锁、运行状态、Git 工作及异常可操作且来自真实 Kernel/API 回执；扩展 Side Panel 中不包含完整 Radar |
 | G13 | 多 Chrome/Profile | 独立源标识，跨实例的 lease 抖动拒绝或隔离 |
 | G14 | 无法连接 Git/MCP/CB/额度 | 明确 BLOCKED/NOT_EXPOSED，可人工处理，不冒充完成 |
 
