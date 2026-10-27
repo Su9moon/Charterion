@@ -15,6 +15,11 @@ import type {
 import type { NativeControlSnapshot } from './nativeControl';
 
 const controlStatus = required<HTMLSpanElement>('control-status');
+required<HTMLButtonElement>('open-console').addEventListener('click', () => {
+  void chrome.runtime.sendMessage({ type: 'manager:open-console' }).then((response: { ok: boolean; error?: string }) => {
+    if (!response.ok) controlStatus.textContent = response.error ?? '控制台不可用';
+  }).catch(() => { controlStatus.textContent = '控制台不可用，请检查扩展和 Kernel'; });
+});
 const controlSummary = required<HTMLParagraphElement>('control-summary');
 const controlProjects = required<HTMLDivElement>('control-projects');
 const agentsRoot = required<HTMLDivElement>('agents');

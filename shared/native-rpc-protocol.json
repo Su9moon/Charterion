@@ -4,6 +4,7 @@
   "maxMessageBytes": 1048576,
   "methods": [
     { "name": "health", "domain": "system" },
+    { "name": "radar.open", "domain": "control" },
     { "name": "control.snapshot", "domain": "control" },
     { "name": "browser.report", "domain": "browser" },
     { "name": "browser.status", "domain": "browser" },

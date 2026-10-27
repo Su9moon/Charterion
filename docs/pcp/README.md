@@ -1,7 +1,7 @@
 # Charterion × PCP｜项目化角色协作、独立 HTML 控制台和 Git 交接
 
-> **当前入口**：2026-10-27 用户确认的 Charterion 增强架构 **V0.3**。代码改造与真实 E2E **尚未执行**；现有 main、Kernel/DB、Chrome Profile 和两个 Draft PR 未改变。  
-> **分支**：`pcp/role-session-enhancement-v0.1`。
+> **当前入口**：2026-10-27 用户确认的 Charterion 增强架构 **V0.3**。设计基线与各工单的实际结果分开记录；现有 Runtime 尚未部署本轮改动。
+> **当前只读 MVP**：[CH-PCP-004：独立 HTML 状态雷达](reviews/CH-PCP-004-READONLY-RADAR-2026-10-27.md)。用 `GAM_RADAR_PORT=0` 在独立 Kernel 中启用，由插件“打开控制台”；无管理写入和 CB 集成。
 
 ## 最重要的设计结论
 

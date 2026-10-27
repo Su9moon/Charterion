@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Charterion · 状态雷达</title>
+  <link rel="stylesheet" href="radar.css">
+</head>
+<body>
+  <header class="masthead">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">C</span><div><span class="eyebrow">CHARTERION / LOCAL KERNEL</span><h1>状态雷达</h1></div></div>
+    <span class="readonly">只读观察</span>
+  </header>
+  <main>
+    <section class="connection" aria-label="数据连接状态">
+      <div><span id="connection-state" role="status" aria-live="polite">正在连接 Kernel…</span><p id="connection-detail">等待本机真实状态。尚无可用快照。</p></div>
+      <button id="refresh" type="button">立即刷新</button>
+    </section>
+    <section class="metrics" aria-label="状态汇总">
+      <div><span>项目</span><strong id="project-count">—</strong></div>
+      <div><span>AgentSlot</span><strong id="agent-count">—</strong></div>
+      <div><span>新鲜在线观测</span><strong id="online-count">—</strong></div>
+      <div><span>生命周期锁定项目</span><strong id="locked-count">—</strong></div>
+    </section>
+    <div class="section-heading"><div><span class="eyebrow">PROJECTS & SESSIONS</span><h2>项目与角色会话</h2></div><label>项目筛选<select id="project-filter"><option value="">全部项目</option></select></label></div>
+    <section id="projects" class="projects" aria-label="项目列表"><p class="empty">等待 Kernel 数据</p></section>
+    <div class="workspace">
+      <section class="panel sessions"><div class="panel-heading"><h2>AgentSlots</h2><span id="scope-label">全部项目</span></div><div id="agents" class="agents"><p class="empty">尚无可用快照</p></div></section>
+      <aside class="panel"><div class="panel-heading"><h2>状态详情</h2><span class="eyebrow">INSPECT</span></div><div id="details" class="details"><p class="empty">选择一个角色查看 Kernel 原始状态。</p></div></aside>
+    </div>
+    <section class="panel events-panel"><div class="panel-heading"><h2>最近事件</h2><span>Kernel 全局最新 100 条</span></div><ol id="events" class="events"><li class="empty">尚无可用快照</li></ol></section>
+    <footer><span>同一 Kernel · 无管理写入</span><span id="instance">实例尚不可用</span></footer>
+  </main>
+  <script src="radar.js" defer></script>
+</body>
+</html>

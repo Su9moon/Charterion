@@ -1074,12 +1074,13 @@ export class ControlPlane {
       openTabs: Number(row.open_tabs), extensionVersion: String(row.extension_version), observedAt: Number(row.observed_at),
     }));
   }
-  listEvents(projectId?: string, afterSeq = 0, limit = 200): ControlEvent[] {
+  listEvents(projectId?: string, afterSeq = 0, limit = 200, newestFirst = false): ControlEvent[] {
     if (!Number.isInteger(afterSeq) || afterSeq < 0) throw new Error('afterSeq is invalid');
     if (!Number.isInteger(limit) || limit < 1 || limit > 2000) throw new Error('limit is invalid');
+    const order = newestFirst ? 'DESC' : 'ASC';
     const rows = (projectId
-      ? this.database.db.prepare(`SELECT * FROM events WHERE project_id = ? AND seq > ? ORDER BY seq LIMIT ?`).all(projectId, afterSeq, limit)
-      : this.database.db.prepare(`SELECT * FROM events WHERE seq > ? ORDER BY seq LIMIT ?`).all(afterSeq, limit)) as Row[];
+      ? this.database.db.prepare(`SELECT * FROM events WHERE project_id = ? AND seq > ? ORDER BY seq ${order} LIMIT ?`).all(projectId, afterSeq, limit)
+      : this.database.db.prepare(`SELECT * FROM events WHERE seq > ? ORDER BY seq ${order} LIMIT ?`).all(afterSeq, limit)) as Row[];
     return rows.map((row) => {
       const event: ControlEvent = {
         seq: Number(row.seq),
