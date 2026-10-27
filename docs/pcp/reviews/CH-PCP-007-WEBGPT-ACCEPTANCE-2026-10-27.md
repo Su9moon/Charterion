@@ -17,7 +17,7 @@ architecture_gate:
 
 登录边界：若 Trial-006 新 Profile 需要 ChatGPT 登录或验证，暂停浏览器自动操作，等待人工完成；不使用旧 Profile/cookie、不自动填写凭据、不绕过验证。发送前持久记录唯一 attempt/marker 断点；任何发送不明均先检查实际 Conversation、Attempt 和回复，不自动重发。
 
-当前状态：Profile 检查及停止机制修复已完成，人工登录后的复用和角色消息验收仍暂停。原始断点保留于 Git 忽略目录 `.build-cache/CH-PCP-007/`。尚未执行的项目不计为 PASS。
+当前状态（2026-10-28）：已使用用户指定的既有 Chrome Dev 完成一次真实消息/回复、首次 canonical 绑定、HTML 状态、关页恢复及 Kernel/Chrome Dev 重启验收。回复通知 Revision 缺陷已修复并通过当前源码 508 项回归，尚未安装到 Dev。最新事实见文末“Chrome Dev 真实验收结果”；此前暂停/阻断段均为历史记录。原始断点保留于 Git 忽略目录 `.build-cache/CH-PCP-007/`，未执行的项目不计为 PASS。
 
 ## 初始断点：等待人工登录（历史记录）
 
@@ -134,3 +134,57 @@ Tokdash 共用会话 `01a17c6a-87b5-7641-8c5e-e7d170079b63`，project-history-sh
 此方案涉及用户要求预先说明的插件配置变更，且迁移冲突检查尚不完整，故本轮停在方案审阅与旧扩展只读检查边界。尚未实施上述变更，未启动任何浏览器。原始证据在 `.build-cache/CH-PCP-007/chrome-dev/`；[脱敏预检回执](assets/CH-PCP-007-chrome-dev-preflight.json)。本轮只新增记录，未改代码，既有 506 项测试不重复计作本轮新执行；新编译/测试及 Dev 实际 E2E 均 NOT_RUN。
 
 已请求用户在现有 Chrome Dev 的 Charterion 面板只读核对任务/消息数量、Auto supervisor 开关和既有项目/角色绑定是否存在，不提供聊天内容或凭据、不发送或授权绑定。当前没有可直接读取该浏览器扩展运行状态的工具，不能为取得这些状态开启用户禁止的新 CDP 控制；也不离线解析扩展数据库中的任意值。收到上述运行状态后继续评估迁移冲突，不能将未回复视为空队列或批准换载。收尾只读复核：普通 Chrome 原 PID 31588 和 Trial Kernel PID 39976 仍存在，未见 Chrome Dev 进程；JSON 回执解析及保护标志校验、git diff --check 通过。
+
+## 2026-10-28：Chrome Dev 真实验收结果
+
+本节覆盖此前暂停/阻断状态。用户确认 Chrome Dev 是 PCP 专用、ChatGPT 已登录，并在听取同 ID 扩展切换目录及影响范围后自行选择 Trial 目录，随后授权继续。沿用 `Default` Profile；不卸载清数据、不重建 Profile、不复制登录态、不打开新 CDP。通过 Windows UI Automation，仅操作经可执行路径、PID 和 HWND 校验的 Chrome Dev。没有操作普通 Chrome。
+
+### 接入与发送前检查
+
+- 切换前，旧扩展持久存储的 LevelDB 元数据为新建空库：MANIFEST CRC 正确、lastSequence=0、无表文件、数据 log 为 0 bytes；只读取 CURRENT/MANIFEST 元数据，不打开记录值。此项不能单独证明扩展内存/session 为空，因此另以真实管理页核对 Auto supervisor=Off、既有角色字段为空，切换后再以 Kernel 的 tasks/attempts/messages=0 复核迁移结果。
+- 同 ID `kheifdlffdfcgmapmbbahdgkpccckmbn` 已由用户加载 Trial 的 `versions/2a7988e41348e30b3d0bedd1bc7b6c6bbae8b590`。复用既有 Trial Host `com.charterion.pcp_trial_1cc2ff54f7742042`；其 Native Host 进程由 Chrome Dev 启动，真实上报到实例 `1cc2ff54f7742042`。原 `com.gpt_agent_manager.control` 注册及旧扩展目录未改。
+- 发送前 Kernel/管理页均指向原测试 project/Slot，role=`chief_engineer`，页面 idle，暂无 canonical Conversation；三个打开的 ChatGPT 页中仅测试角色被选中。Supervisor 保持 Off，工作队列为空，未发现迁移或跨项目绑定冲突。
+- 现有 `agent.conversation-bootstrap-authorize` 绑定精确 project/Slot/leaseEpoch/profile/Tab/provisional contentEpoch，记录 actor 和 marker 原因。首次 grant 到期前的恢复检查确认没有发送，随后按同一测试对象重新授权；实际只发生一次 bootstrap 绑定，不放宽授权判据。
+
+### 实际结果
+
+运行版本为 `2a7988e41348e30b3d0bedd1bc7b6c6bbae8b590`，不是下述新修复版本。[脱敏机器回执](assets/CH-PCP-007-chrome-dev-e2e-2026-10-28.json) 保存项目/Slot/Conversation、单次 Attempt、浏览器操作账本、重启 PID、真实 HTML 标签及保护检查，不保存聊天全文、Cookie 或 Token。
+
+| 验收项 | 实测结果 |
+| --- | --- |
+| Chrome Dev → Native Host → Trial Kernel | **PASS**：实际浏览器上报 authenticated/ready，protocolVersion=2、实例正确；不以 CLI health 单独替代浏览器证据 |
+| 首次 Conversation 与角色绑定 | **PASS**：generation 0→1、leaseEpoch 0→1；`conversation:6ae0caf8-3f78-83ea-9fd3-c73db21eb006` 绑定原 project/Chief Engineer Slot；`CONVERSATION_BOOTSTRAP_BOUND` 恰为 1 |
+| 一次无害消息及真实回复 | **PASS，存在下述观察延迟缺陷**：只要求回复 marker、不调用工具；唯一 Attempt `a66d7ba3-8fbc-4262-8618-c0277f12bf62` 最终为 reply-observed，回复与预期 marker 完全一致；唯一 prompt.send 操作为 settled/reply-observed。tasks=0、messages=0（一次性发送记在 attempts，不是语义消息队列） |
+| 独立 HTML 页面 | **PASS**：通过扩展页面的“打开控制台”按钮打开真实 HTML；页面显示“已连接 Kernel”、测试项目、同一 canonical Conversation、生命周期已锁定，并可展开角色详情。Kernel 重启后旧 URL 明确显示不可用，经插件入口重新打开后连接新端口，无假报成功 |
+| 空闲生命周期锁 | **PASS（本轮观察窗口）**：回复后 idle、关页及两类重启后，Slot 仍 active、Fleet elastic、lifecycleLocked=true、Revision=1；没有自动裁减或解锁。Agent 的业务 status=assigned 与页面 browserPageStatus=idle 分开记录 |
+| 关闭测试页恢复 | **PASS**：只关闭已核对精确 canonical URL 的测试 Tab；551→558（完整 ID 为 859945551→859945558），同一 Conversation 恢复，未建新 Conversation、未重发 |
+| Trial Kernel 实际停止/重启 | **PASS**：校验 PID/创建时间/安装路径后仅停止自有 Kernel；38376→17192，使用原数据目录和 `start --no-browser --json`。绑定、Revision 1 锁及 reply-observed Attempt 均保留，浏览器正常重连 |
+| Chrome Dev 正常退出/重启及登录复用 | **PASS**：对专用 Dev 正常 CloseMainWindow 并等待退出，无强杀；48804→39756，以 `--profile-directory=Default --restore-last-session` 恢复同一 Profile，无 CDP。真实页面重新上报 authenticated/ready，角色页 idle，无需登录；Profile 与 Cookies 文件创建时间一致，只读文件元数据，未读 Cookie 值 |
+| 不重复发送 | **PASS（本轮关闭/重启场景）**：浏览器重启后正式角色 Tab 为 859945706，canonical ID/generation 不变；仍只有 1 Attempt 和 1 prompt.send，均为 reply-observed，没有自动重试或第二次点击发送 |
+| 原环境保护 | **PASS（所查范围）**：普通 Chrome 原 PID 31588 仍运行；4 项非 Trial Native Host 注册值未变；原历史 global.db 长度与精确 mtime 未变。未修改原 Runtime、共享扩展包或数据库 |
+
+浏览器恢复历史页后打开的 ChatGPT Tab 从 3 增为 4：历史临时页未被自动赋予项目/角色，正式 Slot 使用其 Kernel 租约 Tab。未通过清理历史页或自动换绑来消除这一现象；这不是第二次消息发送。没有读取其他会话正文。
+
+### 最小修复与当前源码回归
+
+修复 Commit：`53240ae5e960ba8b254cf709f8adce147afdff2e`。
+
+实际发现：首条 canonical 回复已显示在管理页，但 Attempt 一度停在 acknowledged。`content:changed` 与紧随的 `content:reply-observed` 使用同一 Revision，两个分支都上报 Kernel runtime；Kernel 要求严格递增，后一个通知因此被拒绝。后续新 Revision 的页面观察使原 Attempt 最终完成，期间未重发、未手工改写账本。
+
+只修改 `src/content.ts`，在发出回复通知前推进 observationRevision；保留 Kernel 的过期/跨代拒绝与确认成功后才清 pending 证据的规则。新增两项实际 content 模块测试：模拟 Kernel 严格递增约束验证状态后回复可持久确认；拒绝回复确认时保留证据，恢复后只重报观察、不再次发送 prompt。新增用例在修复前出现 Revision 断言失败，修复后通过。
+
+- **PASS**：当前修复源码完整回归 88 文件、508 项测试，134.45 秒；专项 4 文件/11 项通过。不是复用此前 506 项结果。
+- **PASS**：`npm run check`、`check:control`、`build`、`build:control`、`check:dist`、`check:architecture`；扩展 fingerprint=`776c0d5a5619b688…`。
+- **NOT_RUN**：将新补丁安装到当前 Dev，以及固定版本上新建 Conversation 的再次真实发送。本轮约定仅发送一次，现有运行包保留，没有把旧版本 E2E 宣称为修复后的 E2E。新补丁的首发修复有可重现的单元回归和构建证据。
+- **NOT_RUN**：本次恢复中的 Native Host 重新编译；Native 源码未变，使用既有安装产物完成了真实通信。正式 Side Panel 的 control-snapshot 状态显示亦 NOT_RUN：本轮将管理 HTML 作为扩展 Tab 打开，该路径被已有 sender.tab guard 拒绝，会显示 unavailable；Native 通信、角色发送与独立 HTML 结果分别验证，不将该辅助显示记为通过。
+- **NOT_RUN**：HTML 截图；前台 HWND 保护不满足时拒绝截图，未截取其他应用。真实界面结果来自目标 HTML 的 UI Automation，不是 mock。
+
+### 收尾与剩余风险
+
+- 恢复起点原 Kernel PID 39976 已退出，原因 **UNKNOWN**；日志未给出根因。本轮先恢复自有 Kernel，再进行受控的显式重启验收，不把未知退出归因为代码、Chrome 或用户。
+- 原 Trial `PCP-Start.cmd` 仍会启动 Chrome for Testing。本轮未运行它，亦未改变 launcher 的浏览器架构。继续保留这一限制，不能把当前 Chrome Dev 接入描述成通用一键启动已切换。
+- Chrome Dev 保持打开，测试 Conversation、唯一已完成 Attempt、项目及生命周期锁保留，便于核对；不清除 Profile/登录状态。固定版本的安装及再次首发 E2E 尚未完成，不自动启动下一阶段。
+- 断点 stage=`chrome-dev-one-message-e2e-complete-source-fix-not-installed`，sendStarted=true。恢复时不得再次运行发送步骤；先核对唯一 Attempt/operation 账本。
+- Tokdash 同一历史共享 session `01a17c6a-87b5-7641-8c5e-e7d170079b63` 本轮收尾采样 tokens=69495665、token_events=530；不是本工单独占用量。没有创建新的跟踪文件体系。
+
+本轮交付现有运行版本的真实角色闭环证据及源码最小修复，PR 继续保持 Draft，不合并 main，不接入 CB/Git 交接，不启动下一工单。
