@@ -2,7 +2,7 @@
 
 > **当前入口**：2026-10-27 用户确认的 Charterion 增强架构 **V0.3**。设计基线与各工单实际结果分开记录；既有 Runtime 保留，本轮另建独立试运行实例。
 > **当前试运行**：[CH-PCP-006：Windows 集成试运行](reviews/CH-PCP-006-INTEGRATED-TRIAL-2026-10-27.md)。独立目录 `F:\0 codex\Charterion-PCP-Trial-006`，双击 `PCP-Start.cmd` 后由插件“打开控制台”；`PCP-Stop.cmd` 停止，`PCP-Diagnose.cmd` 诊断。独立 Host、数据和专用 Chrome Profile，验收结束已停止。项目管理边界见 [CH-PCP-005](reviews/CH-PCP-005-RADAR-CONTROLS-2026-10-27.md)，只读底座见 [CH-PCP-004](reviews/CH-PCP-004-READONLY-RADAR-2026-10-27.md)。
-> **最新验收（2026-10-28）**：[CH-PCP-007：Chrome Dev 真实角色闭环](reviews/CH-PCP-007-WEBGPT-ACCEPTANCE-2026-10-27.md)。用户已切换同 ID 扩展到 Trial-006：真实首次 Conversation、一次消息/marker 回复、HTML 雷达、关页恢复、Kernel 与 Chrome Dev 重启/登录保留均已验证，只有一个发送 Attempt。回复 Revision 缺陷已在 `53240ae` 修复，88 文件/508 项回归通过；新补丁未安装到 Dev，不宣称固定版本已做真实首发 E2E。原 Runtime/注册/数据库不变，无新 Profile/CDP；现有 `PCP-Start.cmd` 仍会启动 CFT，勿用于本次 Chrome Dev 接入。本轮到此停止，不启动下一阶段。
+> **最新验收（2026-10-28）**：[CH-PCP-007 最终修复验收](reviews/CH-PCP-007-FINAL-REPAIR-2026-10-28.md)。`53240ae` 已安装到既有 Dev；独立新 Conversation 显式授权、一次消息的首次回复直接进入 reply-observed（Revision 11→12，同一 observedAt，26ms 持久确认），509 项回归通过。新增 Kernel-only/Dev 入口，原 Start 不再启动 CFT，Stop 只管理 Kernel。重启后新旧绑定、锁和两个历史 Attempt 保留；正式角色页目前需人工完成 Cloudflare 检查，恢复 idle 为 BLOCKED，不能记为完整通过。保留 Profile、登录态及原 Runtime，不启动下一阶段。
 
 ## 最重要的设计结论
 

@@ -1,0 +1,407 @@
+{
+  "workorder": "CH-PCP-007 final repair acceptance",
+  "observedAt": "2026-10-27T20:33:34.207Z",
+  "baseRuntimeSha": "2a7988e41348e30b3d0bedd1bc7b6c6bbae8b590",
+  "patches": [
+    {
+      "replyRevisionCommit": "53240ae5e960ba8b254cf709f8adce147afdff2e",
+      "launcherCommit": "7b1434df8a37ea0ead86be2351c884bf129c4176",
+      "updatedAt": "2026-10-27T20:25:14.707Z",
+      "files": [
+        "dist/content.js",
+        "dist/content.js.map",
+        "dist/build-meta.json",
+        "pcp-trial.mjs"
+      ]
+    }
+  ],
+  "contentSha256": "4465b770f8739f2a6b8ab36a96e86fd34c59aff5eab975584377bb572d838f29",
+  "packageIntegrity": "PASS",
+  "firstReply": {
+    "observedAt": 1793132833641,
+    "attemptId": "d89552ef-e77a-433f-92e0-3d7df88de84d",
+    "state": "reply-observed",
+    "replyMatches": true,
+    "replyObservedAt": 1793132833148,
+    "createdAt": 1793132824607,
+    "agent": {
+      "id": "d7fa941a-8cbc-4513-939a-939da21934b5",
+      "projectId": "b00f66ec-f62a-4a6f-a5a7-f1ed67e9c70f",
+      "role": "chief_engineer",
+      "status": "assigned",
+      "desiredState": "active",
+      "browserState": "open",
+      "conversationGeneration": 1,
+      "rolloverState": "idle",
+      "browserQuarantined": false,
+      "leaseEpoch": 1,
+      "createdAt": 1793132738625,
+      "updatedAt": 1793132833193,
+      "conversationKey": "conversation:6ae1091c-aac0-83e9-9d2a-759dc68ca792",
+      "browserProfileId": "gam-default",
+      "browserTabId": 859945846,
+      "browserObservedAt": 1793132833193,
+      "browserLeaseId": "fb071cee-6a28-4770-a179-247fdbbce715",
+      "browserLeaseEpoch": 1,
+      "browserContentEpoch": "490dc496-77ab-45e2-95ff-4faa329231c4",
+      "browserObservationRevision": 12,
+      "browserPageStatus": "idle",
+      "browserRuntimeObservedAt": 1793132833122
+    },
+    "events": [
+      {
+        "seq": 128,
+        "type": "AGENT_SLOT_CREATED",
+        "subject": "d7fa941a-8cbc-4513-939a-939da21934b5",
+        "createdAt": 1793132738625,
+        "payload": {}
+      },
+      {
+        "seq": 129,
+        "type": "BROWSER_OCCUPANCY_ACQUIRED",
+        "subject": "d7fa941a-8cbc-4513-939a-939da21934b5",
+        "createdAt": 1793132740166,
+        "payload": {}
+      },
+      {
+        "seq": 130,
+        "type": "AGENT_BROWSER_OBSERVED",
+        "subject": "d7fa941a-8cbc-4513-939a-939da21934b5",
+        "createdAt": 1793132740166,
+        "payload": {}
+      },
+      {
+        "seq": 131,
+        "type": "AGENT_BROWSER_OBSERVED",
+        "subject": "d7fa941a-8cbc-4513-939a-939da21934b5",
+        "createdAt": 1793132740595,
+        "payload": {}
+      },
+      {
+        "seq": 132,
+        "type": "AGENT_BROWSER_RUNTIME_OBSERVED",
+        "subject": "d7fa941a-8cbc-4513-939a-939da21934b5",
+        "createdAt": 1793132779118,
+        "payload": {
+          "revision": 2,
+          "pageStatus": "idle",
+          "contentEpoch": "490dc496-77ab-45e2-95ff-4faa329231c4"
+        }
+      },
+      {
+        "seq": 133,
+        "type": "CONVERSATION_BOOTSTRAP_AUTHORIZED",
+        "subject": "d7fa941a-8cbc-4513-939a-939da21934b5",
+        "createdAt": 1793132811902,
+        "payload": {}
+      },
+      {
+        "seq": 134,
+        "type": "AGENT_BROWSER_RUNTIME_OBSERVED",
+        "subject": "d7fa941a-8cbc-4513-939a-939da21934b5",
+        "createdAt": 1793132824594,
+        "payload": {
+          "revision": 10,
+          "pageStatus": "idle",
+          "contentEpoch": "490dc496-77ab-45e2-95ff-4faa329231c4"
+        }
+      },
+      {
+        "seq": 136,
+        "type": "BROWSER_OPERATION_PLANNED",
+        "subject": "d89552ef-e77a-433f-92e0-3d7df88de84d",
+        "createdAt": 1793132824615,
+        "payload": {}
+      },
+      {
+        "seq": 137,
+        "type": "WORK_DOCUMENT_UPSERTED",
+        "subject": "d89552ef-e77a-433f-92e0-3d7df88de84d",
+        "createdAt": 1793132824625,
+        "payload": {
+          "revision": 6
+        }
+      },
+      {
+        "seq": 138,
+        "type": "BROWSER_OPERATION_DISPATCHED",
+        "subject": "d89552ef-e77a-433f-92e0-3d7df88de84d",
+        "createdAt": 1793132824628,
+        "payload": {}
+      },
+      {
+        "seq": 139,
+        "type": "WORK_DOCUMENT_UPSERTED",
+        "subject": "d89552ef-e77a-433f-92e0-3d7df88de84d",
+        "createdAt": 1793132828123,
+        "payload": {
+          "revision": 7
+        }
+      },
+      {
+        "seq": 140,
+        "type": "BROWSER_OPERATION_SETTLED",
+        "subject": "d89552ef-e77a-433f-92e0-3d7df88de84d",
+        "createdAt": 1793132828127,
+        "payload": {
+          "outcome": "acknowledged"
+        }
+      },
+      {
+        "seq": 141,
+        "type": "CONVERSATION_BOOTSTRAP_BOUND",
+        "subject": "d7fa941a-8cbc-4513-939a-939da21934b5",
+        "createdAt": 1793132829602,
+        "payload": {}
+      },
+      {
+        "seq": 142,
+        "type": "AGENT_CONVERSATION_RECORDED",
+        "subject": "d7fa941a-8cbc-4513-939a-939da21934b5",
+        "createdAt": 1793132829601,
+        "payload": {}
+      },
+      {
+        "seq": 143,
+        "type": "AGENT_BROWSER_OBSERVED",
+        "subject": "d7fa941a-8cbc-4513-939a-939da21934b5",
+        "createdAt": 1793132829601,
+        "payload": {}
+      },
+      {
+        "seq": 144,
+        "type": "AGENT_BROWSER_RUNTIME_OBSERVED",
+        "subject": "d7fa941a-8cbc-4513-939a-939da21934b5",
+        "createdAt": 1793132833122,
+        "payload": {
+          "revision": 11,
+          "pageStatus": "idle",
+          "contentEpoch": "490dc496-77ab-45e2-95ff-4faa329231c4"
+        }
+      },
+      {
+        "seq": 145,
+        "type": "AGENT_BROWSER_RUNTIME_OBSERVED",
+        "subject": "d7fa941a-8cbc-4513-939a-939da21934b5",
+        "createdAt": 1793132833122,
+        "payload": {
+          "revision": 12,
+          "pageStatus": "idle",
+          "contentEpoch": "490dc496-77ab-45e2-95ff-4faa329231c4"
+        }
+      },
+      {
+        "seq": 146,
+        "type": "WORK_DOCUMENT_UPSERTED",
+        "subject": "d89552ef-e77a-433f-92e0-3d7df88de84d",
+        "createdAt": 1793132833152,
+        "payload": {
+          "revision": 8
+        }
+      },
+      {
+        "seq": 147,
+        "type": "BROWSER_OPERATION_SETTLED",
+        "subject": "d89552ef-e77a-433f-92e0-3d7df88de84d",
+        "createdAt": 1793132833157,
+        "payload": {
+          "outcome": "reply-observed"
+        }
+      }
+    ],
+    "attemptCount": 2,
+    "operations": [
+      {
+        "id": "d89552ef-e77a-433f-92e0-3d7df88de84d",
+        "state": "settled",
+        "outcome": "reply-observed"
+      }
+    ]
+  },
+  "tests": {
+    "files": 88,
+    "passed": 509,
+    "seconds": 99.89,
+    "finalTargetedTests": 8,
+    "checks": [
+      "check",
+      "check:control",
+      "build",
+      "build:control",
+      "check:dist",
+      "check:architecture",
+      "check:deployment-docs"
+    ]
+  },
+  "preservation": {
+    "otherHostRegistrations": [
+      {
+        "unchanged": true,
+        "host": "com.gpt_agent_manager.control"
+      },
+      {
+        "unchanged": true,
+        "host": "com.microsoft.browsercore"
+      },
+      {
+        "unchanged": true,
+        "host": "com.quark.hostclient"
+      },
+      {
+        "unchanged": true,
+        "host": "org.xdown.xmsg"
+      }
+    ],
+    "cdpOpened": false,
+    "ordinaryChromeRunning": true,
+    "profileCopied": false,
+    "ordinaryChromePid": 31588,
+    "trialHostManifest": "F:\\0 codex\\Charterion-PCP-Trial-006\\versions\\2a7988e41348e30b3d0bedd1bc7b6c6bbae8b590\\native-host\\com.charterion.pcp_trial_1cc2ff54f7742042.json",
+    "cookieValuesRead": false,
+    "observedAt": "2026-10-27T20:33:07.6867738Z"
+  },
+  "afterRestart": {
+    "agent": {
+      "id": "d7fa941a-8cbc-4513-939a-939da21934b5",
+      "projectId": "b00f66ec-f62a-4a6f-a5a7-f1ed67e9c70f",
+      "role": "chief_engineer",
+      "status": "assigned",
+      "desiredState": "active",
+      "browserState": "open",
+      "conversationGeneration": 1,
+      "rolloverState": "idle",
+      "browserQuarantined": false,
+      "leaseEpoch": 1,
+      "createdAt": 1793132738625,
+      "updatedAt": 1793133191128,
+      "conversationKey": "conversation:6ae1091c-aac0-83e9-9d2a-759dc68ca792",
+      "browserProfileId": "gam-default",
+      "browserTabId": 859945997,
+      "browserObservedAt": 1793133191128,
+      "browserLeaseId": "70b3a350-58a4-4dce-85b1-b0abc6388ae9",
+      "browserLeaseEpoch": 1,
+      "browserContentEpoch": "8ff01289-4a4e-48a6-84d4-22188355a30d",
+      "browserObservationRevision": 1,
+      "browserPageStatus": "unknown",
+      "browserRuntimeObservedAt": 1793132903719
+    },
+    "previousConversation": "conversation:6ae0caf8-3f78-83ea-9fd3-c73db21eb006",
+    "previousAttempt": {
+      "id": "a66d7ba3-8fbc-4262-8618-c0277f12bf62",
+      "state": "reply-observed",
+      "updatedAt": 1793117028320,
+      "unchanged": true
+    },
+    "currentAttempt": {
+      "id": "d89552ef-e77a-433f-92e0-3d7df88de84d",
+      "state": "reply-observed",
+      "updatedAt": 1793132833148,
+      "replyMatches": true
+    },
+    "totalAttempts": 2,
+    "newSlotOperations": 1,
+    "fleet": {
+      "projectId": "b00f66ec-f62a-4a6f-a5a7-f1ed67e9c70f",
+      "mode": "controlled",
+      "lifecycleLocked": true,
+      "revision": 1,
+      "updatedAt": 1793132738521,
+      "actor": "CH-PCP-007 final acceptance",
+      "reason": "Preserve independent final acceptance conversation and history"
+    },
+    "runtime": [
+      {
+        "profileId": "gam-default",
+        "authStatus": "authenticated",
+        "pageHealth": "ready",
+        "openTabs": 5,
+        "extensionVersion": "0.5.0",
+        "observedAt": 1793133191124
+      }
+    ],
+    "processes": {
+      "stoppedAt": 1793132879525,
+      "kernel": {
+        "ProcessId": 25064,
+        "ExecutablePath": "G:\\docker\\nodejs\\node.exe",
+        "CommandLine": "G:\\docker\\nodejs\\node.exe \"F:\\0 codex\\Charterion-PCP-Trial-006\\versions\\2a7988e41348e30b3d0bedd1bc7b6c6bbae8b590\\dist-control\\gamd.cjs\"",
+        "CreationDate": "/Date(1793132880051)/"
+      },
+      "origin": "http://127.0.0.1:54844",
+      "browserMode": "external-chrome-dev"
+    },
+    "dev": {
+      "pid": 48424,
+      "command": "\"C:\\Program Files\\Google\\Chrome Dev\\Application\\chrome.exe\" --profile-directory=Default --restore-last-session ",
+      "hwnd": 337646820
+    }
+  },
+  "restartPageReadiness": "BLOCKED_HUMAN_VERIFICATION",
+  "pageVerification": {
+    "observedAt": "2026-10-27T20:33:34.325Z",
+    "messages": [
+      "无法加载你的账户",
+      "浏览器检查未能完成。请重新加载此页面重试",
+      "Please pass Cloudflare check"
+    ],
+    "automaticBrowserActionsPaused": true
+  },
+  "radar": {
+    "labels": [
+      "已连接 Kernel",
+      "生命周期已锁定",
+      "CH-PCP-007 · Chief Engineer 真实会话验收",
+      "生命周期已锁定",
+      "CH-PCP-007 · Revision 最终修复验收",
+      "生命周期已锁定",
+      "conversation:6ae0caf8-3f78-83ea-9fd3-c73db21eb006",
+      "conversation:6ae1091c-aac0-83e9-9d2a-759dc68ca792",
+      "Kernel 1cc2ff54f7742042"
+    ],
+    "actualHtml": true,
+    "pluginOpened": true,
+    "observedAt": "2026-10-27T20:29:07.3487580Z"
+  },
+  "doctor": {
+    "sourceSha": "2a7988e41348e30b3d0bedd1bc7b6c6bbae8b590",
+    "instanceId": "1cc2ff54f7742042",
+    "host": "com.charterion.pcp_trial_1cc2ff54f7742042",
+    "root": "F:\\0 codex\\Charterion-PCP-Trial-006",
+    "checks": {
+      "integrity": "PASS",
+      "kernel": "ready",
+      "browser": "external-chrome-dev (not owned by stop)",
+      "browserRuntime": [
+        {
+          "profileId": "gam-default",
+          "authStatus": "authenticated",
+          "pageHealth": "ready",
+          "observedAt": 1793132951125
+        }
+      ]
+    },
+    "logs": "F:\\0 codex\\Charterion-PCP-Trial-006\\data\\logs",
+    "origin": "http://127.0.0.1:54844"
+  },
+  "originalDatabaseMetadataUnchanged": true,
+  "replyConfirmation": {
+    "sameSnapshotObservedAt": 1793132833122,
+    "statusRevision": 11,
+    "replyRevision": 12,
+    "persistDelayMs": 26,
+    "noPostSendBrowserInteraction": true
+  },
+  "entries": {
+    "kernel": "PCP-Kernel-Start.cmd / PCP-Start.cmd",
+    "dev": "PCP-ChromeDev.cmd",
+    "stop": "PCP-Stop.cmd (Kernel only in external mode)",
+    "diagnose": "PCP-Diagnose.cmd",
+    "control": "PCP-Control.cmd"
+  },
+  "limitations": {
+    "nativeHostRebuild": "NOT_RUN_UNCHANGED",
+    "fullWindowsReboot": "NOT_RUN",
+    "unrelatedTabCleanup": "NOT_RUN_OUT_OF_SCOPE",
+    "initialAccountLoadFailure": "Transient: recovered without login or retries; no send until authenticated/ready"
+  }
+}

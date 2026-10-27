@@ -17,7 +17,7 @@ architecture_gate:
 
 登录边界：若 Trial-006 新 Profile 需要 ChatGPT 登录或验证，暂停浏览器自动操作，等待人工完成；不使用旧 Profile/cookie、不自动填写凭据、不绕过验证。发送前持久记录唯一 attempt/marker 断点；任何发送不明均先检查实际 Conversation、Attempt 和回复，不自动重发。
 
-当前状态（2026-10-28）：已使用用户指定的既有 Chrome Dev 完成一次真实消息/回复、首次 canonical 绑定、HTML 状态、关页恢复及 Kernel/Chrome Dev 重启验收。回复通知 Revision 缺陷已修复并通过当前源码 508 项回归，尚未安装到 Dev。最新事实见文末“Chrome Dev 真实验收结果”；此前暂停/阻断段均为历史记录。原始断点保留于 Git 忽略目录 `.build-cache/CH-PCP-007/`，未执行的项目不计为 PASS。
+当前状态（2026-10-28）：本文件记录前轮结果；[最终修复验收](CH-PCP-007-FINAL-REPAIR-2026-10-28.md) 已覆盖其中“补丁未安装”和“Start 启动 CFT”的历史限制。补丁现已安装，新 Conversation 首次回复直接确认通过，509 项回归通过；重启后角色页需人工完成 Cloudflare 检查，最终 idle 为 BLOCKED。原始断点保留于 Git 忽略目录 `.build-cache/CH-PCP-007/`，未执行的项目不计为 PASS。
 
 ## 初始断点：等待人工登录（历史记录）
 
