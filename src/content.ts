@@ -84,6 +84,9 @@ async function reportReplyIfReady(next = snapshot(), semanticSignature = snapsho
     assistantMessageCount: pending.baselineAssistantMessageCount,
     ...(pending.baselineAssistantMessageId ? { latestAssistantMessageId: pending.baselineAssistantMessageId } : {}),
   })) return;
+  // This notice reports runtime state again; the Kernel requires a newer
+  // revision than content:changed even when both describe the same snapshot.
+  observationRevision += 1;
   const notice: RuntimeNotice = { type: 'content:reply-observed', attemptId: pending.attemptId, observation: observationIdentity(next, semanticSignature), snapshot: next };
   try {
     const response = await chrome.runtime.sendMessage(notice) as { ok?: boolean } | undefined;
