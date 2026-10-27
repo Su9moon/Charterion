@@ -42,7 +42,7 @@ function processById(id) {
 function stopOwned(recorded, executable, argument) {
   if (!recorded || !processById(recorded.ProcessId)) return;
   if (!ownedProcess(processById(recorded.ProcessId), recorded, executable, argument)) throw new Error('Process ownership mismatch; refusing to stop');
-  ps(`$s=$env:CH_PCP_PROCESS|ConvertFrom-Json; $p=Get-CimInstance Win32_Process -Filter ('ProcessId='+$s.ProcessId); if (!$p) {exit 0}; $v=$p|Select-Object ProcessId,ExecutablePath,CommandLine,CreationDate; if (($v|ConvertTo-Json -Compress) -cne ($s|ConvertTo-Json -Compress)) {throw 'Process changed; refusing to stop'}; Stop-Process -Id $p.ProcessId -ErrorAction Stop`, { CH_PCP_PROCESS: JSON.stringify(recorded) });
+  ps(`$s=$env:CH_PCP_PROCESS|ConvertFrom-Json; $p=Get-CimInstance Win32_Process -Filter ('ProcessId='+$s.ProcessId); if (!$p) {exit 0}; function Epoch($v) {if ($v -is [datetime]) {return ([DateTimeOffset]$v).ToUnixTimeMilliseconds()}; if ([string]$v -match '^/Date\\((-?\\d+)\\)/$') {return [long]$Matches[1]}; return ([DateTimeOffset]::Parse([string]$v)).ToUnixTimeMilliseconds()}; if ($p.ProcessId -ne $s.ProcessId -or $p.ExecutablePath -ine $s.ExecutablePath -or $p.CommandLine -cne $s.CommandLine -or (Epoch $p.CreationDate) -ne (Epoch $s.CreationDate)) {throw 'Process changed; refusing to stop'}; Stop-Process -Id $p.ProcessId -ErrorAction Stop`, { CH_PCP_PROCESS: JSON.stringify(recorded) });
 }
 function configAt(root) {
   const config = json(join(root, 'trial.json'));
