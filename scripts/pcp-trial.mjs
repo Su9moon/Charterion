@@ -1,6 +1,6 @@
-import { spawn, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { closeSync, cpSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, unlinkSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -69,12 +69,12 @@ function registryValue(host) {
   if (result.status !== 0) return undefined;
   return result.stdout.match(/REG_SZ\s+(.+)\r?\n/)?.[1]?.trim();
 }
-function verify(c, kernelOnly = false) {
+function verify(c) {
   const release = json(join(c.app, 'release.json'));
   if (release.sourceSha !== c.sourceSha || release.host !== c.host) throw new Error('Release identity mismatch');
   verifyFiles(c.app, release.files);
   if (!same(registryValue(c.host), join(c.app, 'native-host', `${c.host}.json`))) throw new Error('Native Host registration mismatch');
-  if (sha256(readFileSync(c.node)) !== c.nodeSha256 || (!kernelOnly && sha256(readFileSync(c.chrome)) !== c.chromeSha256)) throw new Error('Node/Chrome executable changed; revalidate before use');
+  if (sha256(readFileSync(c.node)) !== c.nodeSha256) throw new Error('Node executable changed; revalidate before use');
   return release;
 }
 function stateAt(c) { return existsSync(join(c.root, 'processes.json')) ? json(join(c.root, 'processes.json')) : {}; }
@@ -137,14 +137,17 @@ async function stop(c) {
   // Stop remains available even when package integrity fails; process ownership is checked independently.
   const state = stateAt(c);
   // Let Chrome flush its Profile; never turn a failed graceful close into a forced browser kill.
-  await closeTrialBrowser(c, state);
+  if (state.browserMode !== 'external-chrome-dev') await closeTrialBrowser(c, state);
   stopOwned(state.kernel, c.node, join(c.app, 'dist-control/gamd.cjs'));
-  for (let n = 0; n < 40; n++) { if (!processById(state.chrome?.ProcessId) && !processById(state.kernel?.ProcessId)) break; await sleep(100); }
-  if (processById(state.chrome?.ProcessId) || processById(state.kernel?.ProcessId)) throw new Error('Owned processes did not exit');
+  const browserRunning = () => state.browserMode !== 'external-chrome-dev' && processById(state.chrome?.ProcessId);
+  for (let n = 0; n < 40; n++) { if (!browserRunning() && !processById(state.kernel?.ProcessId)) break; await sleep(100); }
+  if (browserRunning() || processById(state.kernel?.ProcessId)) throw new Error('Owned processes did not exit');
   saveState(c, { stoppedAt: Date.now() }); return { status: 'stopped', instanceId: c.instanceId };
 }
 async function start(c) {
-  verify(c, true); const state = stateAt(c);
+  verify(c); const state = stateAt(c);
+  if (state.chrome && ownedProcess(processById(state.chrome.ProcessId), state.chrome, c.chrome, `--user-data-dir=${c.profile}`))
+    throw new Error('Legacy trial browser is still running; stop it before switching to external Chrome Dev');
   if (state.kernel && processById(state.kernel.ProcessId)) {
     if (!ownedProcess(processById(state.kernel.ProcessId), state.kernel, c.node, join(c.app, 'dist-control/gamd.cjs'))) throw new Error('Kernel PID ownership mismatch');
     if (rpc(c, 'health').instanceId !== c.instanceId) throw new Error('Foreign Kernel');
@@ -158,6 +161,7 @@ async function start(c) {
   }
   try {
     const url = new URL(rpc(c, 'radar.open').url); state.origin = url.origin;
+    state.browserMode = 'external-chrome-dev';
     saveState(c, state);
     return { status: 'ready', instanceId: c.instanceId, origin: state.origin, browser: 'external-chrome-dev', sourceSha: c.sourceSha };
   } catch (error) { await stop(c); throw error; }
@@ -226,9 +230,13 @@ async function main(argv) {
     return { ...result, browser: 'existing-chrome-dev-default-profile' };
   }
   if (command === 'doctor') {
-    const checks = {}; try { verify(c, true); checks.integrity = 'PASS'; } catch (error) { checks.integrity = error.message; }
+    const checks = {}; try { verify(c); checks.integrity = 'PASS'; } catch (error) { checks.integrity = error.message; }
     try { checks.kernel = rpc(c, 'health').instanceId === c.instanceId ? 'ready' : 'FOREIGN'; } catch { checks.kernel = 'not-running'; }
     const state = stateAt(c); checks.browser = ownedProcess(processById(state.chrome?.ProcessId), state.chrome, c.chrome, `--user-data-dir=${c.profile}`) ? 'running' : 'not-running';
+    if (state.browserMode === 'external-chrome-dev') {
+      checks.browser = 'external-chrome-dev (not owned by stop)';
+      try { checks.browserRuntime = rpc(c, 'control.snapshot').browserRuntime.map(({ profileId, authStatus, pageHealth, observedAt }) => ({ profileId, authStatus, pageHealth, observedAt })); } catch { checks.browserRuntime = 'unavailable'; }
+    }
     if (checks.integrity !== 'PASS' || checks.kernel === 'FOREIGN') process.exitCode = 1;
     return { sourceSha: c.sourceSha, instanceId: c.instanceId, host: c.host, root: c.root, checks, logs: c.logs, origin: state.origin ?? null };
   }
