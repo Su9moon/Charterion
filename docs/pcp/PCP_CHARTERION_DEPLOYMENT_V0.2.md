@@ -1,4 +1,4 @@
-# PCP × Charterion｜单机项目化控制台部署蓝图 V0.2
+# PCP × Charterion｜独立动态 HTML 控制台部署蓝图 V0.2
 
 - **状态**：部署方案已确定，**并未部署、启动或验收**。
 - **日期**：2026-10-27。以 `PCP_CHARTERION_TARGET_ARCHITECTURE_V0.3.md` 为产品目标；继承 `PCP_CHARTERION_DEPLOYMENT_ROLLBACK_V0.1.md` 对本机旧数据/备份/Native Host/回滚的保护规定。
@@ -7,13 +7,16 @@
 
 ```text
 Windows 11 当前 PC
- ├─ Charterion 本地管理 UI（扩展 Side Panel 优先，未来可扩独立本地窗口）
+ ├─ 独立动态 HTML PCP Controller / Radar（普通 Chrome 标签页）
  │   项目树 / 角色会话 / 手动锁定 / Git 工单 / 状态雷达
+ │   ↕ 本机 HTTP(S) / API（本阶段回环 127.0.0.1）
+ ├─ Node gamd Kernel（现有进程；新增可选 HTML/API 本地入口）
+ │   项目/角色/锁/投递/审计权威与真实状态投影
  ├─ Chrome 专用 Profile（ChatGPT 登录由用户维护）
  │   ├─ Chrome Extension background + content script
+ │   ├─ 插件工具栏：仅提供“打开独立控制台”入口
  │   └─ 按 project×role 绑定的 ChatGPT Conversation
  ├─ Native Messaging Host（当前用户 HKCU 注册入口，单活）
- ├─ Node gamd Kernel（持久项目/角色/锁/尝试/审计与状态投影）
  │   └─ SQLite（运行数据 + 绑定/锁/项目配置；迁移需回滚）
  └─ GitHub/现有 Git 工具（用户现有已授权连接）
      ├─ PCP Git：Role Charter/Policy
@@ -21,7 +24,7 @@ Windows 11 当前 PC
      └─ 可选现有 CB MCP → Codex Worker → Git SHA/Test/证据
 ```
 
-**无需默认部署服务器、Docker、OpenHands、第二个 Scheduler、独立雷达后端或新 CB。** Side Panel 已可作为第一阶段内置 UI 容器：在其中增加项目概览/绑定/锁操作；若后续发现桌面级常驻看板需要单独窗口，可复用**同一个 Kernel 与存储**提供视图，不能重新造项目和任务权威。
+**无需默认部署远程服务器、Docker、OpenHands、第二个 Scheduler、独立雷达后端或新 CB。** 控制台由 Charterion 随包交付的**独立 HTML/CSS/JS 页面**承载，插件的责任只有启动页面。第一版在现有 gamd Kernel 进程中提供仅回环的页面资源和受控 JSON/API；网页自行动态刷新/订阅状态与提交手动控制操作。不将雷达画在 Side Panel 里，不部署第二套 Kernel 或项目/任务数据库。
 
 ## 2. 项目与上下文隔离
 
@@ -40,7 +43,7 @@ Windows 11 当前 PC
 ## 4. 执行顺序（保留现有运行环境）
 
 1. 源码工作树检查实际版本，更新分支并在独立 worktree 运行静态检查、单测、可复现构建，不触碰运行 Host。
-2. 实现 ProjectConfig、ProjectRoleSession 和人工锁；首先提供真实可操作的内置 UI 并验证与 Kernel 状态一致。
+2. 实现 ProjectConfig、ProjectRoleSession 和人工锁；增加**独立动态 HTML 控制台**及 Kernel 回环页面/API，使绑定、锁和项目配置真实可操作并与 Kernel 状态一致。插件增加打开该页面的入口，而不是内嵌 UI。
 3. 修 DOM & Conversation bootstrap，完成专用 Chrome 的一条无害消息闭环，状态可在该 UI 看到。
 4. 实现项目 Git 引用/角色允许范围，三 WebGPT 在同一项目按短引用交接，另一项目隔离验证。
 5. 按项目可选连接现有 CB；记录真实工单/模型可得信息/执行证据，Reviewer 独立审核。
@@ -49,8 +52,10 @@ Windows 11 当前 PC
 
 ## 5. 配置与面板对外暴露
 
-- 优先在 Chrome Extension Side Panel 内复用现有消息/原生通信，不默认开放 HTTP 端口。
-- 如果以后提供本地服务/API 给桌面 UI，默认只绑定 `127.0.0.1`、有显式会话鉴权；未经额外设计不暴露公网或局域网。
+- **界面独立**：HTML/CSS/JS 作为独立浏览器页面加载。Chrome 扩展的菜单/工具栏按钮仅打开配置过的本机 Dashboard URL（例如 `http://127.0.0.1:<port>/pcp/`）；扩展 Side Panel 不包含新雷达 UI，也不成为 HTML 页的数据代理。
+- **运行数据**：独立 HTML 要取得动态状态，使用同一 gamd Kernel 的受控 HTTP API；包括项目、角色绑定、锁、投递、Git/CB 状态投影。监听只绑定 `127.0.0.1`，端口可配置；不默认部署独立服务进程。
+- **写操作安全**：仅 localhost 不是认证；须有专门的受限 UI 会话鉴权、Origin/CSRF 校验、变更授权和审计；绝不在 Dashboard URL 或 HTML JS 内嵌长期管理员 Token。对跨站页面、未经授权的扩展/普通网站请求拒绝写入；状态缓存要显示观测时间和离线状态。
+- **外部访问**：此阶段禁用公网/局域网监听；以后确需远程访问再单独制定鉴权/传输方案。
 - UI 的状态与告警数据来自同一个 Kernel 事件/配置投影，Git 任务/CB 状态来自对应真实权威；无法查询的数据显示 unavailable，不假装完成。
 - 参数按 Global→Project→RoleSession 分层并持久化；权限上限不可由下层配置绕开。
 
