@@ -17,9 +17,9 @@ architecture_gate:
 
 登录边界：若 Trial-006 新 Profile 需要 ChatGPT 登录或验证，暂停浏览器自动操作，等待人工完成；不使用旧 Profile/cookie、不自动填写凭据、不绕过验证。发送前持久记录唯一 attempt/marker 断点；任何发送不明均先检查实际 Conversation、Attempt 和回复，不自动重发。
 
-状态：验收进行中；结果待实际执行后填写。原始断点保留于 Git 忽略目录 `.build-cache/CH-PCP-007/`。尚未执行的项目不计为 PASS。
+当前状态：Profile 检查及停止机制修复已完成，人工登录后的复用和角色消息验收仍暂停。原始断点保留于 Git 忽略目录 `.build-cache/CH-PCP-007/`。尚未执行的项目不计为 PASS。
 
-## 当前断点：等待人工登录
+## 初始断点：等待人工登录（历史记录）
 
 - 测试项目：`e3b56b16-0c28-4782-bea6-919fd9e646d2`，名称 `CH-PCP-007 · Chief Engineer 真实会话验收`。
 - Chief Engineer Slot：`e2ac5204-5086-496f-a4b6-1c2448ead83d`；desiredState=active，browserState=open，conversationGeneration=0。
@@ -59,4 +59,35 @@ architecture_gate:
 
 当前源码专项测试 5 项通过，含新增 CDP loopback/端口/路径/凭据拒绝保护；调试端口人为置为不可达后 stop 拒绝，Chrome/Kernel PID 均仍存活，恢复原进程状态文件后正常 stop 通过。所有操作只复用现有 Trial-006 Profile。
 
-完整当前源码回归、同根目录版本化安装修复、重启后存储身份复核待完成。**人工登录后的停止/重启复用及消息 E2E 仍 NOT_RUN**，尚未收到用户登录完成确认；不以 Cookie DB 文件存在代替登录验收。
+上述检查时完整当前源码回归、同根目录版本化安装修复、重启后存储身份复核尚待完成；最终结果见下段。**人工登录后的停止/重启复用及消息 E2E 仍 NOT_RUN**，尚未收到用户登录完成确认；不以 Cookie DB 文件存在代替登录验收。
+
+### Profile 检查最终结果及恢复断点
+
+- 修复 Commit/实际安装版本：`2a7988e41348e30b3d0bedd1bc7b6c6bbae8b590`。只在原 Trial-006 根目录新增版本文件，更新其 CMD、trial.json 和自身 Host 指向；原版本保留。Extension/Kernel/Native 产物按原安装清单复制未改，本轮只改变 lifecycle driver，未重新宣称它们是新构建的二进制。
+- `data`、`chrome-profile`、实例 ID、Host 名和扩展 ID 均沿用；未运行 install、未建立另一个登录 Profile，也未复制/导出已有 Profile、Cookie、Token 或站点存储。版本复制源仅为无凭据的版本产物，旧 CMD/config 备份在本轮忽略目录。
+- **PASS：87 个当前源码测试文件、506 项测试**，`npx vitest run --exclude '**/.build-cache/**' --pool=forks --fileParallelism=false`，111.17 秒；专项 5 项通过。`node --check`、架构及部署文档检查通过。Driver 修改不要求重新编译未改动的 Extension/Kernel/Native。
+- **PASS：实际安装入口停止/重启、固定 Profile 路径**。经更新后的 PCP-Start.cmd/PCP-Stop.cmd，Chrome 和 Kernel PID 均更换，命令行仍为同一 user-data-dir。存储元数据核对 Profile 根目录、Default、Cookies、IndexedDB 和扩展本地存储目录，文件号、设备号及创建时间保持；Cookie DB 大小仍为 32768 bytes。仅证明路径/文件保留，不证明具体 Cookie 记录、有效期或登录状态。
+- `Local State` 配置文件的文件号发生变化，创建时间保持、大小有更新；未读取其内容，不能据此断言内容一致或整个 Profile 被重建。将该配置文件的文件号也当作必须永久不变，是初始探针过强断言；保留失败记录，与真正 Profile/存储身份断言分开。
+- 安装后一次配置页核对再关闭记录为 Normal；后续停止/重启又记录 Crashed。退出标记不能单独判定落盘成功或 Cookie 丢失；未修改或隐藏该值，最后一次 `Crashed` 原样记录。实际请求 Browser.close 并等待自有进程退出，调试端口失效时拒绝强杀。未把不成立的“必须一直为 Normal”探针当作产品失败或登录态通过。
+- 原四项 Native Host 值逐项不变；Trial 自身 Host 指向新版本。原历史数据库长度和精确 mtime 与 CH-PCP-007 起始元数据一致。收尾时未发现之前的原 Runtime 进程（早前 PID 5980），退出原因 **UNKNOWN**；本轮未对其执行停止、重启、安装或配置修改，不宣称其全程存活。
+- [脱敏检查回执](assets/CH-PCP-007-profile-check.json)；原始日志：`profile-unit-final.log`、`profile-fail-closed.log`、`apply-profile-fix.log`、`profile-installed-exit.json`、`profile-reuse-final.json`、`profile-preservation-final.json`。退出标记和 Local State 断言失败的日志亦保留，不改写成无失败执行。
+
+**恢复断点**：`checkpoint.json` 的 stage=`profile-check-complete-awaiting-human-login`，sendStarted=false；project/slot/marker 保持不变。Trial-006 用现有 Profile 保持可见运行以供用户手动登录。收到人工登录完成确认后，先只核对是否仍处于登录状态，再实际停止/重启一次并复核登录保留；消息发送仍按用户暂停要求单独等待恢复，不自动执行。人工登录、登录态复用、真实消息/回复和角色 E2E 均 **NOT_RUN**，CH-PCP-007 整体未完成。
+
+```yaml
+execution_evidence:
+  workorder_profile:
+    recommended_model: null
+    recommended_reasoning_effort: null
+  selected_execution:
+    actual_model: gpt-6.1-sol
+    actual_reasoning_effort: NOT_EXPOSED_BY_RUNTIME
+  resolution:
+    type: runtime_unobservable
+    reason: workorder omits execution_profile; runtime exposes model but not effort or selection provenance
+  requested_by: user CH-PCP-007 profile persistence inspection
+  resolved_by: Codex desktop runtime
+  actor: Codex
+```
+
+Tokdash 共用会话 `01a17c6a-87b5-7641-8c5e-e7d170079b63`，project-history-shared-session；采样 tokens=51762843、token_events=377，last_seen_at=2026-10-27T22:38:48.356+08:00，不归为本轮独占用量。未新建任务跟踪体系。该 Draft PR 交付 Profile 修复和部分验收证据，不代表角色登录/消息 E2E 完成。

@@ -1,0 +1,30 @@
+{
+  "workorder": "CH-PCP-007",
+  "scope": "Profile mechanism and storage metadata only; WebGPT send acceptance paused",
+  "runtimeSourceSha": "2a7988e41348e30b3d0bedd1bc7b6c6bbae8b590",
+  "instanceId": "1cc2ff54f7742042",
+  "profile": "F:\\0 codex\\Charterion-PCP-Trial-006\\chrome-profile",
+  "actualProfilePath": "F:\\0 codex\\Charterion-PCP-Trial-006\\chrome-profile\\Default",
+  "check": "PROFILE_REUSE_METADATA_PASS",
+  "stablePaths": [
+    ".",
+    "Default",
+    "Default/Network/Cookies",
+    "Default/IndexedDB",
+    "Default/Local Extension Settings",
+    "Default/Local Extension Settings/kheifdlffdfcgmapmbbahdgkpccckmbn"
+  ],
+  "distinctChromePids": true,
+  "distinctKernelPids": true,
+  "exitTypeBeforeLastRestart": "Crashed",
+  "previousInstalledCloseExitType": "Normal",
+  "cookieFileContents": "NOT_READ",
+  "tokenContents": "NOT_READ",
+  "storageContents": "NOT_READ",
+  "manualLoginReuse": "NOT_RUN",
+  "roleMessageE2E": "NOT_RUN",
+  "messagesSent": 0,
+  "unitFiles": 87,
+  "unitTests": 506,
+  "observedAt": "2026-10-27T14:38:35.189Z"
+}
