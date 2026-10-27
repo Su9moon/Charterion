@@ -31,7 +31,8 @@ export function verifyFiles(root, files) {
   }
 }
 export function ownedProcess(actual, recorded, executable, argument) {
-  return Boolean(actual && recorded && actual.ProcessId === recorded.ProcessId && actual.CreationDate === recorded.CreationDate &&
+  const epoch = value => /^\/Date\((-?\d+)\)\/$/.test(String(value)) ? Number(String(value).slice(6, -2)) : Date.parse(value);
+  return Boolean(actual && recorded && actual.ProcessId === recorded.ProcessId && Number.isFinite(epoch(actual.CreationDate)) && epoch(actual.CreationDate) === epoch(recorded.CreationDate) &&
     same(actual.ExecutablePath, executable) && same(actual.ExecutablePath, recorded.ExecutablePath) && actual.CommandLine === recorded.CommandLine && actual.CommandLine.includes(argument));
 }
 function processById(id) {
@@ -68,12 +69,12 @@ function registryValue(host) {
   if (result.status !== 0) return undefined;
   return result.stdout.match(/REG_SZ\s+(.+)\r?\n/)?.[1]?.trim();
 }
-function verify(c) {
+function verify(c, kernelOnly = false) {
   const release = json(join(c.app, 'release.json'));
   if (release.sourceSha !== c.sourceSha || release.host !== c.host) throw new Error('Release identity mismatch');
   verifyFiles(c.app, release.files);
   if (!same(registryValue(c.host), join(c.app, 'native-host', `${c.host}.json`))) throw new Error('Native Host registration mismatch');
-  if (sha256(readFileSync(c.node)) !== c.nodeSha256 || sha256(readFileSync(c.chrome)) !== c.chromeSha256) throw new Error('Node/Chrome executable changed; revalidate before use');
+  if (sha256(readFileSync(c.node)) !== c.nodeSha256 || (!kernelOnly && sha256(readFileSync(c.chrome)) !== c.chromeSha256)) throw new Error('Node/Chrome executable changed; revalidate before use');
   return release;
 }
 function stateAt(c) { return existsSync(join(c.root, 'processes.json')) ? json(join(c.root, 'processes.json')) : {}; }
@@ -142,13 +143,11 @@ async function stop(c) {
   if (processById(state.chrome?.ProcessId) || processById(state.kernel?.ProcessId)) throw new Error('Owned processes did not exit');
   saveState(c, { stoppedAt: Date.now() }); return { status: 'stopped', instanceId: c.instanceId };
 }
-async function start(c, headless) {
-  verify(c); const state = stateAt(c);
+async function start(c) {
+  verify(c, true); const state = stateAt(c);
   if (state.kernel && processById(state.kernel.ProcessId)) {
     if (!ownedProcess(processById(state.kernel.ProcessId), state.kernel, c.node, join(c.app, 'dist-control/gamd.cjs'))) throw new Error('Kernel PID ownership mismatch');
     if (rpc(c, 'health').instanceId !== c.instanceId) throw new Error('Foreign Kernel');
-    if (state.chrome && ownedProcess(processById(state.chrome.ProcessId), state.chrome, c.chrome, `--user-data-dir=${c.profile}`)) return { status: 'already-running', instanceId: c.instanceId, origin: state.origin };
-    // A user-closed browser can be restarted while retaining the owned Kernel.
   } else {
     try { if (rpc(c, 'health')) throw new Error('Untracked Kernel is already active; diagnose before starting'); } catch (error) { if (/Untracked/.test(error.message)) throw error; }
     run(c.node, [join(c.app, 'dist-control/gam.cjs'), 'start', '--no-browser', '--json'], { env: environment(c) });
@@ -159,29 +158,8 @@ async function start(c, headless) {
   }
   try {
     const url = new URL(rpc(c, 'radar.open').url); state.origin = url.origin;
-    delete state.chrome; delete state.cdpPort;
-    const portFile = join(c.profile, 'DevToolsActivePort'); if (existsSync(portFile)) unlinkSync(portFile);
-    mkdirSync(c.logs, { recursive: true });
-    const chromeLog = openSync(join(c.logs, 'chrome-startup.log'), 'a');
-    let child;
-    try { child = spawn(c.chrome, [`--user-data-dir=${c.profile}`, `--load-extension=${c.app}`, `--disable-extensions-except=${c.app}`,
-      '--remote-debugging-address=127.0.0.1', '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check',
-      // The extension intentionally removes orphan about:blank tabs on startup.
-      ...(headless ? ['--headless=new'] : ['--new-window']), 'chrome://newtab/'], { detached: true, windowsHide: headless, stdio: ['ignore', 'ignore', chromeLog] });
-    } finally { closeSync(chromeLog); }
-    child.on('error', () => {}); child.unref();
-    for (let n = 0; n < 60; n++) { const process = processById(child.pid); if (process) { state.chrome = process; break; } await sleep(100); }
-    if (!state.chrome) throw new Error('Chrome did not start');
     saveState(c, state);
-    for (let n = 0; n < 80; n++) {
-      try {
-        const port = Number(readFileSync(join(c.profile, 'DevToolsActivePort'), 'utf8').split('\n')[0]);
-        const response = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(1000) });
-        if (response.ok) { state.cdpPort = port; saveState(c, state); return { status: 'ready', instanceId: c.instanceId, origin: state.origin, profile: c.profile, sourceSha: c.sourceSha, headless }; }
-      } catch { /* startup only; bounded wait */ }
-      await sleep(100);
-    }
-    throw new Error('Chrome debugging endpoint unavailable; inspect logs/profile');
+    return { status: 'ready', instanceId: c.instanceId, origin: state.origin, browser: 'external-chrome-dev', sourceSha: c.sourceSha };
   } catch (error) { await stop(c); throw error; }
 }
 export function install(source, root, chrome, nativeDir) {
@@ -215,7 +193,7 @@ export function install(source, root, chrome, nativeDir) {
   writeJson(join(app, 'release.json'), { sourceSha, instanceId, host, extensionId, originalHost, sourceBackgroundSha256: sha256(Buffer.from(original)), files });
   writeJson(join(root, 'trial.json'), { root: realpathSync(root), sourceSha, instanceId, host, extensionId, node: process.execPath, chrome,
     nodeSha256: sha256(readFileSync(process.execPath)), chromeSha256: sha256(readFileSync(chrome)), installedAt: Date.now() });
-  for (const [name, command] of [['PCP-Start', 'start'], ['PCP-Stop', 'stop'], ['PCP-Diagnose', 'doctor'], ['PCP-Control', 'ctl']]) {
+  for (const [name, command] of [['PCP-Start', 'start'], ['PCP-Kernel-Start', 'start'], ['PCP-ChromeDev', 'chrome-dev'], ['PCP-Stop', 'stop'], ['PCP-Diagnose', 'doctor'], ['PCP-Control', 'ctl']]) {
     writeFileSync(join(root, name + '.cmd'), `@echo off\r\n"${process.execPath}" "%~dp0versions\\${sourceSha}\\pcp-trial.mjs" ${command} --root "%~dp0." %*\r\nset "PCP_EXIT=%ERRORLEVEL%"\r\n${command === 'doctor' ? 'pause\r\n' : 'if not "%PCP_EXIT%"=="0" pause\r\n'}exit /b %PCP_EXIT%\r\n`, 'utf8');
   }
   // Register last, after all files are validated. Never invoke the legacy overwriting installer.
@@ -235,14 +213,25 @@ async function main(argv) {
   const c = configAt(root);
   if (command === 'ctl') { verify(c); const result = spawnSync(c.node, [join(c.app, 'dist-control/gamctl.cjs'), ...argv], { env: environment(c), stdio: 'inherit', windowsHide: true }); process.exitCode = result.status ?? 1; return; }
   if (command === 'stop') return stop(c);
-  if (command === 'start') return start(c, argv.includes('--headless'));
+  if (command === 'start') {
+    if (argv.length) throw new Error('start is Kernel-only; browser flags are not accepted');
+    return start(c);
+  }
+  if (command === 'chrome-dev') {
+    if (argv.length) throw new Error('chrome-dev does not accept arguments');
+    const browser = join(process.env.PROGRAMFILES ?? 'C:\\Program Files', 'Google/Chrome Dev/Application/chrome.exe');
+    if (!existsSync(browser)) throw new Error('Chrome Dev is not installed');
+    const result = await start(c);
+    ps('Start-Process -FilePath $env:CH_PCP_DEV -ArgumentList @("--profile-directory=Default","--restore-last-session") -WindowStyle Normal', { CH_PCP_DEV: browser });
+    return { ...result, browser: 'existing-chrome-dev-default-profile' };
+  }
   if (command === 'doctor') {
-    const checks = {}; try { verify(c); checks.integrity = 'PASS'; } catch (error) { checks.integrity = error.message; }
+    const checks = {}; try { verify(c, true); checks.integrity = 'PASS'; } catch (error) { checks.integrity = error.message; }
     try { checks.kernel = rpc(c, 'health').instanceId === c.instanceId ? 'ready' : 'FOREIGN'; } catch { checks.kernel = 'not-running'; }
     const state = stateAt(c); checks.browser = ownedProcess(processById(state.chrome?.ProcessId), state.chrome, c.chrome, `--user-data-dir=${c.profile}`) ? 'running' : 'not-running';
     if (checks.integrity !== 'PASS' || checks.kernel === 'FOREIGN') process.exitCode = 1;
     return { sourceSha: c.sourceSha, instanceId: c.instanceId, host: c.host, root: c.root, checks, logs: c.logs, origin: state.origin ?? null };
   }
-  throw new Error('Use install, start, stop, doctor or ctl');
+  throw new Error('Use install, start (Kernel only), chrome-dev, stop, doctor or ctl');
 }
 if (process.argv[1] && resolve(process.argv[1]) === script) main(process.argv.slice(2)).then(result => { if (result) console.log(JSON.stringify(result, null, 2)); }).catch(error => { console.error(error.message); process.exitCode = 1; });

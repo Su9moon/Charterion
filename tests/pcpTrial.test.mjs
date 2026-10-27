@@ -21,11 +21,17 @@ describe('isolated PCP trial protection',()=>{
     expect(()=>verifyFiles(root,{'../outside':'bad'})).toThrow('Unsafe package path');
   });
   it('refuses PID reuse, another executable, changed arguments and an unrelated profile',()=>{
-    const owned={ProcessId:123,CreationDate:'original',ExecutablePath:'C:\\Chrome\\chrome.exe',CommandLine:'chrome --user-data-dir=F:\\PCP-Trial\\profile'};
+    const owned={ProcessId:123,CreationDate:'2026-10-28T00:00:00.000Z',ExecutablePath:'C:\\Chrome\\chrome.exe',CommandLine:'chrome --user-data-dir=F:\\PCP-Trial\\profile'};
     const valid=p=>ownedProcess(p,owned,owned.ExecutablePath,'--user-data-dir=F:\\PCP-Trial\\profile');
     expect(valid({...owned})).toBe(true);
     for(const edit of[{CreationDate:'reused'},{ProcessId:124},{ExecutablePath:'C:\\other.exe'},{CommandLine:'chrome --user-data-dir=C:\\original-profile'}])expect(valid({...owned,...edit})).toBe(false);
     expect(ownedProcess(owned,owned,owned.ExecutablePath,'--user-data-dir=C:\\original-profile')).toBe(false);
+  });
+  it('compares PowerShell creation timestamps by instant without accepting an invalid identity',()=>{
+    const recorded={ProcessId:123,CreationDate:'/Date(1793145600000)/',ExecutablePath:'C:\\node.exe',CommandLine:'node trial/gamd.cjs'};
+    expect(ownedProcess({...recorded,CreationDate:new Date(1793145600000).toISOString()},recorded,recorded.ExecutablePath,'trial/gamd.cjs')).toBe(true);
+    expect(ownedProcess({...recorded,CreationDate:new Date(1793145600001).toISOString()},recorded,recorded.ExecutablePath,'trial/gamd.cjs')).toBe(false);
+    expect(ownedProcess({...recorded,CreationDate:'invalid'},{...recorded,CreationDate:'invalid'},recorded.ExecutablePath,'trial/gamd.cjs')).toBe(false);
   });
   it('will not install over an existing data/profile root',()=>{
     const root=mkdtempSync(join(tmpdir(),'pcp-trial-'));dirs.push(root);writeFileSync(join(root,'sentinel'),'keep');
