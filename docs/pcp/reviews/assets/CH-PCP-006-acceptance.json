@@ -1,0 +1,24 @@
+{
+  "startedAt": 1793106458863,
+  "runtimeSourceSha": "fa42f6146ddff9d75a9271ab235d1bef5e6b8ed7",
+  "instanceId": "1cc2ff54f7742042",
+  "visibleChrome": true,
+  "refreshMs": 2979,
+  "projectIds": [
+    "03fcb21a-6fdb-441c-a3b5-3c4d255f1b90",
+    "552fddbc-4b05-41ec-82e7-08f9edf925ca"
+  ],
+  "realNativeLaunch": true,
+  "realFleetModeLockUnlock": true,
+  "duplicateSingleAudit": true,
+  "auditCount": 3,
+  "uiSha256": "8e6b6824682024a9208cdbf576db9cbc6225e206893b5d211470ea2f1ac5ade6",
+  "oneClickStop": true,
+  "oneClickRestart": true,
+  "lockRestoredAfterRestart": true,
+  "restartRevokesSessions": true,
+  "restoredPluginAndHtml": true,
+  "repeatedStartIdempotent": true,
+  "finalRevision": 3,
+  "completedAt": 1793106618155
+}
