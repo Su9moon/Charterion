@@ -152,3 +152,9 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .control-agent-row { font-size: 11px; color: #555; padding: 3px 0; overflow-wrap: anywhere; }
 
 .control-request-row { font-size: 11px; padding: 4px 0; font-weight: 600; overflow-wrap: anywhere; }
+
+/* Bilingual text must wrap without shrinking or hiding controls in the 320px side panel. */
+.topbar, .section-heading { flex-wrap: wrap; }
+.topbar > div { min-width: 0; }
+button, label, .muted, .section-heading h2 { overflow-wrap: anywhere; }
+.task-form-grid label, .control-project-card small { line-height: 1.45; }
