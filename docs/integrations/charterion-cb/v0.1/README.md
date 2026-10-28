@@ -27,3 +27,27 @@ lookup 参数为 dispatchId/project。project 必须精确匹配主机 scope。
 Coordinator 应持久化 prepare 结果后自行通过 CB MCP 提交并以原 dispatchId 对账。
 此接口不提交 CB、不创建本地任务或 workspace、不生成 ACK/taskId、不审批；
 Organization 内部执行路径不变。规范仍固定于上述 PCP commit；无新增运行时网络依赖。
+
+
+## R3 host-owned reconciliation (source-only opt-in)
+
+`control/src/charterionCbReconciler.ts` adds a one-shot injectable `TrustedCbReadClient`.
+Only a trusted host constructor may bind the authenticated reader, clientId, instanceId,
+project and host-verified request_lookup/task_events capability page limit (1..100).
+There is no runtime adapter or new browser/admin RPC method. Missing capability must
+leave the reader unbound; unavailable reads return blocked/unknown, never success.
+The host adapter must verify transport authentication and task project provenance;
+the canonical ACK remains unchanged, nested inside the lookup task envelope.
+
+`reconcile(dispatchId)` requires an existing journal intent, queries the original
+client/dispatch identity, checks protocol/instance/client/project/work item/digest,
+and records the stable task binding transactionally through the existing journal.
+Only then does it read one bounded event page. Journal scope, conflict, replay and
+contiguous cursor rules remain authoritative; remote cursor metadata cannot skip gaps.
+An event read failure retains the durable ACK and returns unknown for later explicit
+reconciliation. No submit, timers, scheduler, local execution, lease/workspace creation
+or WorkItem completion is provided. `observed` means journal observations only.
+
+Validation uses mock readers only. Real authenticated MCP joint integration: NOT_RUN.
+No full browser UAT. Native Node v22.13.0 is below the installed jsdom engine requirement;
+no dependency install was needed and these focused Node tests do not exercise jsdom.
