@@ -71,7 +71,7 @@ it('bounds pages and preserves replay, gap, conflict and scope cursor rules', as
     type: 'RESULT_PRESERVED', origin: 'server', received_at: '2026-10-28T00:00:00Z', evidence_refs: [] });
   const page = (events: CbObservedEvent[]) => ({ events, next_seq: 2, last_seq: 2, has_more: false });
   reader.get_task_events.mockResolvedValue(page([event(2)]));
-  expect(await reconciler.reconcile('dispatch')).toMatchObject({ cursor: 0 });
+  expect(await reconciler.reconcile('dispatch')).toEqual({ status: 'unknown', reason: 'CB_EVENT_CURSOR_GAP' });
   reader.get_task_events.mockResolvedValue(page([event(1), event(2)]));
   expect(await reconciler.reconcile('dispatch')).toMatchObject({ cursor: 2 });
   expect(await reconciler.reconcile('dispatch')).toMatchObject({ cursor: 2 });
@@ -85,4 +85,26 @@ it('bounds pages and preserves replay, gap, conflict and scope cursor rules', as
   reader.get_task_events.mockRejectedValue(new Error('offline'));
   expect((await reconciler.reconcile('dispatch')).status).toBe('unknown');
   expect(journal.lookup('dispatch')?.taskId).toBe('T-1');
+});
+
+it('rejects unordered pages and inconsistent pagination without advancing the cursor', async () => {
+  const { reader, reconciler, journal } = setup();
+  const event = (seq: number): CbObservedEvent => ({ seq, instance_id: 'instance', task_id: 'T-1', run_id: null,
+    type: 'CLAIMED', origin: 'server', received_at: '2026-10-28T00:00:00Z', evidence_refs: [] });
+  for (const page of [
+    { events: [event(2), event(1)], next_seq: 1, last_seq: 2, has_more: true },
+    { events: [event(1)], next_seq: 2, last_seq: 2, has_more: false },
+    { events: [event(1)], next_seq: 1, last_seq: 2, has_more: false },
+    { events: [], next_seq: 0, last_seq: 2, has_more: false },
+  ]) {
+    reader.get_task_events.mockResolvedValue(page);
+    await expect(reconciler.reconcile('dispatch')).rejects.toThrow('CB_EVENT_PAGE_INVALID');
+    expect(journal.contiguousCursor('dispatch')).toBe(0);
+  }
+  reader.get_task_events.mockResolvedValue({ events: [event(1)], next_seq: 1, last_seq: 2, has_more: true });
+  expect(await reconciler.reconcile('dispatch')).toMatchObject({ cursor: 1, hasMore: true });
+  reader.get_task_events.mockResolvedValue({ events: [event(1), event(2)], next_seq: 2, last_seq: 2, has_more: false });
+  expect(await reconciler.reconcile('dispatch')).toMatchObject({ cursor: 2, hasMore: false });
+  reader.get_task_events.mockResolvedValue({ events: [event(2), event(2)], next_seq: 2, last_seq: 2, has_more: false });
+  expect(await reconciler.reconcile('dispatch')).toMatchObject({ cursor: 2, hasMore: false });
 });

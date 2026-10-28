@@ -75,17 +75,26 @@ export class CharterionCbReconciler {
     // Journal transaction enforces stable task/instance identity, including concurrent recovery.
     const bound = this.journal.recordAck(dispatchId, { instanceId: ack.instance_id,
       taskId: task.id, workItemId: ack.work_item_id, intentSha256: ack.intent_sha256 });
+    const afterSeq = this.journal.contiguousCursor(dispatchId);
     let page: CbEventPage;
-    try { page = await this.reader.get_task_events(bound.taskId!, this.journal.contiguousCursor(dispatchId), scope.eventPageMax); }
+    try { page = await this.reader.get_task_events(bound.taskId!, afterSeq, scope.eventPageMax); }
     catch { return { status: 'unknown', reason: 'CB_EVENTS_UNAVAILABLE' }; }
     if (!page || !Array.isArray(page.events) || page.events.length > scope.eventPageMax ||
         !Number.isSafeInteger(page.next_seq) || page.next_seq < 0 ||
         !Number.isSafeInteger(page.last_seq) || page.last_seq < page.next_seq ||
-        typeof page.has_more !== 'boolean' || page.events.some((e) => e.seq > page.last_seq)) {
+        typeof page.has_more !== 'boolean' || page.last_seq < afterSeq ||
+        page.events.some((e, i) => !e || !Number.isSafeInteger(e.seq) || e.seq < 1 ||
+          e.seq > page.last_seq || (i > 0 && e.seq < page.events[i - 1]!.seq)) ||
+        page.next_seq !== (page.events.length ? page.events[page.events.length - 1]!.seq : afterSeq) ||
+        page.has_more !== (page.next_seq < page.last_seq)) {
       throw new Error('CB_EVENT_PAGE_INVALID');
     }
     this.journal.ingestEvents(dispatchId, page.events);
-    // Only the journal's contiguous observations advance the cursor, never remote metadata.
-    return { status: 'observed', taskId: bound.taskId!, cursor: this.journal.contiguousCursor(dispatchId), hasMore: page.has_more };
+    // Only contiguous durable observations can establish a complete page.
+    const cursor = this.journal.contiguousCursor(dispatchId);
+    if (cursor < page.next_seq || (!page.has_more && cursor < page.last_seq)) {
+      return { status: 'unknown', reason: 'CB_EVENT_CURSOR_GAP' };
+    }
+    return { status: 'observed', taskId: bound.taskId!, cursor, hasMore: page.has_more };
   }
 }

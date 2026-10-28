@@ -81,6 +81,9 @@ function canonical(value: unknown): string {
   throw new Error('CB dispatch contains non-JSON input');
 }
 function normalizeInput(input: CbDispatchInput): string {
+  // Legacy absent-options records use null internally; explicit JSON null is not
+  // an absent option and must never replay that identity.
+  if (input.options === null) throw new Error('CB_DISPATCH_OPTIONS_NULL');
   const payload = {
     dispatchId: nonempty(input.dispatchId, 'dispatchId'),
     workItemId: nonempty(input.workItemId, 'workItemId'),

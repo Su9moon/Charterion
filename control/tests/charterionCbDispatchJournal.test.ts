@@ -74,3 +74,22 @@ describe('Charterion CB V0.1 dispatch journal (source-only)', () => {
     expect(journal.contiguousCursor(request.dispatchId)).toBe(0);
   });
 });
+
+it('rejects explicit null without changing legacy absent identity or ACK', () => {
+  const { db, journal } = setup();
+  const first = journal.prepare(request);
+  const before = db.db.prepare('SELECT * FROM charterion_cb_dispatch').all();
+  expect(() => journal.prepare({ ...request, options: null } as unknown as CbDispatchInput))
+    .toThrow('CB_DISPATCH_OPTIONS_NULL');
+  expect(db.db.prepare('SELECT * FROM charterion_cb_dispatch').all()).toEqual(before);
+  expect(journal.prepare(request)).toEqual(first);
+  expect(journal.lookup(request.dispatchId)?.taskId).toBeNull();
+  expect(() => journal.prepare({ ...request, dispatchId: 'null-first', options: null } as unknown as CbDispatchInput))
+    .toThrow('CB_DISPATCH_OPTIONS_NULL');
+  expect(journal.lookup('null-first')).toBeNull();
+});
+it('replays JSON object keys in any order idempotently', () => {
+  const { journal } = setup();
+  const first = journal.prepare({ ...request, options: { b: 2, a: { y: true, x: 1 } } });
+  expect(journal.prepare({ ...request, options: { a: { x: 1, y: true }, b: 2 } })).toEqual(first);
+});
