@@ -41,8 +41,7 @@ describe('Charterion CB V0.1 dispatch journal (source-only)', () => {
     expect(journal.recordAck(first.dispatchId, ack).taskId).toBe('T-000123');
     expect(journal.recordAck(first.dispatchId, ack).taskId).toBe('T-000123');
     expect(() => journal.recordAck(first.dispatchId, { ...ack, taskId: 'T-000456' })).toThrow('DISPATCH_ACK_CONFLICT');
-    db.close();
-    // Reopen through the same persistent SQLite file.
+    // Reopen through the same persistent SQLite file; original connection stays healthy.
     const reopened = new ControlDatabase(path);
     try {
       const again = new CharterionCbDispatchJournal(reopened, 'trusted-charterion-client');
