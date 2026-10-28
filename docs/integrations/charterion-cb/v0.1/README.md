@@ -1,7 +1,7 @@
 # Charterion—CB 接入入口 V0.1
 
-状态：契约已固定；产品实现 NOT_STARTED；联合验证 WAITING_USER_SCHEDULE。
-用户于 2026-10-28 要求将本次讨论材料上传两仓固定，下一次安排联合验证。本次发布不执行代码开发或线上变更。
+状态：契约已固定；R2 最小源码接口已实现，默认关闭；联合验证 WAITING_USER_SCHEDULE。
+最初材料发布仅固定契约；本次 R2 按后续开发授权实现下述源码范围，无线上变更。
 
 - 唯一权威：[PCP 接入基线](https://github.com/Su9moon/personal-ai-control-plane/blob/61402b2d2e042f5b950e58bcb230901e3c58fb12/governance/integrations/charterion-cb/v0.1/BASELINE.md)。
 - 精确版本与快照字节校验：integration-lock.json；upstream/ 文件为 NON_CANONICAL_AUTHORIZED_SNAPSHOT。
@@ -11,3 +11,19 @@
 
 开发者先核对 pin/hash，再读 BASELINE/PROTOCOL/ACCEPTANCE。运行产品无需在线访问 PCP Git；这些是开发输入而非新运行依赖。
 禁止两仓各自修改共同协议。先更新 canonical 版本及样例，再显式刷新两边 pin。
+
+## R2 最小源码实现（默认关闭，未联合验证）
+
+`RpcRouter` 的可选第五个构造参数为主机专用
+`{ enabled: true, clientId, project }`。现有启动入口不传此参数，因此默认禁用。
+TODO：由部署主机提供受信配置及管理员凭据隔离；尚未接线，不代表 live integration。
+仅管理员 token 可调用 `cb-dispatch.prepare` / `cb-dispatch.lookup`，浏览器 token 和
+capability 均不授权；管理员权限绑定主机固定的 clientId/project，禁止请求传 clientId。
+
+prepare 参数为 journal 的 dispatchId/workItemId/project/task/sourceRef/inputRef/options；
+lookup 参数为 dispatchId/project。project 必须精确匹配主机 scope。
+返回 journal 原始记录（精确 task、原始 UTF-8 intentSha256、dispatchId 和全部输入）；
+同 scope 同 dispatchId 重试返回同一记录，修改输入拒绝。lookup 未找到返回 null。
+Coordinator 应持久化 prepare 结果后自行通过 CB MCP 提交并以原 dispatchId 对账。
+此接口不提交 CB、不创建本地任务或 workspace、不生成 ACK/taskId、不审批；
+Organization 内部执行路径不变。规范仍固定于上述 PCP commit；无新增运行时网络依赖。

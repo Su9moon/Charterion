@@ -1,3 +1,4 @@
+import { CharterionCbDispatchRpc, type CbDispatchAdminBinding } from './charterionCbDispatchRpc';
 import { createHash, timingSafeEqual } from 'node:crypto';
 import type { ControlPlane } from './controlPlane';
 import type { RpcFailure, RpcRequest, RpcResponse } from './contracts';
@@ -18,22 +19,33 @@ function failure(id: string, code: string, message: string): RpcFailure {
 
 export class RpcRouter {
   private readonly legacy: LegacyRpcRouter;
+  private readonly cbDispatch: CharterionCbDispatchRpc;
 
   constructor(
     private readonly plane: ControlPlane,
-    adminToken: string,
+    private readonly adminToken: string,
     private readonly browserToken: string,
     private readonly instanceId?: string,
+    cbDispatchBinding?: CbDispatchAdminBinding,
   ) {
+    this.cbDispatch = new CharterionCbDispatchRpc(plane.database, cbDispatchBinding);
     this.legacy = new LegacyRpcRouter(plane, adminToken, browserToken, instanceId);
   }
 
   handle(request: RpcRequest): RpcResponse {
-    if (request?.method !== 'work.batch-mutate') return this.legacy.handle(request);
+    const cbMethod = request?.method === 'cb-dispatch.prepare' || request?.method === 'cb-dispatch.lookup';
+    if (!cbMethod && request?.method !== 'work.batch-mutate') return this.legacy.handle(request);
     const id = typeof request?.id === 'string' && request.id ? request.id : 'unknown';
     try {
       if (this.instanceId && request.instanceId !== this.instanceId) {
         return failure(id, 'INSTANCE_MISMATCH', `RPC instance mismatch: expected ${this.instanceId}`);
+      }
+      if (cbMethod) {
+        const admin = request.auth?.adminToken;
+        if (typeof admin !== 'string' || !admin || !this.adminToken || !safeEqual(admin, this.adminToken)) {
+          throw new Error('Admin authentication failed');
+        }
+        return { id, ok: true, result: this.cbDispatch.handle(request.method, request.params) };
       }
       const token = request.auth?.browserToken;
       if (!token || !safeEqual(token, this.browserToken)) throw new Error('Browser authentication failed');
