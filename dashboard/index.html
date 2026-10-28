@@ -3,50 +3,50 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Charterion · 状态雷达</title>
+  <title>Charterion · 状态雷达 / Status Radar</title>
   <link rel="stylesheet" href="radar.css">
 </head>
 <body>
   <header class="masthead">
-    <div class="brand"><span class="brand-mark" aria-hidden="true">C</span><div><span class="eyebrow">CHARTERION / LOCAL KERNEL</span><h1>状态雷达</h1></div></div>
-    <span class="readonly">状态观察 · 授权控制</span>
+    <div class="brand"><span class="brand-mark" aria-hidden="true">C</span><div><span class="eyebrow">CHARTERION / LOCAL KERNEL</span><h1>状态雷达 / Status Radar</h1></div></div>
+    <span class="readonly">状态观察 / Monitor · 授权控制 / Authorized Control</span>
   </header>
   <main>
-    <section class="connection" aria-label="数据连接状态">
-      <div><span id="connection-state" role="status" aria-live="polite">正在连接 Kernel…</span><p id="connection-detail">等待本机真实状态。尚无可用快照。</p></div>
-      <button id="refresh" type="button">立即刷新</button>
+    <section class="connection" aria-label="数据连接状态 / Connection Status">
+      <div><span id="connection-state" role="status" aria-live="polite">正在连接 Kernel / Connecting…</span><p id="connection-detail">等待本机真实状态 / Waiting for Kernel data. 尚无可用快照 / No snapshot yet.</p></div>
+      <button id="refresh" type="button">立即刷新 / Refresh Now</button>
     </section>
-    <section class="metrics" aria-label="状态汇总">
-      <div><span>项目</span><strong id="project-count">—</strong></div>
-      <div><span>AgentSlot</span><strong id="agent-count">—</strong></div>
-      <div><span>新鲜在线观测</span><strong id="online-count">—</strong></div>
-      <div><span>生命周期锁定项目</span><strong id="locked-count">—</strong></div>
+    <section class="metrics" aria-label="状态汇总 / Metrics">
+      <div><span>项目 / Projects</span><strong id="project-count">—</strong></div>
+      <div><span>角色槽位 / AgentSlots</span><strong id="agent-count">—</strong></div>
+      <div><span>在线观测 / Fresh Online</span><strong id="online-count">—</strong></div>
+      <div><span>锁定项目 / Locked Projects</span><strong id="locked-count">—</strong></div>
     </section>
-    <div class="section-heading"><div><span class="eyebrow">PROJECTS & SESSIONS</span><h2>项目与角色会话</h2></div><label>项目筛选<select id="project-filter"><option value="">全部项目</option></select></label></div>
-    <section id="projects" class="projects" aria-label="项目列表"><p class="empty">等待 Kernel 数据</p></section>
+    <div class="section-heading"><div><span class="eyebrow">PROJECTS & SESSIONS</span><h2>项目与角色会话 / Projects & Sessions</h2></div><label>项目筛选 / Filter<select id="project-filter"><option value="">全部项目 / All Projects</option></select></label></div>
+    <section id="projects" class="projects" aria-label="项目列表 / Project List"><p class="empty">等待 Kernel 数据 / Waiting for Kernel</p></section>
     <details class="panel control-panel">
-      <summary>项目手动控制 <span>Fleet 模式与生命周期锁 · 需独立授权</span></summary>
+      <summary>项目手动控制 / Project Controls <span>Fleet 模式与生命周期锁 / Fleet mode and lifecycle lock · 需独立授权 / Requires separate authorization</span></summary>
       <form id="fleet-form" class="control-form">
-        <p class="control-help">管理授权仅对一个项目有效，10 分钟后或 Kernel 重启即失效。向本机管理员获取项目授权码；不要输入 admin token。授权码仅留在本页内存，断开后清除。</p>
+        <p class="control-help">项目授权码只对一个项目有效，10 分钟或 Kernel 重启后失效；请从本机管理员获取，不要输入 admin token。/ Project capability is valid for one project and expires after 10 minutes or Kernel restart. Obtain it locally; never enter the admin token.</p>
         <div class="control-grid">
-          <label>操作项目<select id="control-project"><option value="">选择要操作的项目</option></select></label>
-          <label>项目管理授权码<input id="control-credential" type="password" autocomplete="off" spellcheck="false" maxlength="49" placeholder="fleet_ 开头的短期授权码"></label>
-          <label>Fleet 模式<select id="fleet-mode"><option value="controlled">controlled · 受控</option><option value="elastic">elastic · 弹性</option></select></label>
-          <label class="check-label"><input id="fleet-locked" type="checkbox">锁定项目生命周期</label>
+          <label>操作项目 / Project<select id="control-project"><option value="">选择要操作的项目 / Select Project</option></select></label>
+          <label>项目管理授权码 / Control Capability<input id="control-credential" type="password" autocomplete="off" spellcheck="false" maxlength="49" placeholder="fleet_ 短期授权码 / Short-lived fleet_ capability"></label>
+          <label>Fleet 模式 / Fleet Mode<select id="fleet-mode"><option value="controlled">受控 / Controlled</option><option value="elastic">弹性 / Elastic</option></select></label>
+          <label class="check-label"><input id="fleet-locked" type="checkbox">锁定项目生命周期 / Lock Project Lifecycle</label>
         </div>
-        <p class="control-help">controlled 或生命周期锁会阻止自动扩缩容。选择 elastic 并解除锁后，既有 Fleet 策略可能恢复自动管理。</p>
-        <div class="control-baseline"><span id="control-revision">请选择项目并载入当前版本。</span><button id="control-load" type="button">载入当前版本</button></div>
-        <label>变更原因<textarea id="control-reason" rows="2" maxlength="1000" placeholder="说明为什么需要切换模式或调整锁定" required></textarea></label>
-        <label class="check-label"><input id="control-confirm" type="checkbox">我已核对操作项目、以上目标设置及 Revision，确认应用</label>
-        <div class="control-actions"><button id="control-submit" type="submit" disabled>确认并应用</button><p id="control-result" role="status" aria-live="polite">当前为观察模式，未提交操作。</p></div>
+        <p class="control-help">受控模式或生命周期锁会阻止自动扩缩容。/ Controlled mode or a lifecycle lock stops automatic scaling. 弹性模式并解锁可能恢复自动管理 / Elastic and unlocked may resume automation.</p>
+        <div class="control-baseline"><span id="control-revision">请选择项目并载入当前版本 / Select a project and load Revision.</span><button id="control-load" type="button">载入当前版本 / Load Revision</button></div>
+        <label>变更原因 / Change Reason<textarea id="control-reason" rows="2" maxlength="1000" placeholder="说明变更原因 / Explain reason for changing mode or lock" required></textarea></label>
+        <label class="check-label"><input id="control-confirm" type="checkbox">我已核对项目、设置和 Revision，确认应用 / I verified project, settings and Revision</label>
+        <div class="control-actions"><button id="control-submit" type="submit" disabled>确认并应用 / Apply</button><p id="control-result" role="status" aria-live="polite">观察模式，未提交操作 / Read-only; no changes submitted.</p></div>
       </form>
     </details>
     <div class="workspace">
-      <section class="panel sessions"><div class="panel-heading"><h2>AgentSlots</h2><span id="scope-label">全部项目</span></div><div id="agents" class="agents"><p class="empty">尚无可用快照</p></div></section>
-      <aside class="panel"><div class="panel-heading"><h2>状态详情</h2><span class="eyebrow">INSPECT</span></div><div id="details" class="details"><p class="empty">选择一个角色查看 Kernel 原始状态。</p></div></aside>
+      <section class="panel sessions"><div class="panel-heading"><h2>角色槽位 / AgentSlots</h2><span id="scope-label">全部项目</span></div><div id="agents" class="agents"><p class="empty">尚无可用快照 / No snapshot available</p></div></section>
+      <aside class="panel"><div class="panel-heading"><h2>状态详情 / Details</h2><span class="eyebrow">INSPECT</span></div><div id="details" class="details"><p class="empty">选择角色查看 Kernel 原始状态 / Select a role to inspect Kernel state.</p></div></aside>
     </div>
-    <section class="panel events-panel"><div class="panel-heading"><h2>最近事件</h2><span>Kernel 全局最新 100 条</span></div><ol id="events" class="events"><li class="empty">尚无可用快照</li></ol></section>
-    <footer><span>同一 Kernel · 项目控制需独立授权</span><span id="instance">实例尚不可用</span></footer>
+    <section class="panel events-panel"><div class="panel-heading"><h2>最近事件 / Recent Events</h2><span>Kernel 全局最新 100 条 / Latest 100 events</span></div><ol id="events" class="events"><li class="empty">尚无可用快照 / No snapshot available</li></ol></section>
+    <footer><span>同一 Kernel / Single Kernel · 需单独授权 / Separate authorization required</span><span id="instance">实例尚不可用 / Instance unavailable</span></footer>
   </main>
   <script src="radar.js" defer></script>
 </body>
