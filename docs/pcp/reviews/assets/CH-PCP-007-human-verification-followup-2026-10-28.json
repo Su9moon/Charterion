@@ -1,0 +1,115 @@
+{
+  "observedAt": "2026-10-28T01:59:48.158Z",
+  "userReportedVerificationComplete": true,
+  "readOnlyFollowup": true,
+  "newMessagesSent": 0,
+  "formalSlot": {
+    "id": "d7fa941a-8cbc-4513-939a-939da21934b5",
+    "projectId": "b00f66ec-f62a-4a6f-a5a7-f1ed67e9c70f",
+    "role": "chief_engineer",
+    "status": "assigned",
+    "desiredState": "active",
+    "browserState": "open",
+    "conversationGeneration": 1,
+    "rolloverState": "idle",
+    "browserQuarantined": false,
+    "leaseEpoch": 1,
+    "createdAt": 1793132738625,
+    "updatedAt": 1793152750913,
+    "conversationKey": "conversation:6ae1091c-aac0-83e9-9d2a-759dc68ca792",
+    "browserProfileId": "gam-default",
+    "browserTabId": 859945997,
+    "browserObservedAt": 1793152750913,
+    "browserLeaseId": "70b3a350-58a4-4dce-85b1-b0abc6388ae9",
+    "browserLeaseEpoch": 1,
+    "browserContentEpoch": "8ff01289-4a4e-48a6-84d4-22188355a30d",
+    "browserObservationRevision": 1,
+    "browserPageStatus": "unknown",
+    "browserRuntimeObservedAt": 1793132903719
+  },
+  "runtime": [
+    {
+      "profileId": "gam-default",
+      "authStatus": "authenticated",
+      "pageHealth": "ready",
+      "openTabs": 5,
+      "extensionVersion": "0.5.0",
+      "observedAt": 1793152751134
+    }
+  ],
+  "attempts": [
+    {
+      "id": "a66d7ba3-8fbc-4262-8618-c0277f12bf62",
+      "state": "reply-observed",
+      "updatedAt": 1793117028320
+    },
+    {
+      "id": "d89552ef-e77a-433f-92e0-3d7df88de84d",
+      "state": "reply-observed",
+      "updatedAt": 1793132833148
+    }
+  ],
+  "observedUi": {
+    "chatgptTabs": 5,
+    "rootPageWithComposerAndNoVerificationText": true,
+    "managerRoleBindingsVisible": false
+  },
+  "result": "VERIFICATION_COMPLETE_ROLE_REOPEN_BLOCKED",
+  "remaining": "At least one page is usable after human verification, but the Kernel formal Slot still reports unknown and no role projection is visible. Do not infer that human verification was not completed.",
+  "finalObservedAt": "2026-10-28T02:03:11.451Z",
+  "lifecycleRecovery": {
+    "method": "existing agent.suspend then agent.resume",
+    "formalSlot": {
+      "id": "d7fa941a-8cbc-4513-939a-939da21934b5",
+      "projectId": "b00f66ec-f62a-4a6f-a5a7-f1ed67e9c70f",
+      "role": "chief_engineer",
+      "status": "assigned",
+      "desiredState": "active",
+      "browserState": "open",
+      "conversationGeneration": 1,
+      "rolloverState": "idle",
+      "browserQuarantined": false,
+      "leaseEpoch": 3,
+      "createdAt": 1793132738625,
+      "updatedAt": 1793152991183,
+      "conversationKey": "conversation:6ae1091c-aac0-83e9-9d2a-759dc68ca792",
+      "browserProfileId": "gam-default",
+      "browserTabId": 859946006,
+      "browserObservedAt": 1793152991183,
+      "browserLeaseId": "b6dc6c1a-9f48-4fbe-a983-4b37757dc909",
+      "browserLeaseEpoch": 1,
+      "browserContentEpoch": "be890512-27ea-4d4a-be54-607fa88077a0",
+      "browserObservationRevision": 7,
+      "browserPageStatus": "unknown",
+      "browserRuntimeObservedAt": 1793152944125
+    },
+    "fleet": {
+      "projectId": "b00f66ec-f62a-4a6f-a5a7-f1ed67e9c70f",
+      "mode": "controlled",
+      "lifecycleLocked": true,
+      "revision": 1,
+      "updatedAt": 1793132738521,
+      "actor": "CH-PCP-007 final acceptance",
+      "reason": "Preserve independent final acceptance conversation and history"
+    },
+    "attempts": [
+      {
+        "id": "a66d7ba3-8fbc-4262-8618-c0277f12bf62",
+        "state": "reply-observed",
+        "updatedAt": 1793117028320
+      },
+      {
+        "id": "d89552ef-e77a-433f-92e0-3d7df88de84d",
+        "state": "reply-observed",
+        "updatedAt": 1793132833148
+      }
+    ],
+    "newMessagesSent": 0
+  },
+  "browserOpenAttempt": {
+    "executed": false,
+    "result": "AUTOMATIC_APPROVAL_REJECTED",
+    "reason": "blocked by policy",
+    "action": "Open existing test canonical URL in existing Chrome Dev Default Profile"
+  }
+}
