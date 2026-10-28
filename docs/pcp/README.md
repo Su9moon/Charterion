@@ -1,4 +1,5 @@
 # Charterion × PCP｜项目化角色协作、独立 HTML 控制台和 Git 交接
+> **操作与人工验收**：[用户操作手册与重大版本人工验收规范](CH-PCP-HUMAN-UAT-USER-GUIDE.md)。每个主要 MVP/版本都要求独立用户验收，Codex 自动 PASS 不等于正式完成。双语界面源码在后续 Draft 分支中，未部署到 Chrome Dev，验收状态 PENDING_HUMAN_UAT。\n
 
 > **当前入口**：2026-10-27 用户确认的 Charterion 增强架构 **V0.3**。设计基线与各工单实际结果分开记录；既有 Runtime 保留，本轮另建独立试运行实例。
 > **当前试运行**：[CH-PCP-006：Windows 集成试运行](reviews/CH-PCP-006-INTEGRATED-TRIAL-2026-10-27.md)。独立目录 `F:\0 codex\Charterion-PCP-Trial-006`，双击 `PCP-Start.cmd` 后由插件“打开控制台”；`PCP-Stop.cmd` 停止，`PCP-Diagnose.cmd` 诊断。独立 Host、数据和专用 Chrome Profile，验收结束已停止。项目管理边界见 [CH-PCP-005](reviews/CH-PCP-005-RADAR-CONTROLS-2026-10-27.md)，只读底座见 [CH-PCP-004](reviews/CH-PCP-004-READONLY-RADAR-2026-10-27.md)。
