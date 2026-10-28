@@ -3,7 +3,9 @@ import type { CbEventPage, CbReadBinding, CbRequestLookup, TrustedCbReadClient }
 
 /** Host-only seam, NOT an HTTP implementation. Implement with a genuine MCP SDK client.
  * connect must authenticate, initialize/negotiate MCP and own session cleanup; enforce
- * exact endpoint/no redirects, bounded responses and cancellation on every operation.
+ * exact endpoint/no redirects, raw wire byte bounds (including non-structured MCP
+ * content) before parsing, and cancellation on every operation. The reader's UTF-8
+ * JSON bound is an additional check, not a replacement for transport byte limits.
  * Never log credentials, headers or server payloads. No browser/RPC configuration. */
 export interface HostMcpTransport {
   connect(options: Readonly<{ endpoint: string; token: string; clientId: string;
@@ -28,6 +30,17 @@ const object = (value: unknown): Record<string, unknown> => {
   return value as Record<string, unknown>;
 };
 const positive = (v: unknown): v is number => Number.isSafeInteger(v) && (v as number) > 0;
+
+/** Inspect decoded leaves as well as JSON-escaped secrets embedded in strings. */
+function containsSecret(value: unknown, token: string): boolean {
+  const escaped = JSON.stringify(token).slice(1, -1);
+  const visit = (v: unknown): boolean => {
+    if (typeof v === 'string') return v.includes(token) || v.includes(escaped);
+    if (!v || typeof v !== 'object') return false;
+    return Object.entries(v).some(([key, child]) => visit(key) || visit(child));
+  };
+  return visit(value);
+}
 
 /** Query-only adapter. No submission method, scheduler, network default or automatic retry. */
 export async function createCbHostReader(config?: CbHostReaderConfig,
@@ -66,9 +79,10 @@ export async function createCbHostReader(config?: CbHostReaderConfig,
     const result = await bounded(signal => call(name, args, signal));
     // Sanitize every failure; never forward transport errors or MCP error details.
     try {
-      if (result.isError || JSON.stringify(result).length > c.maxResponseBytes) fail('invalid');
+      const responseJson = JSON.stringify(result);
+      if (result.isError || Buffer.byteLength(responseJson, 'utf8') > c.maxResponseBytes) fail('invalid');
       const data = object(result.structuredContent);
-      if (JSON.stringify(data).includes(c.token)) fail('secret');
+      if (containsSecret(data, c.token)) fail('secret');
       return data;
     } catch { return fail('CB_RESPONSE_INVALID'); }
   }
@@ -111,11 +125,19 @@ export async function createCbHostReader(config?: CbHostReaderConfig,
     async get_task_events(id: string, after: number, limit: number): Promise<CbEventPage> {
       if (!tasks.has(id) || !Number.isSafeInteger(after) || after < 0 || !positive(limit) || limit > c.eventPageMax) return fail('CB_SCOPE_MISMATCH');
       const data = await query('get_task_events', { id, after_seq: after, limit });
+      let cursor = after;
       if (!Array.isArray(data.events) || data.events.length > limit ||
-          data.events.some(e => { const event = object(e); return event.instance_id !== c.instanceId || event.task_id !== id; }) ||
-          !Number.isSafeInteger(data.next_seq) || (data.next_seq as number) < after ||
+          data.events.some(e => {
+            const event = object(e);
+            if (event.instance_id !== c.instanceId || event.task_id !== id ||
+                !Number.isSafeInteger(event.seq) || event.seq !== cursor + 1) return true;
+            cursor = event.seq as number;
+            return false;
+          }) ||
+          !Number.isSafeInteger(data.next_seq) || data.next_seq !== cursor ||
           !Number.isSafeInteger(data.last_seq) || (data.last_seq as number) < (data.next_seq as number) ||
-          typeof data.has_more !== 'boolean') return fail('CB_SCOPE_MISMATCH');
+          typeof data.has_more !== 'boolean' || data.has_more !== ((data.last_seq as number) > cursor) ||
+          data.has_more && data.events.length === 0) return fail('CB_SCOPE_MISMATCH');
       return data as unknown as CbEventPage;
     },
   });

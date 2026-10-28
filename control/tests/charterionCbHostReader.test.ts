@@ -70,3 +70,55 @@ it('sanitizes server errors and secret-bearing success payloads', async () => {
   Object.assign(f.ack.task, { extra: f.config.token });
   await expect(reader.get_task_by_request('client', 'dispatch')).rejects.toThrow(/^CB_RESPONSE_INVALID$/);
 });
+it('bounds serialized responses by UTF-8 bytes, not character count', async () => {
+  const f = fixture(), reader = await createCbHostReader(f.config, f.transport);
+  Object.assign(f.ack.task, { extra: '界'.repeat(24000) });
+  const json = JSON.stringify({ structuredContent: f.ack });
+  expect(json.length).toBeLessThan(f.config.maxResponseBytes);
+  expect(Buffer.byteLength(json, 'utf8')).toBeGreaterThan(f.config.maxResponseBytes);
+  await expect(reader.get_task_by_request('client', 'dispatch')).rejects.toThrow(/^CB_RESPONSE_INVALID$/);
+});
+it.each(['literal', 'escaped', 'key'])('rejects deep %s secrets containing quotes and backslashes', async form => {
+  const f = fixture();
+  f.config.token = 'fixture-"private\\token';
+  const reader = await createCbHostReader(f.config, f.transport);
+  const secret = form === 'escaped' ? JSON.stringify(f.config.token).slice(1, -1) : f.config.token;
+  Object.assign(f.ack.task, { extra: { nested: [{ deeper: form === 'key' ? { [secret]: 'value' } : `prefix ${secret} suffix` }] } });
+  await expect(reader.get_task_by_request('client', 'dispatch')).rejects.toThrow(/^CB_RESPONSE_INVALID$/);
+});
+it('sanitizes transport errors containing escaped credentials', async () => {
+  const f = fixture();
+  f.config.token = 'fixture-"private\\token';
+  const original = f.transport.callTool;
+  f.transport.callTool = async (name, args, signal) => {
+    if (name !== 'get_capabilities') throw new Error(JSON.stringify({ token: f.config.token }));
+    return original(name, args, signal);
+  };
+  const reader = await createCbHostReader(f.config, f.transport);
+  await expect(reader.get_task_by_request('client', 'dispatch')).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+});
+it('accepts contiguous pages and empty terminal pages at the requested cursor', async () => {
+  const f = fixture(), reader = await createCbHostReader(f.config, f.transport);
+  await reader.get_task_by_request('client', 'dispatch');
+  Object.assign(f.page, { events: [1, 2].map(seq => ({ seq, instance_id: 'instance', task_id: 'task' })), next_seq: 2, last_seq: 3, has_more: true });
+  expect(await reader.get_task_events('task', 0, 10)).toEqual(f.page);
+  Object.assign(f.page, { events: [], next_seq: 3, last_seq: 3, has_more: false });
+  expect(await reader.get_task_events('task', 3, 10)).toEqual(f.page);
+});
+it.each([
+  { seqs: [2], next: 2, last: 2, more: false },
+  { seqs: [1, 1], next: 1, last: 1, more: false },
+  { seqs: [2, 1], next: 1, last: 2, more: true },
+  { seqs: [1, 3], next: 3, last: 3, more: false },
+  { seqs: [1.5], next: 1.5, last: 2, more: true },
+  { seqs: [1], next: 2, last: 2, more: false },
+  { seqs: [1], next: 1, last: 2, more: false },
+  { seqs: [1], next: 1, last: 1, more: true },
+  { seqs: [], next: 1, last: 1, more: false },
+  { seqs: [], next: 0, last: 1, more: true },
+])('rejects gaps and inconsistent event metadata: %j', async ({ seqs, next, last, more }) => {
+  const f = fixture(), reader = await createCbHostReader(f.config, f.transport);
+  await reader.get_task_by_request('client', 'dispatch');
+  Object.assign(f.page, { events: seqs.map(seq => ({ seq, instance_id: 'instance', task_id: 'task' })), next_seq: next, last_seq: last, has_more: more });
+  await expect(reader.get_task_events('task', 0, 10)).rejects.toThrow(/^CB_SCOPE_MISMATCH$/);
+});

@@ -79,10 +79,20 @@ features and valid advertised limits. This is partial reader readiness, not full
 readiness (all six protocol features would be needed for that claim). Legacy-only or
 disabled reader capabilities return BLOCKED_CAPABILITY. Errors are fixed codes,
 without causes or server messages. Tokens must never be logged by the host transport.
+The reader measures serialized responses in UTF-8 bytes; the transport must separately
+bound raw response bytes before parsing, including MCP content outside structuredContent.
+Structured responses are rejected if nested string values or keys contain the literal
+credential or its JSON-escaped representation, including credentials with quotes or
+backslashes. Rejections expose only fixed error codes.
 
 Lookup responses must match configured project, client, instance and request identity;
 events are permitted only for a task obtained through a validated lookup and must
-match task/instance identity. The existing reconciler additionally checks work item,
+match task/instance identity. Event pages must be contiguous and strictly ascending
+from after_seq + 1, with next_seq equal to the final event sequence (or after_seq for
+an empty page). has_more must agree with last_seq > next_seq; empty nonterminal
+pages are rejected. These boundary checks complement the reconciler's durable cursor
+validation and prevent terminal-looking partial pages.
+The existing reconciler additionally checks work item,
 intent hash and event continuity against the durable journal. Reads may be manually
 repeated; this adapter never retries or submits. Connection/timeout failure poisons
 that reader attempt and requests transport cleanup. No real tokens, Green config,
