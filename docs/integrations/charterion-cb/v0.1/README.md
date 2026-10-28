@@ -51,3 +51,40 @@ or WorkItem completion is provided. `observed` means journal observations only.
 Validation uses mock readers only. Real authenticated MCP joint integration: NOT_RUN.
 No full browser UAT. Native Node v22.13.0 is below the installed jsdom engine requirement;
 no dependency install was needed and these focused Node tests do not exercise jsdom.
+
+### R5a host reader boundary (source only)
+
+`control/src/charterionCbHostReader.ts` is an opt-in Node host adapter implementing
+`TrustedCbReadClient`. It has no fetch implementation, browser binding, RPC route,
+submission method, scheduler or gamd wiring. The default is `CB_HOST_DISABLED`;
+provisioning without a transport returns `CB_MCP_ADAPTER_REQUIRED`.
+
+The official `@modelcontextprotocol/sdk` package is **not installed**. Real MCP
+connectivity remains missing: a trusted host must supply an SDK-backed
+`HostMcpTransport` on Node 22.13.0 or newer, with MCP initialize/protocol negotiation,
+initialized notification, authenticated Streamable HTTP, session handling and cleanup,
+JSON/SSE parsing, JSON-RPC error validation, bounded streamed response bytes,
+AbortSignal cancellation, no redirects or URL discovery, and complete tools/list
+pagination. The interface's listTools returns an aggregated list; an outstanding
+nextCursor blocks this adapter. A bare JSON HTTP endpoint is not an implementation.
+Implementing and validating that network lifecycle without a new dependency is
+outside this typed-adapter fallback; fixture tests do not prove live interoperability.
+
+Only trusted host provisioning may supply a fixed exact HTTPS endpoint allowlist,
+out-of-band token, client/instance/project binding, deadline and response bound.
+Never source these from browser state, model/RPC inputs or Native Messaging.
+The adapter snapshots configuration and transport methods, authenticates through the
+transport, checks actual tools/list plus get_capabilities, and requires the two reader
+features and valid advertised limits. This is partial reader readiness, not full V0.1
+readiness (all six protocol features would be needed for that claim). Legacy-only or
+disabled reader capabilities return BLOCKED_CAPABILITY. Errors are fixed codes,
+without causes or server messages. Tokens must never be logged by the host transport.
+
+Lookup responses must match configured project, client, instance and request identity;
+events are permitted only for a task obtained through a validated lookup and must
+match task/instance identity. The existing reconciler additionally checks work item,
+intent hash and event continuity against the durable journal. Reads may be manually
+repeated; this adapter never retries or submits. Connection/timeout failure poisons
+that reader attempt and requests transport cleanup. No real tokens, Green config,
+services or live MCP verification were used. Future SDK integration and genuine host
+credential provisioning remain prerequisites to enabling gamd.
