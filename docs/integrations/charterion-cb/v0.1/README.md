@@ -98,3 +98,16 @@ repeated; this adapter never retries or submits. Connection/timeout failure pois
 that reader attempt and requests transport cleanup. No real tokens, Green config,
 services or live MCP verification were used. Future SDK integration and genuine host
 credential provisioning remain prerequisites to enabling gamd.
+
+### R5b2 explicit reader ownership (source only)
+
+The factory returns an `OwnedCbHostReader`, compatible with `TrustedCbReadClient`,
+with `close(): Promise<void>`. The host MUST await `close()` when discarding the
+reader and on daemon shutdown. Concurrent/repeated closes share one cleanup promise;
+transport close runs exactly once, and cleanup errors are suppressed without logging
+credentials or forwarding transport details to browser/RPC. Closing immediately denies
+future reads with `CB_READ_UNAVAILABLE` and aborts/rejects all pending operations,
+even if a transport ignores cancellation. Connection/operation failures and deadlines
+use the same automatic cleanup path. A genuine SDK transport must honor cancellation
+and release its resources in close. gamd is still NOT wired; default disabled, no
+polling/retry/scheduler or real MCP SDK/live connectivity is added.

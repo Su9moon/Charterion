@@ -38,6 +38,7 @@ it('401 and deadline fail closed without leaking errors or retrying', async () =
     const f = fixture();
     f.transport.connect = vi.fn(() => timeout ? new Promise<void>(() => {}) : Promise.reject(new Error('401 ' + f.config.token)));
     await expect(createCbHostReader(f.config, f.transport)).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+    expect(f.transport.close).toHaveBeenCalledTimes(1);
     expect(f.transport.connect).toHaveBeenCalledTimes(1);
     expect(f.transport.callTool).not.toHaveBeenCalled();
   }
@@ -48,7 +49,7 @@ it('valid capability and repeated query responses never submit or expose credent
     expect(await reader.get_task_by_request('client', 'dispatch')).toEqual(f.ack);
     expect(await reader.get_task_events('task', 0, 10)).toEqual(f.page);
   }
-  expect(Object.keys(reader)).toEqual(['get_task_by_request', 'get_task_events']);
+  expect(Object.keys(reader)).toEqual(['close', 'get_task_by_request', 'get_task_events']);
   const calls = vi.mocked(f.transport.callTool).mock.calls;
   expect(calls.map(c => c[0])).toEqual(['get_capabilities', 'get_task_by_request', 'get_task_events', 'get_task_by_request', 'get_task_events']);
   expect(JSON.stringify(calls)).not.toContain(f.config.token);
@@ -121,4 +122,55 @@ it.each([
   await reader.get_task_by_request('client', 'dispatch');
   Object.assign(f.page, { events: seqs.map(seq => ({ seq, instance_id: 'instance', task_id: 'task' })), next_seq: next, last_seq: last, has_more: more });
   await expect(reader.get_task_events('task', 0, 10)).rejects.toThrow(/^CB_SCOPE_MISMATCH$/);
+});
+
+it('owns a successful session and shares concurrent and repeated close cleanup', async () => {
+  const f = fixture();
+  let finish!: () => void;
+  f.transport.close = vi.fn(() => new Promise<void>(resolve => { finish = resolve; }));
+  const reader = await createCbHostReader(f.config, f.transport);
+  await reader.get_task_by_request('client', 'dispatch');
+  const first = reader.close(), second = reader.close();
+  expect(first).toBe(second);
+  await Promise.resolve();
+  expect(f.transport.close).toHaveBeenCalledTimes(1);
+  await expect(reader.get_task_by_request('other', '')).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+  await expect(reader.get_task_events('task', 0, 10)).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+  finish();
+  await Promise.all([first, second, reader.close()]);
+  expect(f.transport.close).toHaveBeenCalledTimes(1);
+});
+
+it('suppresses credential-bearing cleanup errors and denies future calls', async () => {
+  const f = fixture();
+  f.transport.close = vi.fn(async () => { throw new Error(f.config.token); });
+  const reader = await createCbHostReader(f.config, f.transport);
+  await expect(reader.close()).resolves.toBeUndefined();
+  await expect(reader.close()).resolves.toBeUndefined();
+  await expect(reader.get_task_by_request('client', 'dispatch')).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+  await expect(reader.get_task_events('unbound', 0, 1)).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+  expect(f.transport.close).toHaveBeenCalledTimes(1);
+});
+
+it.each([false, true])('aborts all pending reads on explicit close or timeout (%s)', async timeout => {
+  const f = fixture();
+  const original = f.transport.callTool;
+  const signals: AbortSignal[] = [];
+  f.transport.callTool = (name, args, signal) => {
+    if (name === 'get_capabilities') return original(name, args, signal);
+    signals.push(signal);
+    return new Promise(() => {});
+  };
+  const reader = await createCbHostReader(f.config, f.transport);
+  const reads = [reader.get_task_by_request('client', 'dispatch'), reader.get_task_by_request('client', 'other')];
+  const assertions = reads.map(read => expect(read).rejects.toThrow(/^CB_READ_UNAVAILABLE$/));
+  await Promise.resolve();
+  if (!timeout) await reader.close();
+  await Promise.all(assertions);
+  expect(signals).toHaveLength(2);
+  expect(signals.every(signal => signal.aborted)).toBe(true);
+  await reader.close();
+  expect(f.transport.close).toHaveBeenCalledTimes(1);
+  await expect(reader.get_task_by_request('client', 'dispatch')).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+  await expect(reader.get_task_events('task', 0, 1)).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
 });

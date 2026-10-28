@@ -42,9 +42,14 @@ function containsSecret(value: unknown, token: string): boolean {
   return visit(value);
 }
 
+/** Host owns this reader and MUST close it on discard and daemon shutdown. */
+export interface OwnedCbHostReader extends TrustedCbReadClient {
+  close(): Promise<void>;
+}
+
 /** Query-only adapter. No submission method, scheduler, network default or automatic retry. */
 export async function createCbHostReader(config?: CbHostReaderConfig,
-  transport?: HostMcpTransport): Promise<TrustedCbReadClient> {
+  transport?: HostMcpTransport): Promise<OwnedCbHostReader> {
   if (!config || config.enabled !== true) return fail('CB_HOST_DISABLED');
   const c = Object.freeze({ ...config, allowedEndpoints: [...config.allowedEndpoints] });
   try {
@@ -60,20 +65,42 @@ export async function createCbHostReader(config?: CbHostReaderConfig,
   const connect = transport.connect.bind(transport), list = transport.listTools.bind(transport);
   const call = transport.callTool.bind(transport), close = transport.close.bind(transport);
   let broken = false;
+  let closing: Promise<void> | undefined;
+  const pending = new Set<AbortController>();
+  function closeReader(): Promise<void> {
+    if (closing) return closing;
+    broken = true;
+    // Install the shared promise before abort listeners or transport cleanup can run.
+    closing = Promise.resolve().then(close).catch(() => {});
+    for (const abort of pending) abort.abort();
+    return closing;
+  }
   async function bounded<T>(operation: (signal: AbortSignal) => Promise<T>): Promise<T> {
     if (broken) return fail('CB_READ_UNAVAILABLE');
     const abort = new AbortController();
+    pending.add(abort);
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let onAbort: () => void = () => {};
     try {
-      return await Promise.race([Promise.resolve().then(() => operation(abort.signal)), new Promise<never>((_, reject) => {
-        timer = setTimeout(() => { abort.abort(); reject(new Error('deadline')); }, c.deadlineMs);
-      })]);
+      const cancelled = new Promise<never>((_, reject) => {
+        onAbort = () => reject(new Error('CB_READ_UNAVAILABLE'));
+        abort.signal.addEventListener('abort', onAbort, { once: true });
+        timer = setTimeout(() => { void closeReader(); }, c.deadlineMs);
+      });
+      const result = await Promise.race([Promise.resolve().then(() => {
+        if (broken) return fail('CB_READ_UNAVAILABLE');
+        return operation(abort.signal);
+      }), cancelled]);
+      if (broken) return fail('CB_READ_UNAVAILABLE');
+      return result;
     } catch {
-      broken = true;
-      abort.abort();
-      void Promise.resolve().then(close).catch(() => {});
+      void closeReader();
       return fail('CB_READ_UNAVAILABLE');
-    } finally { clearTimeout(timer); }
+    } finally {
+      clearTimeout(timer);
+      abort.signal.removeEventListener('abort', onAbort);
+      pending.delete(abort);
+    }
   }
   async function query(name: Parameters<HostMcpTransport['callTool']>[0], args: Record<string, unknown>) {
     const result = await bounded(signal => call(name, args, signal));
@@ -102,14 +129,15 @@ export async function createCbHostReader(config?: CbHostReaderConfig,
         !['result_max_bytes', 'chunk_max_bytes', 'event_page_max', 'liveness_stale_seconds'].every(k => positive(limits[k])) ||
         (limits.event_page_max as number) > 100 || (limits.event_page_max as number) < c.eventPageMax) fail('BLOCKED_CAPABILITY');
   } catch (error) {
-    broken = true;
-    void Promise.resolve().then(close).catch(() => {});
+    void closeReader();
     if (error instanceof Error && ['BLOCKED_CAPABILITY', 'CB_READ_UNAVAILABLE'].includes(error.message)) throw error;
     return fail('BLOCKED_CAPABILITY');
   }
   const tasks = new Map<string, string>();
   return Object.freeze({
+    close: closeReader,
     async get_task_by_request(client: string, dispatch: string): Promise<CbRequestLookup> {
+      if (broken) return fail('CB_READ_UNAVAILABLE');
       if (client !== c.clientId || typeof dispatch !== 'string' || !dispatch.trim() || dispatch.length > 1024) return fail('CB_SCOPE_MISMATCH');
       const data = await query('get_task_by_request', { client_id: client, dispatch_id: dispatch });
       if (data.found === false) return { found: false };
@@ -123,6 +151,7 @@ export async function createCbHostReader(config?: CbHostReaderConfig,
       return data as unknown as CbRequestLookup;
     },
     async get_task_events(id: string, after: number, limit: number): Promise<CbEventPage> {
+      if (broken) return fail('CB_READ_UNAVAILABLE');
       if (!tasks.has(id) || !Number.isSafeInteger(after) || after < 0 || !positive(limit) || limit > c.eventPageMax) return fail('CB_SCOPE_MISMATCH');
       const data = await query('get_task_events', { id, after_seq: after, limit });
       let cursor = after;
