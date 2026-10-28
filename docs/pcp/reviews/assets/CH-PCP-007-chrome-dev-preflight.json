@@ -1,0 +1,33 @@
+{
+  "workorder": "CH-PCP-007",
+  "scope": "Existing Chrome Dev read-only preflight",
+  "browser": "C:\\Program Files\\Google\\Chrome Dev\\Application\\chrome.exe",
+  "version": "158.0.8117.2",
+  "profile": "C:\\Users\\jjyyz\\AppData\\Local\\Google\\Chrome Dev\\User Data\\Default",
+  "runningAtCheck": false,
+  "extensionId": "kheifdlffdfcgmapmbbahdgkpccckmbn",
+  "extensionPath": "E:\\0 codex\\PCP项目\\webgpt-lab\\Charterion\\runtime",
+  "extensionHost": "com.gpt_agent_manager.control",
+  "configuredInstance": "def1fbcbb4dcd29c",
+  "trialInstance": "1cc2ff54f7742042",
+  "trialKernelHealth": "PASS",
+  "liveExtensionLink": "NOT_RUN",
+  "conversationBound": false,
+  "legacyExtensionWorkState": "NOT_READ",
+  "configurationChangesApplied": false,
+  "messagesStillPaused": true,
+  "observedAt": "2026-10-27T15:15:08.793Z",
+  "workRevision": 0,
+  "trialWorkCounts": {
+    "tasks": 0,
+    "attempts": 0,
+    "messages": 0
+  },
+  "role": "chief_engineer",
+  "slotId": "e2ac5204-5086-496f-a4b6-1c2448ead83d",
+  "conversationGeneration": 0,
+  "observedBrowserAgeMs": 681896,
+  "newCDPEnabled": false,
+  "cookiesOrTokensRead": false,
+  "normalChromeControlled": false
+}

@@ -1,6 +1,6 @@
-import { spawn, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { closeSync, cpSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, unlinkSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -31,7 +31,8 @@ export function verifyFiles(root, files) {
   }
 }
 export function ownedProcess(actual, recorded, executable, argument) {
-  return Boolean(actual && recorded && actual.ProcessId === recorded.ProcessId && actual.CreationDate === recorded.CreationDate &&
+  const epoch = value => /^\/Date\((-?\d+)\)\/$/.test(String(value)) ? Number(String(value).slice(6, -2)) : Date.parse(value);
+  return Boolean(actual && recorded && actual.ProcessId === recorded.ProcessId && Number.isFinite(epoch(actual.CreationDate)) && epoch(actual.CreationDate) === epoch(recorded.CreationDate) &&
     same(actual.ExecutablePath, executable) && same(actual.ExecutablePath, recorded.ExecutablePath) && actual.CommandLine === recorded.CommandLine && actual.CommandLine.includes(argument));
 }
 function processById(id) {
@@ -73,27 +74,83 @@ function verify(c) {
   if (release.sourceSha !== c.sourceSha || release.host !== c.host) throw new Error('Release identity mismatch');
   verifyFiles(c.app, release.files);
   if (!same(registryValue(c.host), join(c.app, 'native-host', `${c.host}.json`))) throw new Error('Native Host registration mismatch');
-  if (sha256(readFileSync(c.node)) !== c.nodeSha256 || sha256(readFileSync(c.chrome)) !== c.chromeSha256) throw new Error('Node/Chrome executable changed; revalidate before use');
+  if (sha256(readFileSync(c.node)) !== c.nodeSha256) throw new Error('Node executable changed; revalidate before use');
   return release;
 }
 function stateAt(c) { return existsSync(join(c.root, 'processes.json')) ? json(join(c.root, 'processes.json')) : {}; }
 function saveState(c, state) { writeJson(join(c.root, 'processes.json'), state); }
+export function browserEndpoint(value, port) {
+  const url = new URL(value);
+  if (!Number.isInteger(port) || port < 1 || port > 65535 || url.protocol !== 'ws:' || url.hostname !== '127.0.0.1' ||
+      url.port !== String(port) || url.username || url.password || url.search || url.hash || !/^\/devtools\/browser\/[a-zA-Z0-9-]+$/.test(url.pathname))
+    throw new Error('Unexpected trial browser endpoint');
+  return url.href;
+}
+async function closeTrialBrowser(c, state) {
+  const recorded = state.chrome;
+  if (!recorded || !processById(recorded.ProcessId)) return;
+  const assertOwner = () => {
+    if (!ownedProcess(processById(recorded.ProcessId), recorded, c.chrome, `--user-data-dir=${c.profile}`))
+      throw new Error('Process ownership mismatch; refusing to close');
+  };
+  assertOwner();
+  if (!Number.isInteger(state.cdpPort) || state.cdpPort < 1 || state.cdpPort > 65535) throw new Error('No trial browser endpoint; close its window manually and retry stop');
+  const response = await fetch(`http://127.0.0.1:${state.cdpPort}/json/version`, { signal: AbortSignal.timeout(3000), redirect: 'error' });
+  if (!response.ok) throw new Error('Trial browser endpoint unavailable; close its window manually and retry stop');
+  const endpoint = browserEndpoint((await response.json()).webSocketDebuggerUrl, state.cdpPort);
+  const socket = new WebSocket(endpoint);
+  try {
+    await new Promise((resolve, reject) => {
+      let closeSent = false;
+      const timer = setTimeout(() => reject(new Error('Trial browser close timed out; no process was forced')), 6000);
+      const fail = error => { clearTimeout(timer); reject(error); };
+      socket.onerror = () => fail(new Error('Trial browser connection failed; no process was forced'));
+      socket.onclose = () => {
+        if (closeSent) { clearTimeout(timer); resolve(); }
+        else fail(new Error('Trial browser disconnected before close was requested'));
+      };
+      socket.onopen = () => socket.send(JSON.stringify({ id: 1, method: 'SystemInfo.getProcessInfo' }));
+      socket.onmessage = ({ data }) => {
+        try {
+          const message = JSON.parse(String(data));
+          if (message.id === 1) {
+            if (message.error || !message.result?.processInfo?.some(p => p.type === 'browser' && p.id === recorded.ProcessId))
+              throw new Error('Browser endpoint PID mismatch; refusing to close');
+            assertOwner();
+            closeSent = true;
+            socket.send(JSON.stringify({ id: 2, method: 'Browser.close' }));
+          } else if (message.id === 2) {
+            if (message.error) throw new Error('Trial browser rejected graceful close');
+            clearTimeout(timer); resolve();
+          }
+        } catch (error) { fail(error); }
+      };
+    });
+  } finally { socket.close(); }
+  for (let n = 0; n < 30; n++) {
+    if (!processById(recorded.ProcessId)) return;
+    assertOwner(); await sleep(200);
+  }
+  throw new Error('Chrome is still closing; retry stop after it exits. No process was forced');
+}
 async function stop(c) {
   // Stop remains available even when package integrity fails; process ownership is checked independently.
   const state = stateAt(c);
-  stopOwned(state.chrome, c.chrome, `--user-data-dir=${c.profile}`);
+  // Let Chrome flush its Profile; never turn a failed graceful close into a forced browser kill.
+  if (state.browserMode !== 'external-chrome-dev') await closeTrialBrowser(c, state);
   stopOwned(state.kernel, c.node, join(c.app, 'dist-control/gamd.cjs'));
-  for (let n = 0; n < 40; n++) { if (!processById(state.chrome?.ProcessId) && !processById(state.kernel?.ProcessId)) break; await sleep(100); }
-  if (processById(state.chrome?.ProcessId) || processById(state.kernel?.ProcessId)) throw new Error('Owned processes did not exit');
+  const browserRunning = () => state.browserMode !== 'external-chrome-dev' && processById(state.chrome?.ProcessId);
+  for (let n = 0; n < 40; n++) { if (!browserRunning() && !processById(state.kernel?.ProcessId)) break; await sleep(100); }
+  if (browserRunning() || processById(state.kernel?.ProcessId)) throw new Error('Owned processes did not exit');
   saveState(c, { stoppedAt: Date.now() }); return { status: 'stopped', instanceId: c.instanceId };
 }
-async function start(c, headless) {
+async function start(c) {
   verify(c); const state = stateAt(c);
+  if (state.chrome && ownedProcess(processById(state.chrome.ProcessId), state.chrome, c.chrome, `--user-data-dir=${c.profile}`))
+    throw new Error('Legacy trial browser is still running; stop it before switching to external Chrome Dev');
   if (state.kernel && processById(state.kernel.ProcessId)) {
     if (!ownedProcess(processById(state.kernel.ProcessId), state.kernel, c.node, join(c.app, 'dist-control/gamd.cjs'))) throw new Error('Kernel PID ownership mismatch');
     if (rpc(c, 'health').instanceId !== c.instanceId) throw new Error('Foreign Kernel');
-    if (state.chrome && ownedProcess(processById(state.chrome.ProcessId), state.chrome, c.chrome, `--user-data-dir=${c.profile}`)) return { status: 'already-running', instanceId: c.instanceId, origin: state.origin };
-    // A user-closed browser can be restarted while retaining the owned Kernel.
   } else {
     try { if (rpc(c, 'health')) throw new Error('Untracked Kernel is already active; diagnose before starting'); } catch (error) { if (/Untracked/.test(error.message)) throw error; }
     run(c.node, [join(c.app, 'dist-control/gam.cjs'), 'start', '--no-browser', '--json'], { env: environment(c) });
@@ -104,29 +161,9 @@ async function start(c, headless) {
   }
   try {
     const url = new URL(rpc(c, 'radar.open').url); state.origin = url.origin;
-    delete state.chrome; delete state.cdpPort;
-    const portFile = join(c.profile, 'DevToolsActivePort'); if (existsSync(portFile)) unlinkSync(portFile);
-    mkdirSync(c.logs, { recursive: true });
-    const chromeLog = openSync(join(c.logs, 'chrome-startup.log'), 'a');
-    let child;
-    try { child = spawn(c.chrome, [`--user-data-dir=${c.profile}`, `--load-extension=${c.app}`, `--disable-extensions-except=${c.app}`,
-      '--remote-debugging-address=127.0.0.1', '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check',
-      // The extension intentionally removes orphan about:blank tabs on startup.
-      ...(headless ? ['--headless=new'] : ['--new-window']), 'chrome://newtab/'], { detached: true, windowsHide: headless, stdio: ['ignore', 'ignore', chromeLog] });
-    } finally { closeSync(chromeLog); }
-    child.on('error', () => {}); child.unref();
-    for (let n = 0; n < 60; n++) { const process = processById(child.pid); if (process) { state.chrome = process; break; } await sleep(100); }
-    if (!state.chrome) throw new Error('Chrome did not start');
+    state.browserMode = 'external-chrome-dev';
     saveState(c, state);
-    for (let n = 0; n < 80; n++) {
-      try {
-        const port = Number(readFileSync(join(c.profile, 'DevToolsActivePort'), 'utf8').split('\n')[0]);
-        const response = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(1000) });
-        if (response.ok) { state.cdpPort = port; saveState(c, state); return { status: 'ready', instanceId: c.instanceId, origin: state.origin, profile: c.profile, sourceSha: c.sourceSha, headless }; }
-      } catch { /* startup only; bounded wait */ }
-      await sleep(100);
-    }
-    throw new Error('Chrome debugging endpoint unavailable; inspect logs/profile');
+    return { status: 'ready', instanceId: c.instanceId, origin: state.origin, browser: 'external-chrome-dev', sourceSha: c.sourceSha };
   } catch (error) { await stop(c); throw error; }
 }
 export function install(source, root, chrome, nativeDir) {
@@ -160,7 +197,7 @@ export function install(source, root, chrome, nativeDir) {
   writeJson(join(app, 'release.json'), { sourceSha, instanceId, host, extensionId, originalHost, sourceBackgroundSha256: sha256(Buffer.from(original)), files });
   writeJson(join(root, 'trial.json'), { root: realpathSync(root), sourceSha, instanceId, host, extensionId, node: process.execPath, chrome,
     nodeSha256: sha256(readFileSync(process.execPath)), chromeSha256: sha256(readFileSync(chrome)), installedAt: Date.now() });
-  for (const [name, command] of [['PCP-Start', 'start'], ['PCP-Stop', 'stop'], ['PCP-Diagnose', 'doctor'], ['PCP-Control', 'ctl']]) {
+  for (const [name, command] of [['PCP-Start', 'start'], ['PCP-Kernel-Start', 'start'], ['PCP-ChromeDev', 'chrome-dev'], ['PCP-Stop', 'stop'], ['PCP-Diagnose', 'doctor'], ['PCP-Control', 'ctl']]) {
     writeFileSync(join(root, name + '.cmd'), `@echo off\r\n"${process.execPath}" "%~dp0versions\\${sourceSha}\\pcp-trial.mjs" ${command} --root "%~dp0." %*\r\nset "PCP_EXIT=%ERRORLEVEL%"\r\n${command === 'doctor' ? 'pause\r\n' : 'if not "%PCP_EXIT%"=="0" pause\r\n'}exit /b %PCP_EXIT%\r\n`, 'utf8');
   }
   // Register last, after all files are validated. Never invoke the legacy overwriting installer.
@@ -180,14 +217,29 @@ async function main(argv) {
   const c = configAt(root);
   if (command === 'ctl') { verify(c); const result = spawnSync(c.node, [join(c.app, 'dist-control/gamctl.cjs'), ...argv], { env: environment(c), stdio: 'inherit', windowsHide: true }); process.exitCode = result.status ?? 1; return; }
   if (command === 'stop') return stop(c);
-  if (command === 'start') return start(c, argv.includes('--headless'));
+  if (command === 'start') {
+    if (argv.length) throw new Error('start is Kernel-only; browser flags are not accepted');
+    return start(c);
+  }
+  if (command === 'chrome-dev') {
+    if (argv.length) throw new Error('chrome-dev does not accept arguments');
+    const browser = join(process.env.PROGRAMFILES ?? 'C:\\Program Files', 'Google/Chrome Dev/Application/chrome.exe');
+    if (!existsSync(browser)) throw new Error('Chrome Dev is not installed');
+    const result = await start(c);
+    ps('Start-Process -FilePath $env:CH_PCP_DEV -ArgumentList @("--profile-directory=Default","--restore-last-session") -WindowStyle Normal', { CH_PCP_DEV: browser });
+    return { ...result, browser: 'existing-chrome-dev-default-profile' };
+  }
   if (command === 'doctor') {
     const checks = {}; try { verify(c); checks.integrity = 'PASS'; } catch (error) { checks.integrity = error.message; }
     try { checks.kernel = rpc(c, 'health').instanceId === c.instanceId ? 'ready' : 'FOREIGN'; } catch { checks.kernel = 'not-running'; }
     const state = stateAt(c); checks.browser = ownedProcess(processById(state.chrome?.ProcessId), state.chrome, c.chrome, `--user-data-dir=${c.profile}`) ? 'running' : 'not-running';
+    if (state.browserMode === 'external-chrome-dev') {
+      checks.browser = 'external-chrome-dev (not owned by stop)';
+      try { checks.browserRuntime = rpc(c, 'control.snapshot').browserRuntime.map(({ profileId, authStatus, pageHealth, observedAt }) => ({ profileId, authStatus, pageHealth, observedAt })); } catch { checks.browserRuntime = 'unavailable'; }
+    }
     if (checks.integrity !== 'PASS' || checks.kernel === 'FOREIGN') process.exitCode = 1;
     return { sourceSha: c.sourceSha, instanceId: c.instanceId, host: c.host, root: c.root, checks, logs: c.logs, origin: state.origin ?? null };
   }
-  throw new Error('Use install, start, stop, doctor or ctl');
+  throw new Error('Use install, start (Kernel only), chrome-dev, stop, doctor or ctl');
 }
 if (process.argv[1] && resolve(process.argv[1]) === script) main(process.argv.slice(2)).then(result => { if (result) console.log(JSON.stringify(result, null, 2)); }).catch(error => { console.error(error.message); process.exitCode = 1; });

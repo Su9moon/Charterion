@@ -1,0 +1,184 @@
+{
+  "workorder": "CH-PCP-007 minimal role recovery diagnosis",
+  "sourceSha": "c2b54108ce75c6e2c972b7700312a0fa8808367f",
+  "instanceId": "1cc2ff54f7742042",
+  "observationStartedAt": "2026-10-28T02:11:38.102Z",
+  "observationEndedAt": "2026-10-28T02:15:14.632Z",
+  "formalSlot": {
+    "id": "d7fa941a-8cbc-4513-939a-939da21934b5",
+    "projectId": "b00f66ec-f62a-4a6f-a5a7-f1ed67e9c70f",
+    "role": "chief_engineer",
+    "status": "assigned",
+    "desiredState": "active",
+    "browserState": "open",
+    "conversationGeneration": 1,
+    "rolloverState": "idle",
+    "browserQuarantined": false,
+    "leaseEpoch": 3,
+    "createdAt": 1793132738625,
+    "updatedAt": 1793153711077,
+    "conversationKey": "conversation:6ae1091c-aac0-83e9-9d2a-759dc68ca792",
+    "browserProfileId": "gam-default",
+    "browserTabId": 859946006,
+    "browserObservedAt": 1793153711077,
+    "browserLeaseId": "b6dc6c1a-9f48-4fbe-a983-4b37757dc909",
+    "browserLeaseEpoch": 1,
+    "browserContentEpoch": "be890512-27ea-4d4a-be54-607fa88077a0",
+    "browserObservationRevision": 7,
+    "browserPageStatus": "unknown",
+    "browserRuntimeObservedAt": 1793152944125
+  },
+  "lastAcceptedContentObservation": {
+    "seq": 173,
+    "createdAt": 1793152944125,
+    "tabId": 859946006,
+    "contentEpoch": "be890512-27ea-4d4a-be54-607fa88077a0",
+    "revision": 7,
+    "pageStatus": "unknown",
+    "url": "https://chatgpt.com/c/6ae1091c-aac0-83e9-9d2a-759dc68ca792",
+    "conversationKey": "conversation:6ae1091c-aac0-83e9-9d2a-759dc68ca792",
+    "signals": [],
+    "statusDetail": "No trusted ChatGPT readiness signal is visible"
+  },
+  "browserRuntime": [
+    {
+      "profileId": "gam-default",
+      "authStatus": "authenticated",
+      "pageHealth": "ready",
+      "openTabs": 5,
+      "extensionVersion": "0.5.0",
+      "observedAt": 1793153711124
+    }
+  ],
+  "visiblePages": {
+    "urlOpened": false,
+    "observedAt": "2026-10-28T02:12:44.5512641Z",
+    "pages": [
+      {
+        "url": "chatgpt.com",
+        "possibleComposerEdits": 1,
+        "verificationNotices": [
+          "Please pass Cloudflare check",
+          "Please pass Cloudflare check",
+          "Please pass Cloudflare check"
+        ],
+        "numericTabId": "UNAVAILABLE_IN_UIA",
+        "ordinal": 1
+      },
+      {
+        "url": "chatgpt.com/c/6ae1091c-aac0-83e9-9d2a-759dc68ca792",
+        "possibleComposerEdits": 0,
+        "verificationNotices": [
+          "Please pass Cloudflare check",
+          "Please pass Cloudflare check",
+          "Please pass Cloudflare check"
+        ],
+        "numericTabId": "UNAVAILABLE_IN_UIA",
+        "ordinal": 2
+      },
+      {
+        "url": "chatgpt.com",
+        "possibleComposerEdits": 1,
+        "verificationNotices": [
+          "Please pass Cloudflare check",
+          "Please pass Cloudflare check",
+          "Please pass Cloudflare check"
+        ],
+        "numericTabId": "UNAVAILABLE_IN_UIA",
+        "ordinal": 3
+      },
+      {
+        "url": "chatgpt.com",
+        "possibleComposerEdits": 0,
+        "verificationNotices": [
+          "无法加载你的账户",
+          "浏览器检查未能完成。请重新加载此页面重试",
+          "Please pass Cloudflare check",
+          "Please pass Cloudflare check",
+          "Please pass Cloudflare check"
+        ],
+        "numericTabId": "UNAVAILABLE_IN_UIA",
+        "ordinal": 4
+      },
+      {
+        "url": "chatgpt.com/c/6ae1091c-aac0-83e9-9d2a-759dc68ca792",
+        "possibleComposerEdits": 0,
+        "verificationNotices": [],
+        "numericTabId": "UNAVAILABLE_IN_UIA",
+        "ordinal": 5
+      }
+    ],
+    "profileChanged": false,
+    "numericTabIdMapping": "BLOCKED_NO_ALLOWED_EXACT_MAPPING",
+    "navigationPerformed": false,
+    "method": "existing Chrome Dev UIA; read address bar and allowlisted status labels only"
+  },
+  "preservation": {
+    "result": "PASS",
+    "attempts": [
+      {
+        "id": "a66d7ba3-8fbc-4262-8618-c0277f12bf62",
+        "state": "reply-observed",
+        "updatedAt": 1793117028320
+      },
+      {
+        "id": "d89552ef-e77a-433f-92e0-3d7df88de84d",
+        "state": "reply-observed",
+        "updatedAt": 1793132833148
+      }
+    ],
+    "workCounts": {
+      "attempts": 2,
+      "tasks": 0,
+      "messages": 0
+    },
+    "fleet": {
+      "projectId": "b00f66ec-f62a-4a6f-a5a7-f1ed67e9c70f",
+      "mode": "controlled",
+      "lifecycleLocked": true,
+      "revision": 1,
+      "updatedAt": 1793132738521,
+      "actor": "CH-PCP-007 final acceptance",
+      "reason": "Preserve independent final acceptance conversation and history"
+    }
+  },
+  "findings": {
+    "unknownOrigin": "Last accepted content snapshot: no trusted readiness signal; projection matches it exactly.",
+    "kernelProjectionMatchesLastAccepted": true,
+    "lastAcceptedIdentityMatchesCanonical": true,
+    "globalExtensionTransport": "Fresh aggregate runtime; does not prove formal Slot readiness.",
+    "currentFormalTabUrl": "BLOCKED_NO_ALLOWED_EXACT_MAPPING",
+    "currentFormalContentScriptResponse": "BLOCKED_NO_ALLOWED_EXACT_MAPPING",
+    "perSlotReportingInterruption": "UNDETERMINED: no newer accepted observation; observations publish on semantic changes, not as a per-slot heartbeat.",
+    "currentPageIdentityMismatch": "UNDETERMINED",
+    "confirmedCodeDefect": false,
+    "finalRoleIdle": "BLOCKED"
+  },
+  "incidents": [],
+  "limits": {
+    "uiaLabels": "Allowlisted UIA labels may include hidden or stale elements; not a DOM snapshot or proof of current verification state. Multiple pages share the canonical URL; ordinals do not map to Chrome numeric Tab IDs.",
+    "urlPolicy": "Earlier automatic approval rejected opening canonical URL: blocked by policy. No retry or alternate navigation performed.",
+    "attemptContent": "No prompt/reply bodies or credentials included."
+  },
+  "actions": {
+    "messagesSent": 0,
+    "loginAttempts": 0,
+    "urlsOpened": 0,
+    "navigations": 0,
+    "reloads": 0,
+    "lifecycleWrites": 0,
+    "cdpOpened": false,
+    "profileOrCredentialRead": false,
+    "runtimeFilesChanged": false,
+    "existingTabsSelectedForReadOnlyUiObservation": true
+  },
+  "checks": {
+    "nativeReadAndPreservation": "PASS",
+    "projectionComparison": "PASS",
+    "formalRoleIdle": "BLOCKED",
+    "build": "NOT_RUN_DOCUMENTATION_ONLY",
+    "typecheck": "NOT_RUN_DOCUMENTATION_ONLY",
+    "unitTests": "NOT_RUN_DOCUMENTATION_ONLY",
+    "newMessageE2E": "NOT_RUN_PROHIBITED_BY_SCOPE"
+  }
+}

@@ -3,9 +3,14 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
-import { ownedProcess, verifyFiles, install } from '../scripts/pcp-trial.mjs';
+import { browserEndpoint, ownedProcess, verifyFiles, install } from '../scripts/pcp-trial.mjs';
 const dirs=[];afterEach(()=>{while(dirs.length)rmSync(dirs.pop(),{recursive:true,force:true});});
 describe('isolated PCP trial protection',()=>{
+  it('accepts only the recorded loopback browser endpoint before graceful shutdown',()=>{
+    expect(browserEndpoint('ws://127.0.0.1:12345/devtools/browser/abc-123',12345)).toBe('ws://127.0.0.1:12345/devtools/browser/abc-123');
+    for(const url of ['ws://evil.invalid:12345/devtools/browser/abc','ws://127.0.0.1:12346/devtools/browser/abc','ws://127.0.0.1:12345/devtools/page/abc','ws://user:pass@127.0.0.1:12345/devtools/browser/abc','ws://127.0.0.1:12345/devtools/browser/abc?redirect=other'])expect(()=>browserEndpoint(url,12345)).toThrow();
+    expect(()=>browserEndpoint('ws://127.0.0.1:12345/devtools/browser/abc',NaN)).toThrow();
+  });
   it('refuses a modified release asset before startup',()=>{
     const root=mkdtempSync(join(tmpdir(),'pcp-trial-'));dirs.push(root);writeFileSync(join(root,'bundle'),'verified');
     const hashes={bundle:createHash('sha256').update('verified').digest('hex')};expect(()=>verifyFiles(root,hashes)).not.toThrow();
@@ -16,11 +21,17 @@ describe('isolated PCP trial protection',()=>{
     expect(()=>verifyFiles(root,{'../outside':'bad'})).toThrow('Unsafe package path');
   });
   it('refuses PID reuse, another executable, changed arguments and an unrelated profile',()=>{
-    const owned={ProcessId:123,CreationDate:'original',ExecutablePath:'C:\\Chrome\\chrome.exe',CommandLine:'chrome --user-data-dir=F:\\PCP-Trial\\profile'};
+    const owned={ProcessId:123,CreationDate:'2026-10-28T00:00:00.000Z',ExecutablePath:'C:\\Chrome\\chrome.exe',CommandLine:'chrome --user-data-dir=F:\\PCP-Trial\\profile'};
     const valid=p=>ownedProcess(p,owned,owned.ExecutablePath,'--user-data-dir=F:\\PCP-Trial\\profile');
     expect(valid({...owned})).toBe(true);
     for(const edit of[{CreationDate:'reused'},{ProcessId:124},{ExecutablePath:'C:\\other.exe'},{CommandLine:'chrome --user-data-dir=C:\\original-profile'}])expect(valid({...owned,...edit})).toBe(false);
     expect(ownedProcess(owned,owned,owned.ExecutablePath,'--user-data-dir=C:\\original-profile')).toBe(false);
+  });
+  it('compares PowerShell creation timestamps by instant without accepting an invalid identity',()=>{
+    const recorded={ProcessId:123,CreationDate:'/Date(1793145600000)/',ExecutablePath:'C:\\node.exe',CommandLine:'node trial/gamd.cjs'};
+    expect(ownedProcess({...recorded,CreationDate:new Date(1793145600000).toISOString()},recorded,recorded.ExecutablePath,'trial/gamd.cjs')).toBe(true);
+    expect(ownedProcess({...recorded,CreationDate:new Date(1793145600001).toISOString()},recorded,recorded.ExecutablePath,'trial/gamd.cjs')).toBe(false);
+    expect(ownedProcess({...recorded,CreationDate:'invalid'},{...recorded,CreationDate:'invalid'},recorded.ExecutablePath,'trial/gamd.cjs')).toBe(false);
   });
   it('will not install over an existing data/profile root',()=>{
     const root=mkdtempSync(join(tmpdir(),'pcp-trial-'));dirs.push(root);writeFileSync(join(root,'sentinel'),'keep');
