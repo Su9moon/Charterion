@@ -4,7 +4,7 @@
 
 结论：**修复已安装，真实首次回复直接确认通过；重启后绑定、锁和唯一 Attempt 保留，但恢复角色页被 Cloudflare 阻断，需要人工验证，不能将完整重启就绪记为 PASS。** [机器回执](assets/CH-PCP-007-final-acceptance-2026-10-28.json)。此前报告中的“修复未安装”状态由本报告覆盖。
 
-更新（人工验证后）：用户确认验证已完成；只读观察已有可输入且无验证提示的根页面。正式 Slot 的旧 runtime 仍为 unknown、角色投影为空，不能将聚合 authenticated/ready 当作正式会话就绪，也不能继续归因为用户未验证。使用既有 agent.suspend/resume 仅重建测试 Slot 生命周期，关闭旧租约页后恢复 active；canonical ID/generation、Fleet 锁 Revision 1 与两个已完成 Attempt 不变。最终正式页为 absent、leaseEpoch=3，尚未重新建立。尝试在既有 Dev Profile 打开精确 canonical URL 被自动审批拒绝（blocked by policy），操作未执行，未尝试其他方式绕过。因此最新结果为 **VERIFICATION_COMPLETE_ROLE_REOPEN_BLOCKED**，恢复 idle 仍未通过；并非等待用户重新登录。完整机器记录见[人工验证后复核](assets/CH-PCP-007-human-verification-followup-2026-10-28.json)。本次只执行运行状态复核与测试 Slot 恢复，没有改源码或再次发送；编译/单元测试本次 NOT_RUN，以上计数属于前次修复 SHA。
+更新（人工验证后）：用户确认验证已完成；只读观察已有可输入且无验证提示的根页面。正式 Slot 的旧 runtime 仍为 unknown、角色投影为空，不能将聚合 authenticated/ready 当作正式会话就绪，也不能继续归因为用户未验证。使用既有 agent.suspend/resume 仅重建测试 Slot 生命周期，关闭旧租约页后恢复 active；canonical ID/generation、Fleet 锁 Revision 1 与两个已完成 Attempt 不变。暂停/恢复后曾为 absent；随后既有 Fleet 定时协调自行重开为 Tab 859946006，browserState=open、browserPageStatus=unknown、leaseEpoch=3，尚未证实就绪。尝试在既有 Dev Profile 打开精确 canonical URL 被自动审批拒绝（blocked by policy），操作未执行，未尝试其他方式绕过。因此最新结果为 **VERIFICATION_COMPLETE_FORMAL_SLOT_NOT_READY**，恢复 idle 仍未通过；并非等待用户重新登录。完整机器记录见[人工验证后复核](assets/CH-PCP-007-human-verification-followup-2026-10-28.json)。本次只执行运行状态复核与测试 Slot 恢复，没有改源码或再次发送；编译/单元测试本次 NOT_RUN，以上计数属于前次修复 SHA。
 
 ## 已安装的最小更新
 
