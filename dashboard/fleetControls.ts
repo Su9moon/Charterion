@@ -23,12 +23,12 @@ export function mountFleetControls(doc: Document, win: Window, fetcher: typeof f
       // Copy the revision seen by the human. Polling must never silently rebase a pending command.
       baseline = { ...baseline, fleet: { ...baseline.fleet } };
       mode.value = baseline.fleet.mode; locked.checked = baseline.fleet.lifecycleLocked;
-      get('control-revision').textContent = `操作项目：${baseline.name} · ${baseline.id} · Revision ${baseline.fleet.revision}`;
-    } else get('control-revision').textContent = '请选择项目并载入当前版本。';
+      get('control-revision').textContent = `操作项目 / Project: ${baseline.name} · ${baseline.id} · Revision ${baseline.fleet.revision}`;
+    } else get('control-revision').textContent = '请选择项目并载入版本 / Select a project and load Revision.';
     availability();
   }
-  project.addEventListener('change', () => { credential.value = ''; reason.value = ''; loadCurrent(); feedback('项目已切换，请使用此项目的独立管理授权。'); });
-  load.addEventListener('click', () => { loadCurrent(); feedback('已载入当前观测版本，请重新核对并确认。'); });
+  project.addEventListener('change', () => { credential.value = ''; reason.value = ''; loadCurrent(); feedback('项目已切换，请使用该项目的管理授权 / Project changed; use its own capability.'); });
+  load.addEventListener('click', () => { loadCurrent(); feedback('已载入当前 Revision，请重新核对确认 / Revision loaded; review before applying.'); });
   form.addEventListener('input', availability);
   form.addEventListener('submit', event => {
     event.preventDefault(); if (submit.disabled || busy || !baseline) return;
@@ -36,7 +36,7 @@ export function mountFleetControls(doc: Document, win: Window, fetcher: typeof f
     const command = { projectId: target.id, mode: mode.value, lifecycleLocked: locked.checked, expectedRevision: target.fleet.revision,
       reason: reason.value.trim(), requestId: win.crypto.randomUUID() };
     const capability = credential.value.trim();
-    busy = true; availability(); feedback('正在提交；请勿重复操作…');
+    busy = true; availability(); feedback('正在提交，请勿重复操作 / Submitting; do not repeat…');
     pending = new AbortController(); const timeout = win.setTimeout(() => pending?.abort(), 8000);
     void (async () => {
       let accepted = false;
@@ -46,9 +46,9 @@ export function mountFleetControls(doc: Document, win: Window, fetcher: typeof f
         if (!response.ok) {
           const failure = await response.json() as { error?: string };
           if (response.status === 401 || response.status === 403) credential.value = '';
-          const message = response.status === 409 ? '版本冲突或重复请求冲突，未应用本次变更。载入当前版本后重新核对。' :
-            response.status === 401 || response.status === 403 ? '授权无效、已过期或不属于此项目。请重新授权；Kernel 重启后需从插件重新打开。' :
-              `操作未确认（${failure.error ?? response.status}），请刷新核对状态。`;
+          const message = response.status === 409 ? '版本或请求冲突，未应用；载入最新版本再核对 / Revision or request conflict; reload and review.' :
+            response.status === 401 || response.status === 403 ? '授权无效、过期或项目不符；重新授权，Kernel 重启后重新打开控制台 / Authorization invalid, expired or wrong project; reauthorize and reopen after restart.' :
+              `操作未确认 / Unconfirmed (${failure.error ?? response.status}); 请刷新核对 / Refresh and verify.`;
           feedback(message, 'error'); await options.reload(); return;
         }
         const receipt = await response.json() as { revision?: number; requestId?: string; changed?: boolean };
@@ -57,13 +57,13 @@ export function mountFleetControls(doc: Document, win: Window, fetcher: typeof f
         const fresh = await options.reload(); if (disposed) return;
         const actual = fresh?.projects.find(p => p.id === target.id);
         if (!actual || actual.fleet.revision !== receipt.revision || actual.fleet.mode !== command.mode || actual.fleet.lifecycleLocked !== command.lifecycleLocked) {
-          feedback('Kernel 已接受请求，但回读未确认目标状态；请刷新核对，勿直接重试。', 'error'); return;
+          feedback('Kernel 已接受，但回读未确认；请刷新核对，勿重试 / Accepted but readback unconfirmed; refresh and verify, do not retry.', 'error'); return;
         }
         loadCurrent(); reason.value = '';
-        feedback(receipt.changed ? `已保存并回读确认：${actual.name} · Revision ${actual.fleet.revision}` : '回读确认：设置未变，无新增变更审计。', 'success');
+        feedback(receipt.changed ? `已保存并回读确认 / Saved and verified: ${actual.name} · Revision ${actual.fleet.revision}` : '回读确认，设置未变 / Verified unchanged; no new audit event.', 'success');
       } catch {
         if (!disposed) {
-          feedback(accepted ? 'Kernel 已接受请求，但回读失败；结果尚未确认，请刷新核对。' : '连接失败或响应不明；可能已写入。请刷新核对，勿直接重试。', 'error');
+          feedback(accepted ? 'Kernel 已接受但回读失败；请刷新核对 / Accepted, readback failed; verify before retry.' : '连接失败或响应不明，可能已写入；请先刷新核对 / Connection uncertain; may have applied. Refresh before retry.', 'error');
           await options.reload();
         }
       } finally { win.clearTimeout(timeout); pending = undefined; busy = false; confirmed.checked = false; if (!disposed) availability(); }
@@ -75,7 +75,7 @@ export function mountFleetControls(doc: Document, win: Window, fetcher: typeof f
       connected = online; projects = snapshot?.projects ?? [];
       const selected = project.value; const ids = projects.map(p => p.id);
       if (Array.from(project.options).map(o => o.value).join('|') !== ['', ...ids].join('|')) {
-        const empty = doc.createElement('option'); empty.value = ''; empty.textContent = '选择要操作的项目'; project.replaceChildren(empty);
+        const empty = doc.createElement('option'); empty.value = ''; empty.textContent = '选择项目 / Select Project'; project.replaceChildren(empty);
         for (const p of projects) { const option = doc.createElement('option'); option.value = p.id; option.textContent = p.name; project.append(option); }
         project.value = ids.includes(selected) ? selected : '';
       }
