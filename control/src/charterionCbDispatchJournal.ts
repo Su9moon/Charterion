@@ -50,6 +50,23 @@ function nonempty(value: string, name: string): string {
   }
   return value;
 }
+const EVENT_TYPES = new Set([
+  'SUBMITTED', 'CLAIMED', 'EXECUTION_STARTED', 'TESTS_COMPLETED',
+  'RESULT_GENERATED', 'RESULT_PRESERVED', 'HANDOFF_PRESERVED',
+  'EXECUTION_FAILED', 'DELIVERY_FAILED', 'LIVENESS_UNKNOWN',
+]);
+function validEvent(event: CbObservedEvent): boolean {
+  return EVENT_TYPES.has(event.type) &&
+    typeof event.received_at === 'string' &&
+    !Number.isNaN(Date.parse(event.received_at)) &&
+    Array.isArray(event.evidence_refs) &&
+    event.evidence_refs.every((ref) => typeof ref === 'string' && ref.trim().length > 0) &&
+    (event.run_id === null || (typeof event.run_id === 'string' && event.run_id.trim().length > 0)) &&
+    (event.type !== 'TESTS_COMPLETED' ||
+      ['passed', 'failed', 'not_run'].includes(event.tests_status ?? '')) &&
+    (event.type === 'TESTS_COMPLETED' || event.tests_status === undefined);
+}
+
 function sha256(text: string): string {
   return createHash('sha256').update(text, 'utf8').digest('hex');
 }
@@ -159,7 +176,8 @@ export class CharterionCbDispatchJournal {
       for (const event of events) {
         if (event.instance_id !== prepared.instanceId || event.task_id !== prepared.taskId ||
             !Number.isSafeInteger(event.seq) || event.seq < 1 ||
-            !['server', 'worker', 'host'].includes(event.origin)) {
+            !['server', 'worker', 'host'].includes(event.origin) ||
+            !validEvent(event)) {
           throw new Error('CB_EVENT_SCOPE_INVALID');
         }
         const body = canonical(event);
