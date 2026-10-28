@@ -1,0 +1,208 @@
+{
+  "repo": "Su9moon/Charterion",
+  "source_sha": "b4febe9a3937b56abc32ce0a687ba19b3817557c",
+  "source_sha_kind": "VERIFIED_INPUT_SHA",
+  "pending_commit_ref": "Bridge-created pending T-000402 report commit; SHA not yet assigned",
+  "contract_commit": "61402b2d2e042f5b950e58bcb230901e3c58fb12",
+  "protocol_version": "charterion-cb/1.0",
+  "status": "PARTIAL_SOURCE_TESTED",
+  "implemented_features": [
+    {
+      "feature": "Durable dispatch journal",
+      "scope": "SOURCE_ONLY; no live runtime verification"
+    },
+    {
+      "feature": "Opt-in admin prepare/lookup",
+      "scope": "SOURCE_ONLY; no live runtime verification"
+    },
+    {
+      "feature": "Injected reader reconciliation",
+      "scope": "SOURCE_ONLY; no live runtime verification"
+    },
+    {
+      "feature": "Typed evidence projection",
+      "scope": "SOURCE_ONLY; no live runtime verification"
+    }
+  ],
+  "test_results": [
+    {
+      "case_id": "C01",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": null
+    },
+    {
+      "case_id": "C02",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": null
+    },
+    {
+      "case_id": "C03",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": "journal reopen / mock lookup"
+    },
+    {
+      "case_id": "C04",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": null
+    },
+    {
+      "case_id": "C05",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": null
+    },
+    {
+      "case_id": "C06",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": null
+    },
+    {
+      "case_id": "C07",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": "exact-byte projection only, no chunk transport"
+    },
+    {
+      "case_id": "C08",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": "failed source projection only"
+    },
+    {
+      "case_id": "C09",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": null
+    },
+    {
+      "case_id": "C10",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": "journal replay/cursor only, no browser recovery"
+    },
+    {
+      "case_id": "C11",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": "mock identity checks"
+    },
+    {
+      "case_id": "C12",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": "projection remains pending review"
+    },
+    {
+      "case_id": "C13",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": "disabled RPC / unbound reader only"
+    },
+    {
+      "case_id": "C14",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": null
+    },
+    {
+      "case_id": "C15",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": null
+    },
+    {
+      "case_id": "C16",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": null
+    },
+    {
+      "case_id": "C17",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": "local RPC and mock scope checks"
+    },
+    {
+      "case_id": "C18",
+      "status": "NOT_RUN",
+      "evidence_ref": "README.md#runtime-scenarios",
+      "source_test_scope_only": "journal persistence only"
+    }
+  ],
+  "runtime_version": null,
+  "known_gaps": [
+    "No real authenticated outbound CB MCP host client",
+    "No runtime wiring",
+    "No events consumed in live CB",
+    "No live result/handoff verification",
+    "Browser-only Chrome Dev UAT NOT_RUN; Chrome Stable/Dev and Native Host not exercised",
+    "Node v22.13.0 engine warnings: jsdom requires ^22.22.2 || ^24.15.0 || >=26.0.0; undici >=22.19.0; whatwg-url ^22.14.0 || >=24.0.0",
+    "Earlier full suite reported 145/149 with IPC EPERM; not rerun or claimed fixed",
+    "No Blue, CI or Green service changes; joint validation awaits user scheduling"
+  ],
+  "execution_evidence": [
+    {
+      "task_id": "T-000381",
+      "source_sha": "f02ed58e9f28debc9d7b7a99787c1978a41300b7",
+      "evidence_ref": "git show f02ed58e9f28debc9d7b7a99787c1978a41300b7",
+      "kind": "EXISTING_COMMIT_RECEIPT; historical counts not inferred"
+    },
+    {
+      "task_id": "T-000385",
+      "source_sha": "5975a3fa2825dd4d4b289beef56fc150a745343a",
+      "evidence_ref": "git show 5975a3fa2825dd4d4b289beef56fc150a745343a",
+      "kind": "EXISTING_COMMIT_RECEIPT; historical counts not inferred"
+    },
+    {
+      "task_id": "T-000393",
+      "source_sha": "81b16aa44f5204b2c01e5058378a314abeb1990d",
+      "evidence_ref": "git show 81b16aa44f5204b2c01e5058378a314abeb1990d",
+      "kind": "EXISTING_COMMIT_RECEIPT; historical counts not inferred"
+    },
+    {
+      "task_id": "T-000395",
+      "source_sha": "b4febe9a3937b56abc32ce0a687ba19b3817557c",
+      "evidence_ref": "git show b4febe9a3937b56abc32ce0a687ba19b3817557c",
+      "kind": "EXISTING_COMMIT_RECEIPT; historical counts not inferred"
+    },
+    {
+      "task_id": "T-000402",
+      "source_sha": "b4febe9a3937b56abc32ce0a687ba19b3817557c",
+      "kind": "FRESH_SOURCE_TESTS",
+      "environment": {
+        "workspace": "/tmp/charterion-T-000402-green-3mzrm_rb",
+        "node": "/home/jjyy/.local/opt/node-v22.13.0-linux-x64/bin/node",
+        "node_version": "v22.13.0",
+        "npm_version": "10.9.2",
+        "cache_source": "/mnt/f/0 codex/Charterion-PCP/.build-cache/npm/_cacache",
+        "dependency_repair": "Initial checks failed before tests: missing Linux optional bindings. Offline npm metadata/tarball attempts were not cached. Restored matching prewarmed @rolldown/binding-linux-x64-gnu 1.2.7 and @typescript/typescript-linux-x64 7.0.2 from /tmp/charterion-r4-mvoVV2/node_modules; both checks then rerun passed. No repository dependency edits."
+      },
+      "checks": [
+        {
+          "command": "npx --offline vitest run control/tests/charterionCbDispatchJournal.test.ts control/tests/charterionCbDispatchRpc.test.ts control/tests/charterionCbReconciler.test.ts control/tests/charterionCbEvidence.test.ts --pool=forks --fileParallelism=false",
+          "exit_code": 0,
+          "test_files": 4,
+          "tests_passed": 19,
+          "tests_failed": 0,
+          "evidence_ref": "T-000402-vitest.log",
+          "per_file": {
+            "charterionCbDispatchJournal.test.ts": 6,
+            "charterionCbDispatchRpc.test.ts": 3,
+            "charterionCbReconciler.test.ts": 5,
+            "charterionCbEvidence.test.ts": 5
+          }
+        },
+        {
+          "command": "npm run check:control",
+          "exit_code": 0,
+          "evidence_ref": "T-000402-control.log"
+        }
+      ]
+    }
+  ]
+}

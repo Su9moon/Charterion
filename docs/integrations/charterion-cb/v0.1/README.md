@@ -1,7 +1,7 @@
 # Charterion—CB 接入入口 V0.1
 
-状态：契约已固定；产品实现 NOT_STARTED；联合验证 WAITING_USER_SCHEDULE。
-用户于 2026-10-28 要求将本次讨论材料上传两仓固定，下一次安排联合验证。本次发布不执行代码开发或线上变更。
+状态：契约已固定；R2 最小源码接口已实现，默认关闭；联合验证 WAITING_USER_SCHEDULE。
+最初材料发布仅固定契约；本次 R2 按后续开发授权实现下述源码范围，无线上变更。
 
 - 唯一权威：[PCP 接入基线](https://github.com/Su9moon/personal-ai-control-plane/blob/61402b2d2e042f5b950e58bcb230901e3c58fb12/governance/integrations/charterion-cb/v0.1/BASELINE.md)。
 - 精确版本与快照字节校验：integration-lock.json；upstream/ 文件为 NON_CANONICAL_AUTHORIZED_SNAPSHOT。
@@ -11,3 +11,103 @@
 
 开发者先核对 pin/hash，再读 BASELINE/PROTOCOL/ACCEPTANCE。运行产品无需在线访问 PCP Git；这些是开发输入而非新运行依赖。
 禁止两仓各自修改共同协议。先更新 canonical 版本及样例，再显式刷新两边 pin。
+
+## R2 最小源码实现（默认关闭，未联合验证）
+
+`RpcRouter` 的可选第五个构造参数为主机专用
+`{ enabled: true, clientId, project }`。现有启动入口不传此参数，因此默认禁用。
+TODO：由部署主机提供受信配置及管理员凭据隔离；尚未接线，不代表 live integration。
+仅管理员 token 可调用 `cb-dispatch.prepare` / `cb-dispatch.lookup`，浏览器 token 和
+capability 均不授权；管理员权限绑定主机固定的 clientId/project，禁止请求传 clientId。
+
+prepare 参数为 journal 的 dispatchId/workItemId/project/task/sourceRef/inputRef/options；
+lookup 参数为 dispatchId/project。project 必须精确匹配主机 scope。
+返回 journal 原始记录（精确 task、原始 UTF-8 intentSha256、dispatchId 和全部输入）；
+同 scope 同 dispatchId 重试返回同一记录，修改输入拒绝。lookup 未找到返回 null。
+Coordinator 应持久化 prepare 结果后自行通过 CB MCP 提交并以原 dispatchId 对账。
+此接口不提交 CB、不创建本地任务或 workspace、不生成 ACK/taskId、不审批；
+Organization 内部执行路径不变。规范仍固定于上述 PCP commit；无新增运行时网络依赖。
+
+
+## R3 host-owned reconciliation (source-only opt-in)
+
+`control/src/charterionCbReconciler.ts` adds a one-shot injectable `TrustedCbReadClient`.
+Only a trusted host constructor may bind the authenticated reader, clientId, instanceId,
+project and host-verified request_lookup/task_events capability page limit (1..100).
+There is no runtime adapter or new browser/admin RPC method. Missing capability must
+leave the reader unbound; unavailable reads return blocked/unknown, never success.
+The host adapter must verify transport authentication and task project provenance;
+the canonical ACK remains unchanged, nested inside the lookup task envelope.
+
+`reconcile(dispatchId)` requires an existing journal intent, queries the original
+client/dispatch identity, checks protocol/instance/client/project/work item/digest,
+and records the stable task binding transactionally through the existing journal.
+Only then does it read one bounded event page. Journal scope, conflict, replay and
+contiguous cursor rules remain authoritative; remote cursor metadata cannot skip gaps.
+An event read failure retains the durable ACK and returns unknown for later explicit
+reconciliation. No submit, timers, scheduler, local execution, lease/workspace creation
+or WorkItem completion is provided. `observed` means journal observations only.
+
+Validation uses mock readers only. Real authenticated MCP joint integration: NOT_RUN.
+No full browser UAT. Native Node v22.13.0 is below the installed jsdom engine requirement;
+no dependency install was needed and these focused Node tests do not exercise jsdom.
+
+### R5a host reader boundary (source only)
+
+`control/src/charterionCbHostReader.ts` is an opt-in Node host adapter implementing
+`TrustedCbReadClient`. It has no fetch implementation, browser binding, RPC route,
+submission method, scheduler or gamd wiring. The default is `CB_HOST_DISABLED`;
+provisioning without a transport returns `CB_MCP_ADAPTER_REQUIRED`.
+
+The official `@modelcontextprotocol/sdk` package is **not installed**. Real MCP
+connectivity remains missing: a trusted host must supply an SDK-backed
+`HostMcpTransport` on Node 22.13.0 or newer, with MCP initialize/protocol negotiation,
+initialized notification, authenticated Streamable HTTP, session handling and cleanup,
+JSON/SSE parsing, JSON-RPC error validation, bounded streamed response bytes,
+AbortSignal cancellation, no redirects or URL discovery, and complete tools/list
+pagination. The interface's listTools returns an aggregated list; an outstanding
+nextCursor blocks this adapter. A bare JSON HTTP endpoint is not an implementation.
+Implementing and validating that network lifecycle without a new dependency is
+outside this typed-adapter fallback; fixture tests do not prove live interoperability.
+
+Only trusted host provisioning may supply a fixed exact HTTPS endpoint allowlist,
+out-of-band token, client/instance/project binding, deadline and response bound.
+Never source these from browser state, model/RPC inputs or Native Messaging.
+The adapter snapshots configuration and transport methods, authenticates through the
+transport, checks actual tools/list plus get_capabilities, and requires the two reader
+features and valid advertised limits. This is partial reader readiness, not full V0.1
+readiness (all six protocol features would be needed for that claim). Legacy-only or
+disabled reader capabilities return BLOCKED_CAPABILITY. Errors are fixed codes,
+without causes or server messages. Tokens must never be logged by the host transport.
+The reader measures serialized responses in UTF-8 bytes; the transport must separately
+bound raw response bytes before parsing, including MCP content outside structuredContent.
+Structured responses are rejected if nested string values or keys contain the literal
+credential or its JSON-escaped representation, including credentials with quotes or
+backslashes. Rejections expose only fixed error codes.
+
+Lookup responses must match configured project, client, instance and request identity;
+events are permitted only for a task obtained through a validated lookup and must
+match task/instance identity. Event pages must be contiguous and strictly ascending
+from after_seq + 1, with next_seq equal to the final event sequence (or after_seq for
+an empty page). has_more must agree with last_seq > next_seq; empty nonterminal
+pages are rejected. These boundary checks complement the reconciler's durable cursor
+validation and prevent terminal-looking partial pages.
+The existing reconciler additionally checks work item,
+intent hash and event continuity against the durable journal. Reads may be manually
+repeated; this adapter never retries or submits. Connection/timeout failure poisons
+that reader attempt and requests transport cleanup. No real tokens, Green config,
+services or live MCP verification were used. Future SDK integration and genuine host
+credential provisioning remain prerequisites to enabling gamd.
+
+### R5b2 explicit reader ownership (source only)
+
+The factory returns an `OwnedCbHostReader`, compatible with `TrustedCbReadClient`,
+with `close(): Promise<void>`. The host MUST await `close()` when discarding the
+reader and on daemon shutdown. Concurrent/repeated closes share one cleanup promise;
+transport close runs exactly once, and cleanup errors are suppressed without logging
+credentials or forwarding transport details to browser/RPC. Closing immediately denies
+future reads with `CB_READ_UNAVAILABLE` and aborts/rejects all pending operations,
+even if a transport ignores cancellation. Connection/operation failures and deadlines
+use the same automatic cleanup path. A genuine SDK transport must honor cancellation
+and release its resources in close. gamd is still NOT wired; default disabled, no
+polling/retry/scheduler or real MCP SDK/live connectivity is added.

@@ -1,0 +1,176 @@
+import { expect, it, vi } from 'vitest';
+import { createCbHostReader, type CbHostReaderConfig, type HostMcpTransport } from '../src/charterionCbHostReader';
+function fixture() {
+  const config: CbHostReaderConfig = { enabled: true, endpoint: 'https://cb.example/mcp',
+    allowedEndpoints: ['https://cb.example/mcp'], token: 'fixture-private-token', clientId: 'client',
+    instanceId: 'instance', project: 'project', eventPageMax: 10, deadlineMs: 30, maxResponseBytes: 65536 };
+  const ack = { found: true, task: { id: 'task', status: 'done', project: 'project', integration: {
+    protocol_version: 'charterion-cb/1.0', instance_id: 'instance', client_id: 'client', dispatch_id: 'dispatch',
+    work_item_id: 'work', intent_sha256: 'a'.repeat(64) } } };
+  const caps = { protocol_version: 'charterion-cb/1.0', instance_id: 'instance', release_sha: null,
+    features: ['request_lookup', 'task_events'], limits: { result_max_bytes: 100, chunk_max_bytes: 50,
+      event_page_max: 10, liveness_stale_seconds: 60 } };
+  const page = { events: [], next_seq: 0, last_seq: 0, has_more: false };
+  const transport: HostMcpTransport = { connect: vi.fn(async () => {}), close: vi.fn(async () => {}),
+    listTools: vi.fn(async () => ({ tools: ['get_capabilities', 'get_task_by_request', 'get_task_events'].map(name => ({ name })) })),
+    callTool: vi.fn(async name => ({ structuredContent: name === 'get_capabilities' ? caps : name === 'get_task_by_request' ? ack : page })) };
+  return { config, transport, ack, caps, page };
+}
+it('defaults off; rejects non-allowlisted endpoints and requires a genuine MCP adapter', async () => {
+  const { config, transport } = fixture();
+  await expect(createCbHostReader()).rejects.toThrow('CB_HOST_DISABLED');
+  await expect(createCbHostReader({ ...config, endpoint: 'https://other.example/mcp' }, transport)).rejects.toThrow('CB_HOST_CONFIG_INVALID');
+  expect(transport.connect).not.toHaveBeenCalled();
+  await expect(createCbHostReader(config)).rejects.toThrow('CB_MCP_ADAPTER_REQUIRED');
+});
+it('blocks legacy tools, absent/disabled features, wrong version and invalid limits', async () => {
+  const legacy = fixture();
+  legacy.transport.listTools = async () => ({ tools: ['submit_task', 'get_status', 'get_result'].map(name => ({ name })) });
+  await expect(createCbHostReader(legacy.config, legacy.transport)).rejects.toThrow('BLOCKED_CAPABILITY');
+  expect(legacy.transport.callTool).not.toHaveBeenCalled();
+  for (const change of [{ features: [] }, { protocol_version: 'old' }, { limits: { event_page_max: 0 } }]) {
+    const f = fixture(); Object.assign(f.caps, change);
+    await expect(createCbHostReader(f.config, f.transport)).rejects.toThrow('BLOCKED_CAPABILITY');
+  }
+});
+it('401 and deadline fail closed without leaking errors or retrying', async () => {
+  for (const timeout of [false, true]) {
+    const f = fixture();
+    f.transport.connect = vi.fn(() => timeout ? new Promise<void>(() => {}) : Promise.reject(new Error('401 ' + f.config.token)));
+    await expect(createCbHostReader(f.config, f.transport)).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+    expect(f.transport.close).toHaveBeenCalledTimes(1);
+    expect(f.transport.connect).toHaveBeenCalledTimes(1);
+    expect(f.transport.callTool).not.toHaveBeenCalled();
+  }
+});
+it('valid capability and repeated query responses never submit or expose credentials', async () => {
+  const f = fixture(), reader = await createCbHostReader(f.config, f.transport);
+  for (let i = 0; i < 2; i++) {
+    expect(await reader.get_task_by_request('client', 'dispatch')).toEqual(f.ack);
+    expect(await reader.get_task_events('task', 0, 10)).toEqual(f.page);
+  }
+  expect(Object.keys(reader)).toEqual(['close', 'get_task_by_request', 'get_task_events']);
+  const calls = vi.mocked(f.transport.callTool).mock.calls;
+  expect(calls.map(c => c[0])).toEqual(['get_capabilities', 'get_task_by_request', 'get_task_events', 'get_task_by_request', 'get_task_events']);
+  expect(JSON.stringify(calls)).not.toContain(f.config.token);
+});
+it('validates caller scope and server identity even with mocked transport', async () => {
+  const f = fixture(), reader = await createCbHostReader(f.config, f.transport);
+  await expect(reader.get_task_by_request('other', 'dispatch')).rejects.toThrow('CB_SCOPE_MISMATCH');
+  await expect(reader.get_task_events('unbound', 0, 1)).rejects.toThrow('CB_SCOPE_MISMATCH');
+  f.ack.task.integration.instance_id = 'other';
+  await expect(reader.get_task_by_request('client', 'dispatch')).rejects.toThrow('CB_SCOPE_MISMATCH');
+  f.ack.task.integration.instance_id = 'instance';
+  await reader.get_task_by_request('client', 'dispatch');
+  Object.assign(f.page, { events: [{ instance_id: 'other', task_id: 'task' }] });
+  await expect(reader.get_task_events('task', 0, 1)).rejects.toThrow('CB_SCOPE_MISMATCH');
+});
+it('sanitizes server errors and secret-bearing success payloads', async () => {
+  const f = fixture(), reader = await createCbHostReader(f.config, f.transport);
+  f.transport.callTool = async () => { throw new Error('unused mutation'); };
+  Object.assign(f.ack.task, { extra: f.config.token });
+  await expect(reader.get_task_by_request('client', 'dispatch')).rejects.toThrow(/^CB_RESPONSE_INVALID$/);
+});
+it('bounds serialized responses by UTF-8 bytes, not character count', async () => {
+  const f = fixture(), reader = await createCbHostReader(f.config, f.transport);
+  Object.assign(f.ack.task, { extra: '界'.repeat(24000) });
+  const json = JSON.stringify({ structuredContent: f.ack });
+  expect(json.length).toBeLessThan(f.config.maxResponseBytes);
+  expect(Buffer.byteLength(json, 'utf8')).toBeGreaterThan(f.config.maxResponseBytes);
+  await expect(reader.get_task_by_request('client', 'dispatch')).rejects.toThrow(/^CB_RESPONSE_INVALID$/);
+});
+it.each(['literal', 'escaped', 'key'])('rejects deep %s secrets containing quotes and backslashes', async form => {
+  const f = fixture();
+  f.config.token = 'fixture-"private\\token';
+  const reader = await createCbHostReader(f.config, f.transport);
+  const secret = form === 'escaped' ? JSON.stringify(f.config.token).slice(1, -1) : f.config.token;
+  Object.assign(f.ack.task, { extra: { nested: [{ deeper: form === 'key' ? { [secret]: 'value' } : `prefix ${secret} suffix` }] } });
+  await expect(reader.get_task_by_request('client', 'dispatch')).rejects.toThrow(/^CB_RESPONSE_INVALID$/);
+});
+it('sanitizes transport errors containing escaped credentials', async () => {
+  const f = fixture();
+  f.config.token = 'fixture-"private\\token';
+  const original = f.transport.callTool;
+  f.transport.callTool = async (name, args, signal) => {
+    if (name !== 'get_capabilities') throw new Error(JSON.stringify({ token: f.config.token }));
+    return original(name, args, signal);
+  };
+  const reader = await createCbHostReader(f.config, f.transport);
+  await expect(reader.get_task_by_request('client', 'dispatch')).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+});
+it('accepts contiguous pages and empty terminal pages at the requested cursor', async () => {
+  const f = fixture(), reader = await createCbHostReader(f.config, f.transport);
+  await reader.get_task_by_request('client', 'dispatch');
+  Object.assign(f.page, { events: [1, 2].map(seq => ({ seq, instance_id: 'instance', task_id: 'task' })), next_seq: 2, last_seq: 3, has_more: true });
+  expect(await reader.get_task_events('task', 0, 10)).toEqual(f.page);
+  Object.assign(f.page, { events: [], next_seq: 3, last_seq: 3, has_more: false });
+  expect(await reader.get_task_events('task', 3, 10)).toEqual(f.page);
+});
+it.each([
+  { seqs: [2], next: 2, last: 2, more: false },
+  { seqs: [1, 1], next: 1, last: 1, more: false },
+  { seqs: [2, 1], next: 1, last: 2, more: true },
+  { seqs: [1, 3], next: 3, last: 3, more: false },
+  { seqs: [1.5], next: 1.5, last: 2, more: true },
+  { seqs: [1], next: 2, last: 2, more: false },
+  { seqs: [1], next: 1, last: 2, more: false },
+  { seqs: [1], next: 1, last: 1, more: true },
+  { seqs: [], next: 1, last: 1, more: false },
+  { seqs: [], next: 0, last: 1, more: true },
+])('rejects gaps and inconsistent event metadata: %j', async ({ seqs, next, last, more }) => {
+  const f = fixture(), reader = await createCbHostReader(f.config, f.transport);
+  await reader.get_task_by_request('client', 'dispatch');
+  Object.assign(f.page, { events: seqs.map(seq => ({ seq, instance_id: 'instance', task_id: 'task' })), next_seq: next, last_seq: last, has_more: more });
+  await expect(reader.get_task_events('task', 0, 10)).rejects.toThrow(/^CB_SCOPE_MISMATCH$/);
+});
+
+it('owns a successful session and shares concurrent and repeated close cleanup', async () => {
+  const f = fixture();
+  let finish!: () => void;
+  f.transport.close = vi.fn(() => new Promise<void>(resolve => { finish = resolve; }));
+  const reader = await createCbHostReader(f.config, f.transport);
+  await reader.get_task_by_request('client', 'dispatch');
+  const first = reader.close(), second = reader.close();
+  expect(first).toBe(second);
+  await Promise.resolve();
+  expect(f.transport.close).toHaveBeenCalledTimes(1);
+  await expect(reader.get_task_by_request('other', '')).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+  await expect(reader.get_task_events('task', 0, 10)).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+  finish();
+  await Promise.all([first, second, reader.close()]);
+  expect(f.transport.close).toHaveBeenCalledTimes(1);
+});
+
+it('suppresses credential-bearing cleanup errors and denies future calls', async () => {
+  const f = fixture();
+  f.transport.close = vi.fn(async () => { throw new Error(f.config.token); });
+  const reader = await createCbHostReader(f.config, f.transport);
+  await expect(reader.close()).resolves.toBeUndefined();
+  await expect(reader.close()).resolves.toBeUndefined();
+  await expect(reader.get_task_by_request('client', 'dispatch')).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+  await expect(reader.get_task_events('unbound', 0, 1)).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+  expect(f.transport.close).toHaveBeenCalledTimes(1);
+});
+
+it.each([false, true])('aborts all pending reads on explicit close or timeout (%s)', async timeout => {
+  const f = fixture();
+  const original = f.transport.callTool;
+  const signals: AbortSignal[] = [];
+  f.transport.callTool = (name, args, signal) => {
+    if (name === 'get_capabilities') return original(name, args, signal);
+    signals.push(signal);
+    return new Promise(() => {});
+  };
+  const reader = await createCbHostReader(f.config, f.transport);
+  const reads = [reader.get_task_by_request('client', 'dispatch'), reader.get_task_by_request('client', 'other')];
+  const assertions = reads.map(read => expect(read).rejects.toThrow(/^CB_READ_UNAVAILABLE$/));
+  await Promise.resolve();
+  if (!timeout) await reader.close();
+  await Promise.all(assertions);
+  expect(signals).toHaveLength(2);
+  expect(signals.every(signal => signal.aborted)).toBe(true);
+  await reader.close();
+  expect(f.transport.close).toHaveBeenCalledTimes(1);
+  await expect(reader.get_task_by_request('client', 'dispatch')).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+  await expect(reader.get_task_events('task', 0, 1)).rejects.toThrow(/^CB_READ_UNAVAILABLE$/);
+});
