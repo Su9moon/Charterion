@@ -2,7 +2,9 @@
 
 继续 Draft PR #10，未开启新功能阶段。用户明确授权更新现有 Dev、独立新 Conversation 一次发送、Kernel-only 启动及重启回归。治理沿用 CH-PCP-007 的 Routine/REUSE Gate：仅使用已有 Kernel、授权、绑定和启动器，不增加角色、调度或管理权威；不合并 main。执行推荐未指定，实际 effort 为 NOT_EXPOSED_BY_RUNTIME，runtime_unobservable；未据此阻断工作。
 
-结论：**修复已安装，真实首次回复直接确认通过；重启后绑定、锁和唯一 Attempt 保留，但恢复角色页被 Cloudflare 阻断，需要人工验证，不能将完整重启就绪记为 PASS。** [机器回执](assets/CH-PCP-007-final-acceptance-2026-10-28.json)。此前报告中的“修复未安装”状态由本报告覆盖。
+结论：**修复已安装，真实首次回复直接确认通过；重启后绑定、锁和 Attempt 保留，但正式角色恢复 idle 仍未通过。用户已完成人工验证，不能继续归因为等待登录。** [原始机器回执](assets/CH-PCP-007-final-acceptance-2026-10-28.json)保留首次验收时的历史状态。此前报告中的“修复未安装”状态由本报告覆盖。
+
+**最新只读诊断**见 [角色恢复状态最小诊断](CH-PCP-007-ROLE-RECOVERY-DIAGNOSIS-2026-10-28.md)：正式 Tab 859946006 / Slot leaseEpoch 3 / Content Revision 7；最后上报 unknown、无可信就绪信号，Kernel 投影完全一致。全局 runtime 持续更新，但当前精确 Tab URL 与即时 Content Script 响应无法通过允许的观察方式映射，保留 BLOCKED。未确认代码缺陷，没有改源码或 Runtime，没有导航、登录、生命周期写入或重发；两个已完成 Attempt 的 state/updatedAt 前后完全不变。本次编译/类型检查/单元测试 NOT_RUN。以下重启页面提示和测试计数均为先前修复验收历史，不代表本次执行。
 
 更新（人工验证后）：用户确认验证已完成；只读观察已有可输入且无验证提示的根页面。正式 Slot 的旧 runtime 仍为 unknown、角色投影为空，不能将聚合 authenticated/ready 当作正式会话就绪，也不能继续归因为用户未验证。使用既有 agent.suspend/resume 仅重建测试 Slot 生命周期，关闭旧租约页后恢复 active；canonical ID/generation、Fleet 锁 Revision 1 与两个已完成 Attempt 不变。暂停/恢复后曾为 absent；随后既有 Fleet 定时协调自行重开为 Tab 859946006，browserState=open、browserPageStatus=unknown、leaseEpoch=3，尚未证实就绪。尝试在既有 Dev Profile 打开精确 canonical URL 被自动审批拒绝（blocked by policy），操作未执行，未尝试其他方式绕过。因此最新结果为 **VERIFICATION_COMPLETE_FORMAL_SLOT_NOT_READY**，恢复 idle 仍未通过；并非等待用户重新登录。完整机器记录见[人工验证后复核](assets/CH-PCP-007-human-verification-followup-2026-10-28.json)。本次只执行运行状态复核与测试 Slot 恢复，没有改源码或再次发送；编译/单元测试本次 NOT_RUN，以上计数属于前次修复 SHA。
 
@@ -51,6 +53,6 @@
 - **PASS**：88 个文件、509 项测试；最终完整回归 99.89 秒。驱动时间身份新增 1 项测试；回复通知的原两项回归保留。最后纯校验/诊断整理后专项 8 项再次通过。
 - **PASS**：check、check:control、build、build:control、check:dist、check:architecture、check:deployment-docs、node --check、git diff --check。扩展 fingerprint=`776c0d5a5619b688…`，已安装 content 文件与该构建逐字节哈希一致。
 - **NOT_RUN**：本轮 Native Host 重新编译（源码及安装二进制未变）；Windows 整机重启；Cloudflare 人工完成后的角色 idle 最终复核。此前 508 项/旧版 E2E 不替代本轮计数。
-- 断点 `.build-cache/CH-PCP-007/final/checkpoint.json`，sendStarted=true，stage=`final-reply-pass-awaiting-human-restart-verification`。以后恢复只能读取这一个新 Attempt，不得再次点击发送或再次创建测试项目。
-- 本轮保持 PR #10 为 Draft，不合并 main；不接入 CB、Git 交接或下一阶段。待人工验证只做只读状态复核，不再发送。
+- 断点 `.build-cache/CH-PCP-007/final/checkpoint.json`，sendStarted=true；最新只读证据在 `.build-cache/CH-PCP-007/diagnosis/` 及上述诊断回执。不得再次点击发送或再次创建测试项目。
+- 本轮保持 PR #10 为 Draft，不合并 main；不接入 CB、Git 交接或下一阶段。人工验证已完成，最小诊断完成后停止，不再发送或反复恢复。
 - Tokdash 历史共享会话 `01a17c6a-87b5-7641-8c5e-e7d170079b63` 收尾采样 tokens=77729915、token_events=578，归属 project-history-shared-session，不计作本轮独占用量；未建立额外任务跟踪体系。
