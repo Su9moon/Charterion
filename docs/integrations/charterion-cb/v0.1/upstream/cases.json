@@ -1,0 +1,219 @@
+{
+  "protocol_version": "charterion-cb/1.0",
+  "kind": "CONTRACT_FIXTURES_NOT_RUNTIME_EVIDENCE",
+  "task_text": "Read the approved fixture and report its SHA256.",
+  "examples": [
+    {
+      "name": "dispatch",
+      "definition": "dispatch",
+      "valid": true,
+      "value": {
+        "protocol_version": "charterion-cb/1.0",
+        "client_id": "charterion-fixture",
+        "dispatch_id": "dispatch-fixture-001",
+        "work_item_id": "work-fixture-001",
+        "intent_sha256": "de5a6d9eb9d8c72cd1307a2cd707df249f69306405276a31632352c649491844",
+        "source_ref": "fixture://approved-workorder/v1",
+        "input_ref": "fixture://input/immutable-v1"
+      }
+    },
+    {
+      "name": "ack",
+      "definition": "ack",
+      "valid": true,
+      "value": {
+        "protocol_version": "charterion-cb/1.0",
+        "client_id": "charterion-fixture",
+        "dispatch_id": "dispatch-fixture-001",
+        "work_item_id": "work-fixture-001",
+        "intent_sha256": "de5a6d9eb9d8c72cd1307a2cd707df249f69306405276a31632352c649491844",
+        "instance_id": "cb-fixture-01"
+      }
+    },
+    {
+      "name": "pending_observation",
+      "definition": "observation",
+      "valid": true,
+      "value": {
+        "protocol_version": "charterion-cb/1.0",
+        "client_id": "charterion-fixture",
+        "dispatch_id": "dispatch-fixture-001",
+        "work_item_id": "work-fixture-001",
+        "intent_sha256": "de5a6d9eb9d8c72cd1307a2cd707df249f69306405276a31632352c649491844",
+        "instance_id": "cb-fixture-01",
+        "run_id": null,
+        "worker_id": null,
+        "execution_status": "pending",
+        "phase": "submitted",
+        "liveness": "unknown",
+        "observed_at": null,
+        "tests_status": "not_run",
+        "delivery_status": "pending",
+        "handoff_status": "not_required",
+        "result_ref": null,
+        "handoff_ref": null,
+        "last_seq": 1
+      }
+    },
+    {
+      "name": "events",
+      "definition": "event_page",
+      "valid": true,
+      "value": {
+        "events": [
+          {
+            "seq": 1,
+            "instance_id": "cb-fixture-01",
+            "task_id": "T-000001",
+            "run_id": null,
+            "type": "SUBMITTED",
+            "origin": "server",
+            "received_at": "2026-10-28T08:00:00Z",
+            "evidence_refs": []
+          }
+        ],
+        "next_seq": 1,
+        "has_more": false,
+        "last_seq": 1
+      }
+    },
+    {
+      "name": "missing_dispatch_id",
+      "definition": "dispatch",
+      "valid": false,
+      "value": {
+        "protocol_version": "charterion-cb/1.0",
+        "client_id": "charterion-fixture",
+        "work_item_id": "work-fixture-001",
+        "intent_sha256": "de5a6d9eb9d8c72cd1307a2cd707df249f69306405276a31632352c649491844",
+        "source_ref": "fixture://approved-workorder/v1",
+        "input_ref": "fixture://input/immutable-v1"
+      }
+    },
+    {
+      "name": "tests_without_outcome",
+      "definition": "event",
+      "valid": false,
+      "value": {
+        "seq": 1,
+        "instance_id": "cb-fixture-01",
+        "task_id": "T-000001",
+        "run_id": null,
+        "type": "TESTS_COMPLETED",
+        "origin": "server",
+        "received_at": "2026-10-28T08:00:00Z",
+        "evidence_refs": []
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "C01",
+      "input": "相同派发重复/并发提交",
+      "expected": "只有一个 Task 和一次启动",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C02",
+      "input": "同派发不同 task/选项",
+      "expected": "DISPATCH_CONFLICT；原任务不变",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C03",
+      "input": "接收后响应丢失及 Server 重启",
+      "expected": "按原 dispatch 找回同一任务",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C04",
+      "input": "旧权限提交进度/结果/包",
+      "expected": "全部拒绝；canonical 状态不变",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C05",
+      "input": "上传失败与 Worker 重启",
+      "expected": "补传原字节；Codex 启动次数不增加",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C06",
+      "input": "包已保存但终态 ACK 丢失",
+      "expected": "重放相同回执对账；不重跑",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C07",
+      "input": "不同会话分块读取 Unicode Result",
+      "expected": "原始字节/大小/SHA256 一致",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C08",
+      "input": "失败任务有可用 patch",
+      "expected": "经核验用于新任务；原 failed 不变",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C09",
+      "input": "错误 base/hash/消费者或敏感路径",
+      "expected": "拒绝导入；保全原工作区",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C10",
+      "input": "事件重复/乱序/浏览器关闭",
+      "expected": "不重复派单或审核；恢复后补读",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C11",
+      "input": "两个实例都有 T-000001",
+      "expected": "身份及结果不串线",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C12",
+      "input": "CB done 但交付失败或审核拒绝",
+      "expected": "上层不能直接 completed",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C13",
+      "input": "工具未启用或协议不兼容",
+      "expected": "明确能力不足；不静默退化派单",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C14",
+      "input": "完整真实闭环",
+      "expected": "来源→执行→包→验证→Reviewer→上层一致",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C15",
+      "input": "旧客户端和旧任务读取",
+      "expected": "原接口保持兼容；不伪造历史身份",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C16",
+      "input": "失联但旧进程仍存在",
+      "expected": "显示 unknown；不自动重派",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C17",
+      "input": "跨 client scope/project 读取",
+      "expected": "拒绝未授权访问",
+      "runtime_status": "NOT_RUN"
+    },
+    {
+      "id": "C18",
+      "input": "上层派发准备后崩溃",
+      "expected": "保留原 dispatch；不生成第二身份",
+      "runtime_status": "NOT_RUN"
+    }
+  ]
+}
