@@ -1,6 +1,6 @@
 # Hive Roadmap｜CB × Hive 联合开发集成线
 
-> 状态：**已批准产品目标与实施顺序；开发/部署/联合验收需要真实证据，文档不等于运行完成。** 本文件仅维护 Hive 在 CB × Hive 联合项目中的分期与边界，不替代上游 Charterion/Hive 的通用产品设计，也不修改 PCP 全局组织。Repo 当前 GitHub 路径仍为 `Su9moon/Charterion`；产品显示名 Hive，仓库重命名不得先行假定完成。
+> 状态：**已批准产品目标与实施顺序；开发/部署/联合验收需要真实证据，文档不等于运行完成。** 本文件仅维护 Hive 在 CB × Hive 联合项目中的分期与边界，不替代上游 Charterion/Hive 的通用产品设计，也不修改 PCP 全局组织。GitHub 仓库实体已由用户于 2026-10-30 手动改名为 `Su9moon/Hive`，原路径 `Su9moon/Charterion` 重定向到同一仓库且仓库 ID 保持不变（GitHub 连接已核实）。**仅仓库实体改名完成**；`main` 的 manifest/README、PR #13 的源码品牌合并、Windows 运行环境与 CB Registry 迁移仍须独立验证，不能宣称整体 Hive 更名完成。
 
 ## 0. 设计归属与职责（固定）
 
