@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Charterion",
+  "version": "0.5.1",
+  "description": "Open-source multi-agent engineering control plane for ChatGPT Web Agents.",
+  "permissions": [
+    "tabs",
+    "storage",
+    "sidePanel",
+    "nativeMessaging",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*"
+  ],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "action": {
+    "default_title": "Open Charterion"
+  },
+  "side_panel": {
+    "default_path": "dist/sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*"
+      ],
+      "js": [
+        "dist/content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlDd0+XQ145PlOxw+9+J9gxYZLQofPNh/cowySWerOgGfqxU2o1ycO8pIaKV/9t4uYVRvpdXr+oZ9wsX7oWhT6T3D6boaMa4mKA3G1uj0kzpU2MsWxy0yBTpI91YH/UUzMCQGBSy5dBBf1Cwnf0zC1P3N2tcT3IkwuCRSGsOftb5XqO6eI5G21udPetsW7xiIRMRnqd+mZZpKZ2t4hEzyWx6NuNepBMarmul1sGAPMuukvJsMACjugnmUQyXPihEew1n6//qroHHHKIpaIdxzoYrdYbaP8QVIgIs29fh1pMEdS9kkc+otrMujJm7qon+DESl49KgKuAm9ezYXIYfyrwIDAQAB"
+}
