@@ -19,7 +19,7 @@
 <!-- readme-section:overview -->
 ## Обзор
 
-Charterion управляет несколькими разговорами ChatGPT Web как постоянными engineering Workers. Локальный deterministic Kernel сохраняет Agent identity, проекты, Git, leases, capabilities, evidence, reviews и recovery state. Browser tabs — заменяемые runtime surfaces, а не Source of Truth для Agent.
+Hive управляет несколькими разговорами ChatGPT Web как постоянными engineering Workers. Локальный deterministic Kernel сохраняет Agent identity, проекты, Git, leases, capabilities, evidence, reviews и recovery state. Browser tabs — заменяемые runtime surfaces, а не Source of Truth для Agent.
 
 GAM спроектирован скорее как небольшая софтверная компания: Workers работают в изолированных scopes, Supervisors проверяют exact evidence, а Kernel обеспечивает authority boundaries.
 
@@ -222,4 +222,4 @@ docs/           Architecture and operational documentation
 <!-- readme-section:status -->
 ## Статус разработки
 
-Charterion находится в active development. Release Candidate считается stable только после repository verification, README i18n release gate и evidence-based review/promotion boundaries.
+Hive находится в active development. Release Candidate считается stable только после repository verification, README i18n release gate и evidence-based review/promotion boundaries.
