@@ -1,0 +1,52 @@
+{
+  "task_id": "T-000452",
+  "repository": "Su9moon/Charterion",
+  "files": [
+    {
+      "path": "manifest.json",
+      "sha256": "d27909bc043fe75318f1a1f4369cf403deed7b2ca9aae5d95013b05f67bb26ba",
+      "size": 1265
+    },
+    {
+      "path": "tracked.patch",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    {
+      "path": "untracked/tools/offline_restore/audit.py",
+      "sha256": "887fa94cbeeaa28f7664b442d07e2a48688a9c2520539c51f3dc4529ef4984f0",
+      "size": 6111
+    },
+    {
+      "path": "untracked/tools/offline_restore/README.md",
+      "sha256": "3849907356bc01bec439c0468454e39911381b55cb8d0f5753b39ba78f25db36",
+      "size": 2992
+    },
+    {
+      "path": "untracked/tools/offline_restore/task_000452.py",
+      "sha256": "853b260c1aee6ac042bb481d177b17385ab09f863c6f6c6bd7880acb4a1b7318",
+      "size": 1055
+    },
+    {
+      "path": "untracked/tools/offline_restore/test_audit.py",
+      "sha256": "093314e1dd76cf5214e45cc2d670425af7b57807557248c367a09e13e2c9d966",
+      "size": 2488
+    }
+  ],
+  "controlled_local_only": [
+    {
+      "path": "untracked/reports/T-000452-audit.json",
+      "sha256": "ebfc988ada4d3904e09b82a7f30a720fce849a9919bdb1386df9bd3a12bba697",
+      "size": 119,
+      "reason": "controlled host/test evidence"
+    },
+    {
+      "path": "untracked/reports/T-000452-snapshots.json",
+      "sha256": "9fdbaddb42c4528b5bfb02890ee33db192f9db4a5a4fbd8cda8b92d22b083991",
+      "size": 10651,
+      "reason": "controlled host/test evidence"
+    }
+  ],
+  "kind": "historical source evidence; not accepted or merged",
+  "recovery": "base/ contains original changed-file inputs; tracked.patch is binary Git delta; final/ and untracked/ preserve source bytes. Missing baselines are explicit in manifest."
+}

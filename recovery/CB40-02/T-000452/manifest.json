@@ -1,0 +1,36 @@
+{
+  "task_id": "T-000452",
+  "project": "charterion",
+  "initial_head": "613f340706d38ff773890b2499ceb3726453a1db",
+  "input_head": "66c0c898955d6c9ce92806f922a19256756f41a3",
+  "workspace_head": "66c0c898955d6c9ce92806f922a19256756f41a3",
+  "returncode": 0,
+  "business_success": false,
+  "files": [
+    {
+      "path": "reports/T-000452-audit.json",
+      "sha256": "ebfc988ada4d3904e09b82a7f30a720fce849a9919bdb1386df9bd3a12bba697"
+    },
+    {
+      "path": "reports/T-000452-snapshots.json",
+      "sha256": "9fdbaddb42c4528b5bfb02890ee33db192f9db4a5a4fbd8cda8b92d22b083991"
+    },
+    {
+      "path": "tools/offline_restore/README.md",
+      "sha256": "3849907356bc01bec439c0468454e39911381b55cb8d0f5753b39ba78f25db36"
+    },
+    {
+      "path": "tools/offline_restore/audit.py",
+      "sha256": "887fa94cbeeaa28f7664b442d07e2a48688a9c2520539c51f3dc4529ef4984f0"
+    },
+    {
+      "path": "tools/offline_restore/task_000452.py",
+      "sha256": "853b260c1aee6ac042bb481d177b17385ab09f863c6f6c6bd7880acb4a1b7318"
+    },
+    {
+      "path": "tools/offline_restore/test_audit.py",
+      "sha256": "093314e1dd76cf5214e45cc2d670425af7b57807557248c367a09e13e2c9d966"
+    }
+  ],
+  "patch_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}
