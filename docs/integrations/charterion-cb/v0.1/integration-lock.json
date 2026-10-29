@@ -1,0 +1,16 @@
+{
+  "protocol_version": "charterion-cb/1.0",
+  "canonical_repo": "Su9moon/personal-ai-control-plane",
+  "canonical_commit": "61402b2d2e042f5b950e58bcb230901e3c58fb12",
+  "canonical_directory": "governance/integrations/charterion-cb/v0.1",
+  "snapshot_authority": "NON_CANONICAL_AUTHORIZED_SNAPSHOT",
+  "snapshot_sha256": {
+    "BASELINE.md": "3a2cb42d615f64e99060f54f38f9ce6661c3d20956f8d295e3dcbde37c41ce1b",
+    "PROTOCOL.md": "8d3e86c5d92a0787fdbfe522de824c1e57ff51e7b162e8c8e16726d99f2c9ca5",
+    "contract.schema.json": "33829e0f235d58dc19af77b125d14a83d16fe65c2688dad6f858ee89f9c0360f",
+    "cases.json": "271eb4c3f60b40b8976ad7fb4648f5bb639443162c3c5a5a5db143f399694858",
+    "ACCEPTANCE.md": "d210e34054cb1179a4ab19000ce33ee6fa9b7bd1cad0677a6896cfe8fd07191b"
+  },
+  "implementation_status": "NOT_STARTED",
+  "joint_validation": "WAITING_USER_SCHEDULE"
+}

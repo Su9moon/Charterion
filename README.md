@@ -227,3 +227,7 @@ Licensed under [Apache-2.0](LICENSE). See [NOTICE](NOTICE) and [Third-Party Noti
 ## Development status
 
 Hive is under active development. Release candidates must pass the repository verification suite, README i18n release gate, and evidence-based review/promotion boundaries before they are treated as stable.
+
+## PCP integration profile: Charterion—CB (2026-10-28)
+
+This fork has a user-approved, documentation-only [integration entry](docs/integrations/charterion-cb/v0.1/README.md) and [implementation workorder](workorders/WO-20261028-CHAR-CB-CHARTERION-01.md). The canonical contract is pinned in integration-lock.json; upstream snapshots are non-canonical. CB remains the external Codex execution service: this profile does not add a coding-agent CLI provider to Charterion or claim live integration. Separate development is prepared; joint validation awaits the user's next scheduled session. Existing native workspace/claim behavior remains applicable to native tasks; external CB evidence must use the explicit integration mapping.

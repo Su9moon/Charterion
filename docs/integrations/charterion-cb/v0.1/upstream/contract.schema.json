@@ -1,0 +1,440 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Charterion CB Integration 1.0 payloads",
+  "$defs": {
+    "dispatch": {
+      "type": "object",
+      "properties": {
+        "protocol_version": {
+          "const": "charterion-cb/1.0"
+        },
+        "client_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dispatch_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "work_item_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "intent_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "source_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_ref": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "protocol_version",
+        "client_id",
+        "dispatch_id",
+        "work_item_id",
+        "intent_sha256",
+        "source_ref",
+        "input_ref"
+      ],
+      "additionalProperties": false
+    },
+    "ack": {
+      "type": "object",
+      "properties": {
+        "protocol_version": {
+          "const": "charterion-cb/1.0"
+        },
+        "instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "client_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dispatch_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "work_item_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "intent_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "instance_id",
+        "client_id",
+        "dispatch_id",
+        "work_item_id",
+        "intent_sha256"
+      ],
+      "additionalProperties": false
+    },
+    "observation": {
+      "type": "object",
+      "properties": {
+        "protocol_version": {
+          "const": "charterion-cb/1.0"
+        },
+        "instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "client_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dispatch_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "work_item_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "intent_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "worker_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "execution_status": {
+          "enum": [
+            "pending",
+            "running",
+            "done",
+            "failed"
+          ]
+        },
+        "phase": {
+          "enum": [
+            "submitted",
+            "claimed",
+            "executing",
+            "tests_completed",
+            "result_generated",
+            "terminal",
+            "unknown"
+          ]
+        },
+        "liveness": {
+          "enum": [
+            "observed_alive",
+            "unknown",
+            "stopped"
+          ]
+        },
+        "observed_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tests_status": {
+          "enum": [
+            "passed",
+            "failed",
+            "not_run"
+          ]
+        },
+        "delivery_status": {
+          "enum": [
+            "pending",
+            "ready",
+            "failed",
+            "unavailable"
+          ]
+        },
+        "handoff_status": {
+          "enum": [
+            "not_required",
+            "pending",
+            "ready",
+            "failed",
+            "unavailable"
+          ]
+        },
+        "result_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "handoff_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "last_seq": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "protocol_version",
+        "instance_id",
+        "client_id",
+        "dispatch_id",
+        "work_item_id",
+        "intent_sha256",
+        "run_id",
+        "worker_id",
+        "execution_status",
+        "phase",
+        "liveness",
+        "observed_at",
+        "tests_status",
+        "delivery_status",
+        "handoff_status",
+        "result_ref",
+        "handoff_ref",
+        "last_seq"
+      ],
+      "additionalProperties": false
+    },
+    "event": {
+      "type": "object",
+      "properties": {
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "enum": [
+            "SUBMITTED",
+            "CLAIMED",
+            "EXECUTION_STARTED",
+            "TESTS_COMPLETED",
+            "RESULT_GENERATED",
+            "RESULT_PRESERVED",
+            "HANDOFF_PRESERVED",
+            "EXECUTION_FAILED",
+            "DELIVERY_FAILED",
+            "LIVENESS_UNKNOWN"
+          ]
+        },
+        "origin": {
+          "enum": [
+            "server",
+            "worker",
+            "host"
+          ]
+        },
+        "received_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "tests_status": {
+          "enum": [
+            "passed",
+            "failed",
+            "not_run"
+          ]
+        }
+      },
+      "required": [
+        "seq",
+        "instance_id",
+        "task_id",
+        "run_id",
+        "type",
+        "origin",
+        "received_at",
+        "evidence_refs"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "TESTS_COMPLETED"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "tests_status"
+            ]
+          }
+        }
+      ]
+    },
+    "event_page": {
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/event"
+          }
+        },
+        "next_seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "has_more": {
+          "type": "boolean"
+        },
+        "last_seq": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "events",
+        "next_seq",
+        "has_more",
+        "last_seq"
+      ],
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "protocol_version": {
+          "const": "charterion-cb/1.0"
+        },
+        "instance_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "release_sha": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "features": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "result_max_bytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "chunk_max_bytes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "event_page_max": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "liveness_stale_seconds": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "result_max_bytes",
+            "chunk_max_bytes",
+            "event_page_max",
+            "liveness_stale_seconds"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "protocol_version",
+        "instance_id",
+        "release_sha",
+        "features",
+        "limits"
+      ],
+      "additionalProperties": false
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phase": {
+          "type": "string",
+          "minLength": 1
+        },
+        "retry_class": {
+          "enum": [
+            "query_only",
+            "same_request",
+            "delivery_only",
+            "reconcile",
+            "never"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "evidence_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "phase",
+        "retry_class",
+        "message",
+        "evidence_ref"
+      ],
+      "additionalProperties": false
+    }
+  }
+}
