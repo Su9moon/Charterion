@@ -1,7 +1,8 @@
-# Charterion × PCP｜项目化角色协作、独立 HTML 控制台和 Git 交接
+# Hive × PCP｜项目化角色协作、独立 HTML 控制台和 Git 交接
+> **Hive 迁移提示（2026-10-29）**：Hive 是产品现名；以下 `CH-PCP-*` 文档、历史工作目录 `Charterion-PCP-Trial-006`、GitHub 旧仓库链接和历史版本证据在完成受控迁移前保留原样，不代表当前 Dev 已更名安装。候选实施记录见 [Hive 更名迁移基线](../branding/HIVE_RENAME_MIGRATION.md)。
 > **操作与人工验收**：[用户操作手册与重大版本人工验收规范](CH-PCP-HUMAN-UAT-USER-GUIDE.md)。每个主要 MVP/版本都要求独立用户验收，Codex 自动 PASS 不等于正式完成。双语界面源码在后续 Draft 分支中，未部署到 Chrome Dev，验收状态 PENDING_HUMAN_UAT。
 
-> **当前入口**：2026-10-27 用户确认的 Charterion 增强架构 **V0.3**。设计基线与各工单实际结果分开记录；既有 Runtime 保留，本轮另建独立试运行实例。
+> **当前入口**：2026-10-27 用户确认的 Hive（原 Charterion）增强架构 **V0.3**。设计基线与各工单实际结果分开记录；既有 Runtime 保留，本轮另建独立试运行实例。
 > **当前试运行**：[CH-PCP-006：Windows 集成试运行](reviews/CH-PCP-006-INTEGRATED-TRIAL-2026-10-27.md)。独立目录 `F:\0 codex\Charterion-PCP-Trial-006`，双击 `PCP-Start.cmd` 后由插件“打开控制台”；`PCP-Stop.cmd` 停止，`PCP-Diagnose.cmd` 诊断。独立 Host、数据和专用 Chrome Profile，验收结束已停止。项目管理边界见 [CH-PCP-005](reviews/CH-PCP-005-RADAR-CONTROLS-2026-10-27.md)，只读底座见 [CH-PCP-004](reviews/CH-PCP-004-READONLY-RADAR-2026-10-27.md)。
 > **最新验收（2026-10-28）**：[CH-PCP-007 最终修复验收](reviews/CH-PCP-007-FINAL-REPAIR-2026-10-28.md)。`53240ae` 已安装到既有 Dev；独立新 Conversation 一次消息的首次回复直接进入 reply-observed（同一 observedAt，26ms 持久确认），此前 509 项回归通过。新增 Kernel-only/Dev 入口，原 Start 不再启动 CFT。[最新只读诊断](reviews/CH-PCP-007-ROLE-RECOVERY-DIAGNOSIS-2026-10-28.md)：正式 Slot Tab 859946006、leaseEpoch=3、active/open/unknown；最后 Content Revision 7 无可信就绪信号，Kernel 投影与之完全一致。当前精确 Tab URL/即时响应无法安全映射，恢复 idle 保留 BLOCKED，未确认代码缺陷；人工验证已完成，不归因为未登录。两个已完成 Attempt、绑定和锁未变，无重发、导航或登录操作。本次编译/单元测试 NOT_RUN，保留 Profile 及原 Runtime，诊断结束停止。
 
@@ -11,7 +12,7 @@
 2. **独立动态 HTML 控制/雷达页面**：浏览器单独打开 HTML 页面查看项目、会话、Git 工单、真实状态和可得的 Worker 指标；操作绑定、手动锁定、暂停/恢复和配置。**Chrome 插件仅提供“打开控制台”入口，绝不将面板做进 Side Panel**。HTML 页面经同一 Kernel 的本机回环接口获取真实数据及提交受控操作，不另建第二套后台。
 3. **Git/GitHub 作为工程过程交接中心**：正式需求、方案、Workorder 引用、阶段成果、审查和证据留在对应项目 Git/Issue/PR（EO/ES/CB 原有权威保持）；不同角色之间只发送短 `work_ref`，各角色按授权独立读取自己需要的上下文。
 4. **可配置，但不能越权**：全局默认→项目→角色会话；人工绑定/派发/页面生命周期锁优先于自动策略。页面观测状态是真实数据，不因手动锁定伪造。
-5. **需要时才连接现有 CB**：Charterion 不重复实现 Codex Worker、通用任务队列或第二套 EO/ES。
+5. **需要时才连接现有 CB**：Hive 不重复实现 Codex Worker、通用任务队列或第二套 EO/ES。
 6. **不复制上下文**：权限按项目/角色/正式工作源执行；无 GitHub/MCP 工具权限则显式阻断或提供已授权最小摘要，不假定所有 WebGPT 都能直接操作 Git。
 
 ## 当前文件（从上往下读）
@@ -29,14 +30,14 @@
 ## 一条最短的真实工作链
 
 ```text
-用户在 Charterion 管理面板选项目 / 授权
+用户在 Hive 管理面板选项目 / 授权
   → 根据 ProjectConfig 找到 RoleSession
   → 向该 WebGPT 对话发送短工作引用
   → 角色按工具权限自行打开对应 Git Issue/文件
   → 在 Git 留下方案/阶段结果/证据
   → 事件通知下一个具权限的角色
   → 必要时 Execution Coordinator 调用 CB/Codex
-  → 原始 Git/CB 回执和状态投影返回 Charterion 雷达
+  → 原始 Git/CB 回执和状态投影返回 Hive 雷达
   → 人工可随时锁定/接管
 ```
 
