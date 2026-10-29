@@ -19,7 +19,7 @@
 <!-- readme-section:overview -->
 ## 概要
 
-Charterionは、複数の ChatGPT Web 会話を永続的な engineering Worker として管理し、ローカルの deterministic Kernel が Agent identity、Project、Git、lease、capability、evidence、review、recovery state を保持します。ブラウザ tab は交換可能な runtime surface であり、Agent の Source of Truth ではありません。
+Hiveは、複数の ChatGPT Web 会話を永続的な engineering Worker として管理し、ローカルの deterministic Kernel が Agent identity、Project、Git、lease、capability、evidence、review、recovery state を保持します。ブラウザ tab は交換可能な runtime surface であり、Agent の Source of Truth ではありません。
 
 GAM は tab automation ではなく小規模なソフトウェア会社のように動作することを目標にしています。Worker は隔離された scope で作業し、Supervisor は exact evidence をレビューし、Kernel が authority boundary を強制します。
 
@@ -222,4 +222,4 @@ GAM は現在 `chatgpt.com` 上の ChatGPT Web に集中しています。Generi
 <!-- readme-section:status -->
 ## 開発状況
 
-Charterion は active development 中です。Release Candidate は repository verification、README i18n release gate、evidence-based review/promotion boundary を通過して初めて stable と扱われます。
+Hive は active development 中です。Release Candidate は repository verification、README i18n release gate、evidence-based review/promotion boundary を通過して初めて stable と扱われます。
