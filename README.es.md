@@ -19,7 +19,7 @@
 <!-- readme-section:overview -->
 ## Descripción general
 
-Charterion administra varias conversaciones de ChatGPT Web como engineering Workers persistentes. Un deterministic Kernel local conserva Agent identity, proyectos, Git, leases, capabilities, evidence, reviews y recovery state. Las tabs del navegador son runtime surfaces reemplazables, no la Source of Truth del Agent.
+Hive administra varias conversaciones de ChatGPT Web como engineering Workers persistentes. Un deterministic Kernel local conserva Agent identity, proyectos, Git, leases, capabilities, evidence, reviews y recovery state. Las tabs del navegador son runtime surfaces reemplazables, no la Source of Truth del Agent.
 
 GAM está diseñado para operar como una pequeña empresa de software: los Workers trabajan en scopes aislados, los Supervisors revisan exact evidence y el Kernel impone los authority boundaries.
 
@@ -222,4 +222,4 @@ Este proyecto usa [Apache-2.0](LICENSE) e incluye [NOTICE](NOTICE) y [Third-Part
 <!-- readme-section:status -->
 ## Estado de desarrollo
 
-Charterion está en active development. Un Release Candidate solo se considera stable tras superar repository verification, README i18n release gate y evidence-based review/promotion boundaries.
+Hive está en active development. Un Release Candidate solo se considera stable tras superar repository verification, README i18n release gate y evidence-based review/promotion boundaries.
