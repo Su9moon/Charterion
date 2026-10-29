@@ -57,6 +57,7 @@ function readPendingPrompt(): PendingPromptEvidence | undefined {
       startedAt: typeof item.startedAt === 'number' ? item.startedAt : 0,
     };
     if (typeof item.baselineAssistantMessageId === 'string') pending.baselineAssistantMessageId = item.baselineAssistantMessageId;
+    if (typeof item.conversationKey === 'string') pending.conversationKey = item.conversationKey;
     return pending;
   } catch { return pendingInMemory; }
 }
@@ -82,6 +83,7 @@ async function reportReplyIfReady(next = snapshot(), semanticSignature = snapsho
   const pending = readPendingPrompt();
   if (!pending || !hasNewAssistantReply(next, {
     assistantMessageCount: pending.baselineAssistantMessageCount,
+    ...(pending.conversationKey ? { conversationKey: pending.conversationKey } : {}),
     ...(pending.baselineAssistantMessageId ? { latestAssistantMessageId: pending.baselineAssistantMessageId } : {}),
   })) return;
   const notice: RuntimeNotice = { type: 'content:reply-observed', attemptId: pending.attemptId, observation: observationIdentity(next, semanticSignature), snapshot: next };
@@ -151,6 +153,13 @@ chrome.runtime.onMessage.addListener((message: ContentRequest, _sender, sendResp
         sendResponse({ ok: false, error: 'Content runtime generation changed before dispatch', contentEpoch });
         return;
       }
+      // The browser tab is not a durable conversation identity: fail closed
+      // if the user navigated after the control-plane preflight.
+      if (message.expectedConversationKey !== undefined &&
+          snapshotFromDocument(document, location.href, `provisional:${contentEpoch}`).conversationKey !== message.expectedConversationKey) {
+        sendResponse({ ok: false, error: 'ChatGPT conversation changed before browser send', outcome: 'proved-not-started', contentEpoch });
+        return;
+      }
       if (wasDelivered(message.attemptId)) {
         sendResponse({ ok: true, duplicate: true, contentEpoch, snapshot: snapshot() });
         return;
@@ -170,6 +179,7 @@ chrome.runtime.onMessage.addListener((message: ContentRequest, _sender, sendResp
         attemptId: message.attemptId,
         contentEpoch,
         baselineAssistantMessageCount: baseline.assistantMessageCount,
+        conversationKey: baseline.conversationKey,
         startedAt: Date.now(),
       };
       if (baseline.latestAssistantMessageId) pending.baselineAssistantMessageId = baseline.latestAssistantMessageId;

@@ -44,6 +44,7 @@ import {
   type SendAttemptRecord,
   type SendAttemptState,
   type SendResult,
+  type SendTarget,
   type TaskDispatchResult,
 } from './contracts';
 const {
@@ -117,6 +118,15 @@ async function managedTabs(attempts?: readonly SendAttemptRecord[]): Promise<Man
 }
 
 async function updateBinding(tabId: number, conversationKey: string, binding: RoleBinding): Promise<void> {
+  const tab = await chrome.tabs.get(tabId);
+  const live = await snapshotForTab(tab);
+  if (live.conversationKey !== conversationKey) {
+    throw new Error('Conversation changed before binding was saved; refresh and select the intended chat');
+  }
+  const owned = await bindingRegistry.resolve(tabId, live);
+  if (owned.agentSlotId) {
+    throw new Error('Kernel-owned AgentSlot bindings cannot be edited in the manual browser panel');
+  }
   await bindingRegistry.update(tabId, conversationKey, binding);
 }
 
@@ -189,6 +199,7 @@ async function dispatchToTabOnce(
   taskId?: string,
   messageId?: string,
   sharedActiveGenerations?: number,
+  expectedConversationKey?: string,
 ): Promise<SendResult> {
   let record: SendAttemptRecord | undefined;
   let generationReservationId: string | undefined;
@@ -200,6 +211,9 @@ async function dispatchToTabOnce(
     if (!recovery) throw new Error('Content runtime is unavailable; prompt was not dispatched');
     if (!contentRuntimeFence.observe(tabId, recovery.state.observation, true)) throw new Error('Stale content runtime observation before dispatch');
     const snapshot = recovery.state.snapshot;
+    if (expectedConversationKey !== undefined && snapshot.conversationKey !== expectedConversationKey) {
+      throw new Error('Conversation changed since selection; reselect the correct conversation');
+    }
     const binding = await reportSlotRuntime(tabId, recovery.state.observation, snapshot, bindingFor);
     await reconcileGenerationReservation(tabId, binding, snapshot);
     if (snapshot.signals.includes('message-rate-limit')) await promptDispatchGovernor.noteRateLimit();
@@ -234,7 +248,11 @@ async function dispatchToTabOnce(
     let response: { ok?: boolean; duplicate?: boolean; error?: string; outcome?: 'proved-not-started' | 'uncertain'; contentEpoch?: string } | undefined;
     try {
       physicalWriteRequested = true;
-      response = await chrome.tabs.sendMessage(tabId, { type: 'content:send', text, attemptId: record.attemptId, expectedContentEpoch: record.contentEpoch });
+      response = await chrome.tabs.sendMessage(tabId, {
+        type: 'content:send', text, attemptId: record.attemptId,
+        expectedContentEpoch: record.contentEpoch,
+        expectedConversationKey: record.conversationKey,
+      });
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
       await transitionAttempt(record, 'uncertain', reason);
@@ -279,8 +297,9 @@ async function dispatchToTab(
   taskId?: string,
   messageId?: string,
   sharedActiveGenerations?: number,
+  expectedConversationKey?: string,
 ): Promise<SendResult> {
-  return tabOperations.run(tabId, () => dispatchToTabOnce(tabId, text, batchId, taskId, messageId, sharedActiveGenerations));
+  return tabOperations.run(tabId, () => dispatchToTabOnce(tabId, text, batchId, taskId, messageId, sharedActiveGenerations, expectedConversationKey));
 }
 
 async function activeGenerationsForBatch(): Promise<number | undefined> {
@@ -296,15 +315,15 @@ async function activeGenerationsForBatch(): Promise<number | undefined> {
   }
 }
 
-async function sendToTabs(tabIds: number[], text: string): Promise<SendResult[]> {
+async function sendToTabs(tabIds: number[], text: string, targets?: SendTarget[]): Promise<SendResult[]> {
   const batchId = crypto.randomUUID();
   const uniqueTabIds = [...new Set(tabIds)];
+  const expectedByTab = new Map(targets?.map(({ tabId, conversationKey }) => [tabId, conversationKey] as const) ?? []);
   const activeGenerations = activeGenerationsForBatch();
-  // Each tab is independently serialized by TabOperationQueue; dispatching the
-  // independent lanes together removes avoidable cross-tab latency while keeping
-  // same-tab writes and their uncertain outcomes strictly ordered.
+  // Selected ChatGPT conversations must still match immediately before send.
+  // Other machine-owned paths have their own AgentSlot authority checks.
   return mapWithConcurrency(uniqueTabIds, MAX_PARALLEL_TAB_DISPATCHES, async (tabId) =>
-    dispatchToTab(tabId, text, batchId, undefined, undefined, await activeGenerations),
+    dispatchToTab(tabId, text, batchId, undefined, undefined, await activeGenerations, expectedByTab.get(tabId)),
   );
 }
 
@@ -523,6 +542,26 @@ const supervisorRunner = new CoalescingRunner(async () => {
 function kickSupervisor(): void {
   supervisorRunner.kick();
 }
+async function openNewChat(binding: RoleBinding): Promise<{ tabId: number }> {
+  // Manual browser orchestration only. Never clone a Kernel-owned AgentSlot
+  // into another tab through this path.
+  if (binding.agentSlotId) throw new Error('Kernel-owned agents require the fleet lifecycle');
+  if (!binding.role.trim() || !binding.project.trim()) {
+    throw new Error('Set a role and project before opening a managed test conversation');
+  }
+  const tab = await chrome.tabs.create({ url: 'https://chatgpt.com/', active: true });
+  if (tab.id === undefined) throw new Error('Chrome did not assign an ID to the new tab');
+  try {
+    await bindingRegistry.update(tab.id, 'provisional:new-chat', {
+      role: binding.role.trim(), project: binding.project.trim(), notes: binding.notes.trim(),
+    });
+  } catch (error) {
+    // Do not close user-visible tabs after uncertain browser effects.
+    throw new Error(`New tab #${tab.id} opened, but its temporary binding was not saved: ${String(error)}`);
+  }
+  return { tabId: tab.id };
+}
+
 async function focusTab(tabId: number): Promise<void> {
   const tab = await chrome.tabs.get(tabId);
   await chrome.tabs.update(tabId, { active: true });
@@ -746,8 +785,14 @@ chrome.runtime.onMessage.addListener((message: ManagerRequest | RuntimeNotice, s
       .catch((error) => sendResponse({ ok: false, error: String(error) }));
     return true;
   }
+  if (message.type === 'manager:open-new-chat') {
+    void openNewChat(message.binding)
+      .then(async (opened) => { await notifyManagerChanged(); sendResponse({ ok: true, ...opened }); })
+      .catch((error) => sendResponse({ ok: false, error: String(error) }));
+    return true;
+  }
   if (message.type === 'manager:send') {
-    void sendToTabs(message.tabIds, message.text).then(async (results) => {
+    void sendToTabs(message.tabIds, message.text, message.targets).then(async (results) => {
       await notifyManagerChanged();
       sendResponse({ ok: true, results });
     }).catch((error) => sendResponse({ ok: false, error: String(error) }));

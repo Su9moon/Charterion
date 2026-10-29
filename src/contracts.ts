@@ -71,6 +71,11 @@ export interface SendAttemptRecord {
   error?: string;
 }
 
+export interface SendTarget {
+  tabId: number;
+  conversationKey: string;
+}
+
 export interface SendResult {
   tabId: number;
   attemptId: string;
@@ -82,6 +87,7 @@ export interface SendResult {
 export interface PendingPromptEvidence {
   attemptId: string;
   contentEpoch: string;
+  conversationKey?: string;
   baselineAssistantMessageCount: number;
   baselineAssistantMessageId?: string;
   startedAt: number;
@@ -246,12 +252,13 @@ export interface PortableManagerState {
 export type ContentRequest =
   | { type: 'content:get-snapshot' }
   | { type: 'content:get-recovery-state' }
-  | { type: 'content:send'; text: string; attemptId: string; expectedContentEpoch: string };
+  | { type: 'content:send'; text: string; attemptId: string; expectedContentEpoch: string; expectedConversationKey?: string };
 
 export type ManagerRequest =
   | { type: 'manager:list' }
   | { type: 'manager:update-binding'; tabId: number; conversationKey: string; binding: RoleBinding }
-  | { type: 'manager:send'; tabIds: number[]; text: string }
+  | { type: 'manager:send'; tabIds: number[]; text: string; targets?: SendTarget[] }
+  | { type: 'manager:open-new-chat'; binding: RoleBinding }
   | { type: 'manager:create-task'; input: CreateTaskInput }
   | { type: 'manager:create-message'; input: CreateAgentMessageInput }
   | { type: 'manager:dispatch-message'; messageId: string }
