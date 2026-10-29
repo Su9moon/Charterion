@@ -29,9 +29,9 @@ requireTrue(radar.includes('<title>Hive · 状态雷达 / Status Radar</title>')
   radar.includes('HIVE / LOCAL KERNEL'), 'Radar Hive brand missing');
 requireTrue(panel.includes('<title>Hive</title>') && panel.includes('<h1>Hive</h1>'),
   'Side Panel Hive brand missing');
-requireTrue(read('scripts/package-release.mjs').includes('hive-v\${pkg.version}.zip'),
+requireTrue(read('scripts/package-release.mjs').includes('hive-v${pkg.version}.zip'),
   'Release ZIP name must start with hive');
-requireTrue(read('scripts/package-runtime.mjs').includes('hive-v\${pkg.version}-windows-runtime.zip'),
+requireTrue(read('scripts/package-runtime.mjs').includes('hive-v${pkg.version}-windows-runtime.zip'),
   'Windows runtime ZIP name must start with hive');
 
 for (const path of ['scripts/setup-windows.ps1', 'scripts/install-runtime-windows.ps1']) {
