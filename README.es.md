@@ -1,4 +1,4 @@
-# Charterion: Open-Source Multi-Agent Engineering Control Plane for ChatGPT Web Agents
+# Hive: Open-Source Multi-Agent Engineering Control Plane for ChatGPT Web Agents
 
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
