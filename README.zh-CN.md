@@ -223,3 +223,7 @@ GAM 当前专注于 **`chatgpt.com` 上的 ChatGPT Web**。通用 LLM API、托�
 ## 开发状态
 
 Hive 仍在持续开发。任何 Release Candidate 都必须通过仓库验证套件、README i18n release gate，以及基于证据的独立审查/晋级边界，才能被视为稳定版本。
+
+## PCP 联合接入档案：Hive—CB（2026-10-28）
+
+本仓保留用户批准的历史接入档案：[接入说明](docs/integrations/charterion-cb/v0.1/README.md)和[实施工单](workorders/WO-20261028-CHAR-CB-CHARTERION-01.md)与原有固定契约对应。CB 仍是外部 Codex 执行服务，不因 Hive 产品更名而改变现有协议名、已绑定标识或本地执行与审查权限。文档完成不代表联调、Windows 部署或浏览器验收通过，相关结果须按实际运行证据确认。
