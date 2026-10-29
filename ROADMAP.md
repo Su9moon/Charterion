@@ -2,6 +2,14 @@
 
 > 状态：**已批准产品目标与实施顺序；开发/部署/联合验收需要真实证据，文档不等于运行完成。** 本文件仅维护 Hive 在 CB × Hive 联合项目中的分期与边界，不替代上游 Charterion/Hive 的通用产品设计，也不修改 PCP 全局组织。GitHub 仓库实体已由用户于 2026-10-30 手动改名为 `Su9moon/Hive`，原路径 `Su9moon/Charterion` 重定向到同一仓库且仓库 ID 保持不变（GitHub 连接已核实）。**仅仓库实体改名完成**；`main` 的 manifest/README、PR #13 的源码品牌合并、Windows 运行环境与 CB Registry 迁移仍须独立验证，不能宣称整体 Hive 更名完成。
 
+## 2026-10-30｜CB Provider Pool 与 Hive 账号状态面板（最新联合设计）
+
+- **CB 是单一账户与额度权威**：CB V0.4 Registry 同时登记官方 Codex A/B OAuth 和用户提供的标准 Responses API 第三方通道；所有私密认证只留 CB 受信宿主，Hive 不存储/复制 OAuth 或 API key。
+- **Hive（Kiwi）展示与选择**：从 CB 只读接口获取 `provider_id`、脱敏账号别名、支持模型、额度快照/数据来源、可比较的有效容量、状态和上次选择；展示“自动（最高可用额度）”默认项及明确指定单一通道的选项。选中账号仅作为**下一张任务的请求参数**，一张任务运行中身份固定。
+- **路由由 CB 完成**：未选通道时 CB 根据官方窗口或第三方余额/经标注的本地预算估算自动择优；显式选定时 CB 尊重选择，不暗换。不同来源额度不能裸数比较、UNKNOWN 不能伪称有足额。执行过程中额度不足只保存原单成果，不透明换号重跑。
+- 2026-10-30 原先“额度不足必须先询问是否换 A/B”的设计已由用户明确撤回，**自动路由无逐单确认**；仅在没有可用通道、手动固定通道异常或需要修改预算时提示。Hive 不建设第二套额度/账号池系统。
+- **版本状态：APPROVED_SCOPE / NOT_IMPLEMENTED / NOT_DEPLOYED**。CB Issue [#101](https://github.com/Su9moon/codex-bridge/issues/101) 与 CB [ROADMAP.md](https://github.com/Su9moon/codex-bridge/blob/main/ROADMAP.md) 为后端细节权威；Hive Developer 接口消费和展示属于 Hive V0.6 联合集成，不延后到云端/独立服务，不打断当前 V0.5.1 既定收口。
+
 ## 0. 设计归属与职责（固定）
 
 - **联合管理对话**：`CB × Hive｜联合开发项目主控`，项目级 `chief_engineer`；负责跨项目 Roadmap、CB/Hive 接口和权限边界、需求范围变更、共同验收、版本安排。**不是 PCP 全局 Controller**。
