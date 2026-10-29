@@ -1,0 +1,133 @@
+diff --git a/control/src/controlPlane.ts b/control/src/controlPlane.ts
+index f6819e4c5bd4b4b9aebf06e05fa8ed9e720e8e92..2dd6a7dbe43b5ce6e82f35db7645f1938afbbb82 100644
+--- a/control/src/controlPlane.ts
++++ b/control/src/controlPlane.ts
+@@ -44,6 +44,12 @@ import type {
+   TaskWorkspace,
+ } from './contracts';
+ 
++export interface ProjectGroup {
++  id: string; name: string; leadIdentity: string; leadRole: 'chief_engineer';
++  leadConversationKey: string; browserRuntime: 'NOT_VERIFIED';
++  members: { projectId: string; developerSlotId: string }[];
++}
++
+ type Row = Record<string, string | number | null>;
+ 
+ function nonEmpty(value: string, label: string): string {
+@@ -387,6 +393,43 @@ export class ControlPlane {
+     });
+   }
+ 
++  upsertProjectGroup(input: { id: string; name: string; leadIdentity: string; leadConversationKey: string; members: { projectId: string; developerSlotId: string }[] }, now = Date.now()): ProjectGroup {
++    const id = nonEmpty(input.id, 'Group id');
++    const name = nonEmpty(input.name, 'Group name');
++    const leadIdentity = nonEmpty(input.leadIdentity, 'Lead identity');
++    const key = canonicalConversationKey(input.leadConversationKey);
++    return this.database.transaction(() => {
++      if (input.members.length !== 2 || new Set(input.members.map(m => m.projectId)).size !== 2) throw new Error('Group requires exactly two distinct technical projects');
++      const previous = this.listProjectGroups().find(g => g.id === id);
++      if (previous && (previous.leadIdentity !== leadIdentity || previous.leadConversationKey !== key)) throw new Error('Group lead rebind is forbidden');
++      for (const member of input.members) {
++        const project = this.requireProject(member.projectId);
++        const slot = this.getAgentSlot(member.developerSlotId);
++        if (project.status === 'archived' || slot.projectId !== project.id || slot.role !== 'developer' || slot.desiredState !== 'active' || !slot.conversationKey) throw new Error('Group member requires an active bound project developer');
++      }
++      const keys = input.members.map(m => this.getAgentSlot(m.developerSlotId).conversationKey);
++      if (new Set([...keys, key]).size !== 3) throw new Error('Group requires three distinct conversations');
++      this.database.db.prepare(`INSERT INTO project_groups VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,updated_at=excluded.updated_at`).run(id, name, leadIdentity, key, now, now);
++      if (previous && JSON.stringify(previous.members) !== JSON.stringify([...input.members].sort((a,b) => a.projectId.localeCompare(b.projectId)))) throw new Error('Group membership rebind is forbidden');
++      for (const m of input.members) this.database.db.prepare('INSERT INTO project_group_members VALUES(?,?,?) ON CONFLICT(group_id,project_id) DO NOTHING').run(id, m.projectId, m.developerSlotId);
++      return this.getProjectGroup(id);
++    });
++  }
++
++  getProjectGroup(id: string): ProjectGroup {
++    const group = this.listProjectGroups().find(g => g.id === id);
++    if (!group) throw new Error('Unknown project group');
++    return group;
++  }
++
++  listProjectGroups(): ProjectGroup[] {
++    return (this.database.db.prepare('SELECT * FROM project_groups ORDER BY id').all() as Row[]).map(row => ({
++      id: String(row.id), name: String(row.name), leadIdentity: String(row.lead_identity),
++      leadRole: 'chief_engineer', leadConversationKey: String(row.lead_conversation_key), browserRuntime: 'NOT_VERIFIED',
++      members: (this.database.db.prepare('SELECT project_id,developer_slot_id FROM project_group_members WHERE group_id=? ORDER BY project_id').all(String(row.id)) as Row[]).map(m => ({ projectId: String(m.project_id), developerSlotId: String(m.developer_slot_id) })),
++    }));
++  }
++
+   listProjects(): ProjectCell[] {
+     return (this.database.db.prepare('SELECT * FROM projects ORDER BY created_at, id').all() as Row[]).map(projectFrom);
+   }
+diff --git a/control/src/database.ts b/control/src/database.ts
+index dd13c1ff74eff0b9760ca8886ef0787d99633b4a..65e7d87b89796de41fea2e6d7cbcf1b6e717815b 100644
+--- a/control/src/database.ts
++++ b/control/src/database.ts
+@@ -92,6 +92,45 @@ export class ControlDatabase {
+     `).run(String(supportedVersion));
+   }
+ 
++  private migrateV28(): void {
++    this.transaction(() => this.db.exec(`
++      CREATE TABLE project_groups (
++        id TEXT PRIMARY KEY, name TEXT NOT NULL,
++        lead_identity TEXT NOT NULL UNIQUE,
++        lead_conversation_key TEXT NOT NULL UNIQUE,
++        created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
++      ) STRICT;
++      CREATE TABLE project_group_members (
++        group_id TEXT NOT NULL REFERENCES project_groups(id),
++        project_id TEXT NOT NULL UNIQUE REFERENCES projects(id),
++        developer_slot_id TEXT NOT NULL UNIQUE REFERENCES agent_slots(id),
++        PRIMARY KEY(group_id, project_id)
++      ) STRICT;
++      CREATE TRIGGER group_lead_scope BEFORE INSERT ON project_groups BEGIN
++        SELECT RAISE(ABORT, 'Conversation already belongs to a project')
++        WHERE EXISTS(SELECT 1 FROM agent_slots WHERE conversation_key=NEW.lead_conversation_key);
++      END;
++      CREATE TRIGGER group_lead_scope_update BEFORE UPDATE ON project_groups BEGIN
++        SELECT RAISE(ABORT, 'Conversation already belongs to a project')
++        WHERE EXISTS(SELECT 1 FROM agent_slots WHERE conversation_key=NEW.lead_conversation_key);
++      END;
++      CREATE TRIGGER group_member_assignment BEFORE INSERT ON project_group_members BEGIN
++        SELECT RAISE(ABORT, 'Invalid group developer assignment') WHERE NOT EXISTS (
++          SELECT 1 FROM agent_slots WHERE id=NEW.developer_slot_id AND project_id=NEW.project_id
++          AND role='developer' AND desired_state='active' AND conversation_key IS NOT NULL
++        );
++      END;
++      CREATE TRIGGER group_member_reassignment BEFORE UPDATE OF project_id,role,conversation_key ON agent_slots
++      WHEN EXISTS(SELECT 1 FROM project_group_members WHERE developer_slot_id=OLD.id)
++      AND (NEW.project_id<>OLD.project_id OR NEW.role<>OLD.role OR NEW.conversation_key IS NOT OLD.conversation_key)
++      BEGIN SELECT RAISE(ABORT, 'Group developer rebind is forbidden'); END;
++      CREATE TRIGGER agent_group_scope BEFORE UPDATE OF conversation_key ON agent_slots BEGIN
++        SELECT RAISE(ABORT, 'Conversation already belongs to a group')
++        WHERE EXISTS(SELECT 1 FROM project_groups WHERE lead_conversation_key=NEW.conversation_key);
++      END;
++    `));
++  }
++
+   private migrateV1(): void {
+     this.transaction(() => {
+       this.createCoreTables();
+diff --git a/control/src/rpcLegacy.ts b/control/src/rpcLegacy.ts
+index e49a4bd1f085af87c85c576357cb610b60bbed5d..d5e04fce40a160228f63b092c61a5cb304c1d0e9 100644
+--- a/control/src/rpcLegacy.ts
++++ b/control/src/rpcLegacy.ts
+@@ -125,9 +125,16 @@ export class RpcRouter {
+     switch (request.method) {
+       case 'control.snapshot':
+         this.requireBrowserOrAdmin(request);
+-        const changeRequests = this.plane.changes.listChangeRequests().slice(-200); return { protocolVersion: 2, projects: this.plane.listProjects(), agents: this.plane.listAgentSlots(), resources: this.plane.listResources(), leases: this.plane.listLeases(), claims: this.plane.evidence.listClaims().slice(-200), artifacts: this.plane.evidence.listArtifacts().slice(-200), verifications: this.plane.evidence.listVerifications().slice(-200), changeRequests, reviews: changeRequests.flatMap((item) => this.plane.changes.listReviews(item.id)).slice(-200), mergeQueue: this.plane.changes.listQueue().slice(-200), workerRequests: this.plane.requests.list().slice(-200), promotions: this.plane.promotions.list().slice(-200), browserRuntime: this.plane.listBrowserRuntime(), events: this.plane.listEvents(undefined, 0, 200) };
++        const changeRequests = this.plane.changes.listChangeRequests().slice(-200); return { protocolVersion: 2, projectGroups: this.plane.listProjectGroups(), projects: this.plane.listProjects(), agents: this.plane.listAgentSlots(), resources: this.plane.listResources(), leases: this.plane.listLeases(), claims: this.plane.evidence.listClaims().slice(-200), artifacts: this.plane.evidence.listArtifacts().slice(-200), verifications: this.plane.evidence.listVerifications().slice(-200), changeRequests, reviews: changeRequests.flatMap((item) => this.plane.changes.listReviews(item.id)).slice(-200), mergeQueue: this.plane.changes.listQueue().slice(-200), workerRequests: this.plane.requests.list().slice(-200), promotions: this.plane.promotions.list().slice(-200), browserRuntime: this.plane.listBrowserRuntime(), events: this.plane.listEvents(undefined, 0, 200) };
+       case 'browser.report': return this.browserReport(request, params);
+       case 'browser.status': this.requireBrowserOrAdmin(request); return this.plane.listBrowserRuntime();
++      case 'project-group.upsert': {
++        this.requireAdmin(request);
++        if (!Array.isArray(params.members)) throw new Error('Group members are required');
++        return this.plane.upsertProjectGroup({ id: stringParam(params, 'id')!, name: stringParam(params, 'name')!, leadIdentity: stringParam(params, 'leadIdentity')!, leadConversationKey: stringParam(params, 'leadConversationKey')!, members: params.members.map(value => { const m = record(value); return { projectId: stringParam(m, 'projectId')!, developerSlotId: stringParam(m, 'developerSlotId')! }; }) });
++      }
++      case 'project-group.list': this.requireAdmin(request); return this.plane.listProjectGroups();
++      case 'project-group.get': this.requireAdmin(request); return this.plane.getProjectGroup(stringParam(params, 'id')!);
+       case 'project.create': return this.projectCreate(request, params);
+       case 'project.list': this.requireBrowserOrAdmin(request); return this.plane.listProjects();
+       case 'project.status': return this.projectStatus(request, params);

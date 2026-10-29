@@ -1,0 +1,32 @@
+{
+  "task_id": "T-000457",
+  "project": "charterion",
+  "initial_head": "613f340706d38ff773890b2499ceb3726453a1db",
+  "input_head": "c60817276db782c5f36e518fce9739dae10a7e2d",
+  "workspace_head": "c60817276db782c5f36e518fce9739dae10a7e2d",
+  "returncode": 0,
+  "business_success": false,
+  "files": [
+    {
+      "path": "control/src/controlPlane.ts",
+      "sha256": "f5df26765f64d4d48b12aeb66d89df23726aa8f2b24af96618532d784da7ec5a"
+    },
+    {
+      "path": "control/src/database.ts",
+      "sha256": "58077350c9b9f9e57316d7d7e9c2681e335eb58e8dd87d37de384cf60668a032"
+    },
+    {
+      "path": "control/src/rpcLegacy.ts",
+      "sha256": "2a2a2a5423d7bb6d8a19d1aaee0e8d64a1cc0fdf95978eb0e4a63cbff1010b2a"
+    },
+    {
+      "path": "control/tests/projectGroups.test.ts",
+      "sha256": "b5678dabb30567ee5280c216be750d1ca7d3512813e57e6a59c17cb3b0be6fcf"
+    },
+    {
+      "path": "docs/HIVE-V0.5.1-MINIMAL-JOINT-GROUP.md",
+      "sha256": "b6015196e603022c7d6aa5a35da8d270a39e5462c6afb608833cb75814095ad1"
+    }
+  ],
+  "patch_sha256": "840d2fcac8ec5b931a20bacc1bbae27ab2b7c52ce369d0fee210040863760574"
+}

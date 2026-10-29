@@ -1,0 +1,59 @@
+{
+  "task_id": "T-000457",
+  "repository": "Su9moon/Charterion",
+  "files": [
+    {
+      "path": "manifest.json",
+      "sha256": "b9b17dbc10c41e7016e4b61de3476e76684830b94b713a87b179e0d9434eb026",
+      "size": 1109
+    },
+    {
+      "path": "tracked.patch",
+      "sha256": "840d2fcac8ec5b931a20bacc1bbae27ab2b7c52ce369d0fee210040863760574",
+      "size": 9928
+    },
+    {
+      "path": "untracked/docs/HIVE-V0.5.1-MINIMAL-JOINT-GROUP.md",
+      "sha256": "b6015196e603022c7d6aa5a35da8d270a39e5462c6afb608833cb75814095ad1",
+      "size": 3169
+    },
+    {
+      "path": "untracked/control/tests/projectGroups.test.ts",
+      "sha256": "b5678dabb30567ee5280c216be750d1ca7d3512813e57e6a59c17cb3b0be6fcf",
+      "size": 2491
+    },
+    {
+      "path": "final/control/src/controlPlane.ts",
+      "sha256": "f5df26765f64d4d48b12aeb66d89df23726aa8f2b24af96618532d784da7ec5a",
+      "size": 64431
+    },
+    {
+      "path": "final/control/src/database.ts",
+      "sha256": "58077350c9b9f9e57316d7d7e9c2681e335eb58e8dd87d37de384cf60668a032",
+      "size": 55023
+    },
+    {
+      "path": "final/control/src/rpcLegacy.ts",
+      "sha256": "2a2a2a5423d7bb6d8a19d1aaee0e8d64a1cc0fdf95978eb0e4a63cbff1010b2a",
+      "size": 46864
+    },
+    {
+      "path": "base/control/src/controlPlane.ts",
+      "sha256": "4874079f117625d1575ca6d63551830473dcd68282c15881d03ffecf9550a930",
+      "size": 61179
+    },
+    {
+      "path": "base/control/src/database.ts",
+      "sha256": "b6763737ba57dc7010ff09f1c69726d1f7867d3a9d692a7fa237654f0e377220",
+      "size": 52794
+    },
+    {
+      "path": "base/control/src/rpcLegacy.ts",
+      "sha256": "59a7c7fe4ecb84d70f15414e76c5f3eed538bd067344b4d54358e94816746816",
+      "size": 46013
+    }
+  ],
+  "controlled_local_only": [],
+  "kind": "historical source evidence; not accepted or merged",
+  "recovery": "base/ contains original changed-file inputs; tracked.patch is binary Git delta; final/ and untracked/ preserve source bytes. Missing baselines are explicit in manifest."
+}
