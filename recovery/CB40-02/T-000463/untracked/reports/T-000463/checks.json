@@ -1,0 +1,75 @@
+{
+  "success": false,
+  "runtime": "Linux Node v22.23.4 / npm 10.9.9; existing dependency cache",
+  "source_directory": ".build-cache/T-000463-source",
+  "tests": [
+    {
+      "command": "sha256sum -c T-000459/SHA256SUMS",
+      "outcome": "passed",
+      "log": "logs/prior-checksums.txt",
+      "detail": "All historical artifact checksums match"
+    },
+    {
+      "command": "original PR13 patch replay and 29 file hashes",
+      "outcome": "passed",
+      "log": "logs/prior-replay.txt",
+      "detail": "All original candidate SHA256 values match"
+    },
+    {
+      "command": "python3 reports/T-000463/package-candidate.py",
+      "outcome": "passed",
+      "log": "logs/package.txt",
+      "detail": "327 baseline blob hashes; final patch apply --check and replay; 50 changed file hashes. Initial generated diff had inconsistent absolute filenames; exporter repaired and rerun passed."
+    },
+    {
+      "command": "npm run verify",
+      "outcome": "failed",
+      "log": "logs/verify.txt",
+      "detail": "Static checks passed: brand, native contract/routing, version, extension tsc, control tsc, assets, README, deployment docs, architecture, workflow pinning. Test phase: 497 passed / 20 failed, all server.listen EPERM; subsequent verify build/fault phases not reached in this command."
+    },
+    {
+      "command": "npm test -- --exclude control/tests/ipc.test.ts --exclude control/tests/radarControl.test.ts --exclude control/tests/radarHttp.test.ts",
+      "outcome": "passed",
+      "log": "logs/executable-tests.txt",
+      "detail": "91 files / 488 tests pass. Excluded files are not accepted as passed; their 9 passing cases and 20 failing cases remain in full verify evidence."
+    },
+    {
+      "command": "npm run test:faults",
+      "outcome": "passed",
+      "log": "logs/faults.txt",
+      "detail": "6 files / 34 tests"
+    },
+    {
+      "command": "npm run build",
+      "outcome": "passed",
+      "log": "logs/build.txt",
+      "detail": "Executed separately after complete verify could not pass"
+    },
+    {
+      "command": "npm run check:dist",
+      "outcome": "passed",
+      "log": "logs/dist.txt",
+      "detail": "Executed separately after complete verify could not pass"
+    },
+    {
+      "command": "npm run build:control",
+      "outcome": "passed",
+      "log": "logs/control-build.txt",
+      "detail": "Executed separately after complete verify could not pass"
+    },
+    {
+      "command": "npm run check:readme-i18n:release",
+      "outcome": "passed",
+      "log": "logs/locale-release.txt",
+      "detail": "Executed separately after complete verify could not pass"
+    }
+  ],
+  "external_windows_receipt": "windows-receipt.json",
+  "excluded_from_source_task": [
+    "Windows runtime upgrade",
+    "real Windows conversation registration",
+    "GitHub publication"
+  ],
+  "pending_source_host_check": "Run full verify on final exact patch in an isolated Windows source copy; final patch includes new locale test (517 expected tests).",
+  "environment_probe": "logs/socket-probe.txt; standalone net.listen denied for both loopback TCP and Unix socket."
+}

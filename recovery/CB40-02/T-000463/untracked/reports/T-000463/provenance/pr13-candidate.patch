@@ -1,0 +1,1027 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Hive candidate <uncommitted@localhost>
+Date: Fri, 30 Oct 2026 00:00:00 +0000
+Subject: [PATCH] Persist rootless joint groups and render them in standalone Radar
+
+UNCOMMITTED CANDIDATE. Null marker is not a commit SHA. Publication belongs to the bridge.
+Base-commit: 0f3957deb25cb2aa2a8b198e2d4b5f0ec1265659
+V30 preserves PCP V28/V29. Four sandbox socket acceptance cases remain failed.
+
+---
+diff --git a/README.de.md b/README.de.md
+index 459bee039a1bc71a0fbe7a98e16c004cc8b85c12..b59796208d6761d9a12461a88713be074c79e89a 100644
+--- a/README.de.md
++++ b/README.de.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.es.md b/README.es.md
+index e952352016fcca7a89ebfade465d30a4bd5608e9..db624463a40cc544133a774887572475354af665 100644
+--- a/README.es.md
++++ b/README.es.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.fr.md b/README.fr.md
+index c04f3df23c16570638d6572f9f16d529d079eee0..660613504f5df1e7e6f1dbf2c35ccd70104eb653 100644
+--- a/README.fr.md
++++ b/README.fr.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.ja.md b/README.ja.md
+index 0638932b12d6da5172e1b9a64917b7868e148987..931fb1d46f5db5a0e9eb0254517145406204db2d 100644
+--- a/README.ja.md
++++ b/README.ja.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.ko.md b/README.ko.md
+index c4c270249e81453cb0e004073239162ee36288d3..7642e4d711926c2bfc523b696498c8fdbecc3194 100644
+--- a/README.ko.md
++++ b/README.ko.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.md b/README.md
+index 925151af199408fb78025391d9cde54c7fa7108e..35d13b15d11ed9a59767c0c5b63c75c44c9ff59b 100644
+--- a/README.md
++++ b/README.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.pt-BR.md b/README.pt-BR.md
+index b75c466a1bd533913bd7eca58bf791c11db48412..bdcfc8c960f61072766dcc1210540c1ab912c468 100644
+--- a/README.pt-BR.md
++++ b/README.pt-BR.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.ru.md b/README.ru.md
+index 559ca8e2396889efd8c20f7acafcfd490258ff33..d0decc194d91283385ea9e4ba218e2d682e0a21f 100644
+--- a/README.ru.md
++++ b/README.ru.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.zh-CN.md b/README.zh-CN.md
+index 47eb9893d6c4c808a831b1908ef88aabc44087cb..44472e2c87a2d56ac8273cda664f9b592c5ffb15 100644
+--- a/README.zh-CN.md
++++ b/README.zh-CN.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.zh-TW.md b/README.zh-TW.md
+index f5d5003a7f683c9e9b71d0a6392708e6cbe2f3b0..18f527ce7e85907071bd67e37c88beaea1456bfa 100644
+--- a/README.zh-TW.md
++++ b/README.zh-TW.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/control/src/controlPlane.ts b/control/src/controlPlane.ts
+index c83107b036a31be6f6b3885a0311b9fc2e5b392a..994bdf80860664b94caf74391d31694d7ee259d4 100644
+--- a/control/src/controlPlane.ts
++++ b/control/src/controlPlane.ts
+@@ -46,6 +46,12 @@
+   TaskWorkspace,
+ } from './contracts';
+ 
++export interface ProjectGroup {
++  id: string; name: string; leadIdentity: string; leadRole: 'chief_engineer';
++  leadConversationKey: string; browserRuntime: 'NOT_VERIFIED';
++  members: { projectId: string; developerSlotId: string }[];
++}
++
+ type Row = Record<string, string | number | null>;
+ 
+ function nonEmpty(value: string, label: string): string {
+@@ -397,6 +403,43 @@
+     });
+   }
+ 
++  upsertProjectGroup(input: { id: string; name: string; leadIdentity: string; leadConversationKey: string; members: { projectId: string; developerSlotId: string }[] }, now = Date.now()): ProjectGroup {
++    const id = nonEmpty(input.id, 'Group id');
++    const name = nonEmpty(input.name, 'Group name');
++    const leadIdentity = nonEmpty(input.leadIdentity, 'Lead identity');
++    const key = canonicalConversationKey(input.leadConversationKey);
++    return this.database.transaction(() => {
++      if (input.members.length < 1 || new Set(input.members.map(m => m.projectId)).size !== input.members.length) throw new Error('Group requires distinct technical projects');
++      const previous = this.listProjectGroups().find(g => g.id === id);
++      if (previous && (previous.leadIdentity !== leadIdentity || previous.leadConversationKey !== key)) throw new Error('Group lead rebind is forbidden');
++      for (const member of input.members) {
++        const project = this.requireProject(member.projectId);
++        const slot = this.getAgentSlot(member.developerSlotId);
++        if (project.status === 'archived' || slot.projectId !== project.id || slot.role !== 'developer' || slot.desiredState !== 'active' || !slot.conversationKey) throw new Error('Group member requires an active bound project developer');
++      }
++      const keys = input.members.map(m => this.getAgentSlot(m.developerSlotId).conversationKey);
++      if (new Set([...keys, key]).size !== keys.length + 1) throw new Error('Group requires distinct conversations');
++      this.database.db.prepare(`INSERT INTO project_groups VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,updated_at=excluded.updated_at`).run(id, name, leadIdentity, key, now, now);
++      if (previous && JSON.stringify(previous.members) !== JSON.stringify([...input.members].sort((a,b) => a.projectId.localeCompare(b.projectId)))) throw new Error('Group membership rebind is forbidden');
++      for (const m of input.members) this.database.db.prepare('INSERT INTO project_group_members VALUES(?,?,?) ON CONFLICT(group_id,project_id) DO NOTHING').run(id, m.projectId, m.developerSlotId);
++      return this.getProjectGroup(id);
++    });
++  }
++
++  getProjectGroup(id: string): ProjectGroup {
++    const group = this.listProjectGroups().find(g => g.id === id);
++    if (!group) throw new Error('Unknown project group');
++    return group;
++  }
++
++  listProjectGroups(): ProjectGroup[] {
++    return (this.database.db.prepare('SELECT * FROM project_groups ORDER BY id').all() as Row[]).map(row => ({
++      id: String(row.id), name: String(row.name), leadIdentity: String(row.lead_identity),
++      leadRole: 'chief_engineer', leadConversationKey: String(row.lead_conversation_key), browserRuntime: 'NOT_VERIFIED',
++      members: (this.database.db.prepare('SELECT project_id,developer_slot_id FROM project_group_members WHERE group_id=? ORDER BY project_id').all(String(row.id)) as Row[]).map(m => ({ projectId: String(m.project_id), developerSlotId: String(m.developer_slot_id) })),
++    }));
++  }
++
+   listProjects(): ProjectCell[] {
+     return (this.database.db.prepare('SELECT * FROM projects ORDER BY created_at, id').all() as Row[]).map(projectFrom);
+   }
+diff --git a/control/src/database.ts b/control/src/database.ts
+index 14181d4900ee2c1329a2321fd07539b3448e9f78..aecddb3b784d8351032688f9956c05af43b7f877 100644
+--- a/control/src/database.ts
++++ b/control/src/database.ts
+@@ -90,6 +90,55 @@
+       INSERT INTO schema_meta(key, value) VALUES('schema_version', ?)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value
+     `).run(String(supportedVersion));
++  }
++
++  private migrateV30(): void {
++    this.transaction(() => this.db.exec(`
++      CREATE TABLE IF NOT EXISTS project_groups (
++        id TEXT PRIMARY KEY, name TEXT NOT NULL,
++        lead_identity TEXT NOT NULL UNIQUE,
++        lead_conversation_key TEXT NOT NULL UNIQUE,
++        created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
++      ) STRICT;
++      CREATE TABLE IF NOT EXISTS project_group_members (
++        group_id TEXT NOT NULL REFERENCES project_groups(id),
++        project_id TEXT NOT NULL UNIQUE REFERENCES projects(id),
++        developer_slot_id TEXT NOT NULL UNIQUE REFERENCES agent_slots(id),
++        PRIMARY KEY(group_id, project_id)
++      ) STRICT;
++      CREATE TRIGGER IF NOT EXISTS group_lead_immutable BEFORE UPDATE OF lead_identity,lead_conversation_key ON project_groups
++      WHEN NEW.lead_identity IS NOT OLD.lead_identity OR NEW.lead_conversation_key IS NOT OLD.lead_conversation_key
++      BEGIN SELECT RAISE(ABORT, 'Group lead rebind is forbidden'); END;
++      CREATE TRIGGER IF NOT EXISTS group_member_immutable BEFORE UPDATE ON project_group_members
++      WHEN NEW.group_id IS NOT OLD.group_id OR NEW.project_id IS NOT OLD.project_id OR NEW.developer_slot_id IS NOT OLD.developer_slot_id
++      BEGIN SELECT RAISE(ABORT, 'Group membership rebind is forbidden'); END;
++      CREATE TRIGGER IF NOT EXISTS agent_group_insert_scope BEFORE INSERT ON agent_slots BEGIN
++        SELECT RAISE(ABORT, 'Conversation already belongs to a group')
++        WHERE EXISTS(SELECT 1 FROM project_groups WHERE lead_conversation_key=NEW.conversation_key);
++      END;
++      CREATE TRIGGER IF NOT EXISTS group_lead_scope BEFORE INSERT ON project_groups BEGIN
++        SELECT RAISE(ABORT, 'Conversation already belongs to a project')
++        WHERE EXISTS(SELECT 1 FROM agent_slots WHERE conversation_key=NEW.lead_conversation_key);
++      END;
++      CREATE TRIGGER IF NOT EXISTS group_lead_scope_update BEFORE UPDATE ON project_groups BEGIN
++        SELECT RAISE(ABORT, 'Conversation already belongs to a project')
++        WHERE EXISTS(SELECT 1 FROM agent_slots WHERE conversation_key=NEW.lead_conversation_key);
++      END;
++      CREATE TRIGGER IF NOT EXISTS group_member_assignment BEFORE INSERT ON project_group_members BEGIN
++        SELECT RAISE(ABORT, 'Invalid group developer assignment') WHERE NOT EXISTS (
++          SELECT 1 FROM agent_slots WHERE id=NEW.developer_slot_id AND project_id=NEW.project_id
++          AND role='developer' AND desired_state='active' AND conversation_key IS NOT NULL
++        );
++      END;
++      CREATE TRIGGER IF NOT EXISTS group_member_reassignment BEFORE UPDATE OF project_id,role,conversation_key ON agent_slots
++      WHEN EXISTS(SELECT 1 FROM project_group_members WHERE developer_slot_id=OLD.id)
++      AND (NEW.project_id<>OLD.project_id OR NEW.role<>OLD.role OR NEW.conversation_key IS NOT OLD.conversation_key)
++      BEGIN SELECT RAISE(ABORT, 'Group developer rebind is forbidden'); END;
++      CREATE TRIGGER IF NOT EXISTS agent_group_scope BEFORE UPDATE OF conversation_key ON agent_slots BEGIN
++        SELECT RAISE(ABORT, 'Conversation already belongs to a group')
++        WHERE EXISTS(SELECT 1 FROM project_groups WHERE lead_conversation_key=NEW.conversation_key);
++      END;
++    `));
+   }
+ 
+   private migrateV1(): void {
+diff --git a/control/src/radarSnapshot.ts b/control/src/radarSnapshot.ts
+index 5921807b4d9a15b7e52ad508b621f1dbd2fe5892..16de299b144540bbeaa052f3d58692a748d0e760 100644
+--- a/control/src/radarSnapshot.ts
++++ b/control/src/radarSnapshot.ts
+@@ -7,6 +7,7 @@
+   const observationTtlMs = 180_000;
+   return {
+     schemaVersion: 1, instanceId, observedAt: now, refreshAfterMs: 3000, observationTtlMs,
++    projectGroups: plane.listProjectGroups().filter(g => projectId === undefined || g.members.some(m => m.projectId === projectId)),
+     projects: projects.map(p => {
+       const fleet = plane.getPcpProjectFleetControl(p.id);
+       return { id: p.id, name: p.name, rootPath: p.rootPath, status: p.status, minSlots: p.minSlots, maxSlots: p.maxSlots,
+diff --git a/control/src/rpcLegacy.ts b/control/src/rpcLegacy.ts
+index 4785365eef5f3c277274d628b1a0238a5993ef37..973aa4b2736f1e02b6d2b65b354fdfe76fbd3a5b 100644
+--- a/control/src/rpcLegacy.ts
++++ b/control/src/rpcLegacy.ts
+@@ -127,9 +127,16 @@
+     switch (request.method) {
+       case 'control.snapshot':
+         this.requireBrowserOrAdmin(request);
+-        const changeRequests = this.plane.changes.listChangeRequests().slice(-200); return { protocolVersion: 2, projects: this.plane.listProjects(), agents: this.plane.listAgentSlots(), resources: this.plane.listResources(), leases: this.plane.listLeases(), claims: this.plane.evidence.listClaims().slice(-200), artifacts: this.plane.evidence.listArtifacts().slice(-200), verifications: this.plane.evidence.listVerifications().slice(-200), changeRequests, reviews: changeRequests.flatMap((item) => this.plane.changes.listReviews(item.id)).slice(-200), mergeQueue: this.plane.changes.listQueue().slice(-200), workerRequests: this.plane.requests.list().slice(-200), promotions: this.plane.promotions.list().slice(-200), browserRuntime: this.plane.listBrowserRuntime(), events: this.plane.listEvents(undefined, 0, 200) };
++        const changeRequests = this.plane.changes.listChangeRequests().slice(-200); return { protocolVersion: 2, projectGroups: this.plane.listProjectGroups(), projects: this.plane.listProjects(), agents: this.plane.listAgentSlots(), resources: this.plane.listResources(), leases: this.plane.listLeases(), claims: this.plane.evidence.listClaims().slice(-200), artifacts: this.plane.evidence.listArtifacts().slice(-200), verifications: this.plane.evidence.listVerifications().slice(-200), changeRequests, reviews: changeRequests.flatMap((item) => this.plane.changes.listReviews(item.id)).slice(-200), mergeQueue: this.plane.changes.listQueue().slice(-200), workerRequests: this.plane.requests.list().slice(-200), promotions: this.plane.promotions.list().slice(-200), browserRuntime: this.plane.listBrowserRuntime(), events: this.plane.listEvents(undefined, 0, 200) };
+       case 'browser.report': return this.browserReport(request, params);
+       case 'browser.status': this.requireBrowserOrAdmin(request); return this.plane.listBrowserRuntime();
++      case 'project-group.upsert': {
++        this.requireAdmin(request);
++        if (!Array.isArray(params.members)) throw new Error('Group members are required');
++        return this.plane.upsertProjectGroup({ id: stringParam(params, 'id')!, name: stringParam(params, 'name')!, leadIdentity: stringParam(params, 'leadIdentity')!, leadConversationKey: stringParam(params, 'leadConversationKey')!, members: params.members.map(value => { const m = record(value); return { projectId: stringParam(m, 'projectId')!, developerSlotId: stringParam(m, 'developerSlotId')! }; }) });
++      }
++      case 'project-group.list': this.requireAdmin(request); return this.plane.listProjectGroups();
++      case 'project-group.get': this.requireAdmin(request); return this.plane.getProjectGroup(stringParam(params, 'id')!);
+       case 'project.create': return this.projectCreate(request, params);
+       case 'project.list': this.requireBrowserOrAdmin(request); return this.plane.listProjects();
+       case 'project.status': return this.projectStatus(request, params);
+diff --git a/control/tests/projectGroupContracts.test.ts b/control/tests/projectGroupContracts.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..9f062f3efb0d4f2960f417c4a4f0197b7514463c
+--- /dev/null
++++ b/control/tests/projectGroupContracts.test.ts
+@@ -0,0 +1,63 @@
++import { readFileSync } from 'node:fs';
++import { expect, it } from 'vitest';
++import { ControlDatabase } from '../src/database';
++import { ControlPlane } from '../src/controlPlane';
++import { RpcRouter } from '../src/rpc';
++
++function fixture() {
++  const db = new ControlDatabase(':memory:');
++  const plane = new ControlPlane(db);
++  const members = ['Hive', 'CB'].map(name => {
++    const project = plane.createProject({ name, rootPath: `F:/${name}`, minSlots: 0 });
++    const slot = plane.createAgentSlot(project.id, 'developer');
++    plane.bindAgentConversation(slot.id, `conversation:${name}`);
++    return { projectId: project.id, developerSlotId: slot.id };
++  });
++  const input = { id: 'joint', name: 'CB × Hive', leadIdentity: 'chief', leadConversationKey: 'conversation:chief', members };
++  return { db, plane, input, router: new RpcRouter(plane, 'admin', 'browser') };
++}
++
++it('keeps group administration out of the browser native allowlist and denies all browser group RPCs', () => {
++  const { db, router, input } = fixture();
++  try {
++    const manifest = JSON.parse(readFileSync('shared/native-rpc-protocol.json', 'utf8'));
++    for (const method of ['project-group.upsert', 'project-group.list', 'project-group.get']) {
++      expect(manifest.methods.some((m: { name: string }) => m.name === method)).toBe(false);
++      for (const auth of [undefined, { browserToken: 'browser' }, { adminToken: 'wrong' }]) {
++        expect(router.handle({ id: method, method, params: input, ...(auth ? { auth } : {}) })).toMatchObject({ ok: false });
++      }
++    }
++    expect(router.handle({ id: 'create', method: 'project-group.upsert', params: input, auth: { adminToken: 'admin' } })).toMatchObject({ ok: true });
++    expect(router.handle({ id: 'get', method: 'project-group.get', params: { id: input.id }, auth: { adminToken: 'admin' } })).toMatchObject({ ok: true, result: { leadRole: 'chief_engineer' } });
++    expect(router.handle({ id: 'list', method: 'project-group.list', auth: { adminToken: 'admin' } })).toMatchObject({ ok: true, result: [{ id: input.id }] });
++  } finally { db.close(); }
++});
++
++it('enforces immutable lead and member binding in SQLite and rolls back failed updates', () => {
++  const { db, plane, input } = fixture();
++  try {
++    const original = plane.upsertProjectGroup(input);
++    expect(() => db.db.prepare('UPDATE project_groups SET lead_conversation_key=? WHERE id=?').run('conversation:replacement', input.id)).toThrow(/rebind/);
++    expect(() => db.db.prepare('UPDATE project_groups SET lead_identity=? WHERE id=?').run('replacement', input.id)).toThrow(/rebind/);
++    expect(() => db.db.prepare('UPDATE project_group_members SET developer_slot_id=? WHERE group_id=? AND project_id=?').run(input.members[1]!.developerSlotId, input.id, input.members[0]!.projectId)).toThrow(/rebind/);
++    expect(() => plane.bindAgentConversation(input.members[0]!.developerSlotId, 'conversation:replacement')).toThrow(/rollover|rebind/);
++    expect(() => plane.upsertProjectGroup({ ...input, name: 'must roll back', members: input.members.slice(0, 1) })).toThrow(/rebind/);
++    expect(plane.getProjectGroup(input.id)).toEqual(original);
++    expect(db.health().ok).toBe(true);
++  } finally { db.close(); }
++});
++
++it('rejects duplicate lead identities and conversations across independent groups', () => {
++  const { db, plane, input } = fixture();
++  try {
++    plane.upsertProjectGroup(input);
++    const project = plane.createProject({ name: 'Other', rootPath: 'F:/other', minSlots: 0 });
++    const slot = plane.createAgentSlot(project.id, 'developer');
++    plane.bindAgentConversation(slot.id, 'conversation:other');
++    const other = { ...input, id: 'other', members: [{ projectId: project.id, developerSlotId: slot.id }] };
++    expect(() => plane.upsertProjectGroup({ ...other, leadConversationKey: 'conversation:new' })).toThrow();
++    expect(() => plane.upsertProjectGroup({ ...other, leadIdentity: 'new' })).toThrow();
++    expect(plane.listProjectGroups()).toHaveLength(1);
++    expect(plane.listAgentSlots()).toHaveLength(3);
++  } finally { db.close(); }
++});
+diff --git a/control/tests/projectGroupMigration.test.ts b/control/tests/projectGroupMigration.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..04ea7f70ac336b9d380f15145a544b82494fdedf
+--- /dev/null
++++ b/control/tests/projectGroupMigration.test.ts
+@@ -0,0 +1,31 @@
++import { mkdtempSync, rmSync } from 'node:fs';
++import { tmpdir } from 'node:os';
++import { join } from 'node:path';
++import { expect, it } from 'vitest';
++import { ControlDatabase } from '../src/database';
++import { ControlPlane } from '../src/controlPlane';
++
++it('upgrades V29 to V30 without changing PCP fleet or conversation bindings and reopens idempotently', () => {
++  const dir = mkdtempSync(join(tmpdir(), 'hive-v30-'));
++  const path = join(dir, 'kernel.db');
++  let db = new ControlDatabase(path);
++  try {
++    const plane = new ControlPlane(db);
++    const project = plane.createProject({ name: 'Existing', rootPath: 'F:/existing', minSlots: 0 });
++    const slot = plane.createAgentSlot(project.id, 'developer');
++    plane.bindAgentConversation(slot.id, 'conversation:existing');
++    const projects = db.db.prepare('SELECT * FROM projects').all();
++    const agents = db.db.prepare('SELECT * FROM agent_slots').all();
++    const fleet = plane.getPcpProjectFleetControl(project.id);
++    db.db.exec("DROP TABLE project_group_members; DROP TABLE project_groups; DROP TRIGGER group_member_reassignment; DROP TRIGGER agent_group_scope; DROP TRIGGER agent_group_insert_scope; UPDATE schema_meta SET value='29' WHERE key='schema_version'");
++    db.close(); db = new ControlDatabase(path);
++    expect(db.db.prepare("SELECT value FROM schema_meta WHERE key='schema_version'").get()).toMatchObject({ value: '30' });
++    expect(db.db.prepare('SELECT * FROM projects').all()).toEqual(projects);
++    expect(db.db.prepare('SELECT * FROM agent_slots').all()).toEqual(agents);
++    expect(new ControlPlane(db).getPcpProjectFleetControl(project.id)).toEqual(fleet);
++    expect(new ControlPlane(db).listProjectGroups()).toEqual([]);
++    expect(db.health().ok).toBe(true);
++    db.close(); db = new ControlDatabase(path);
++    expect(db.health().ok).toBe(true);
++  } finally { db.close(); rmSync(dir, { recursive: true, force: true }); }
++});
+diff --git a/control/tests/projectGroups.test.ts b/control/tests/projectGroups.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..5c157f2882d0cda8cdcbb9b737c2bf43dd9b931c
+--- /dev/null
++++ b/control/tests/projectGroups.test.ts
+@@ -0,0 +1,48 @@
++import { mkdtempSync, rmSync } from 'node:fs';
++import { tmpdir } from 'node:os';
++import { join } from 'node:path';
++import { expect, it } from 'vitest';
++import { ControlDatabase } from '../src/database';
++import { RpcRouter } from '../src/rpc';
++import { ControlPlane } from '../src/controlPlane';
++
++it('persists a rootless two-project group with independent developers and rejects scope/rebind conflicts', () => {
++  const dir = mkdtempSync(join(tmpdir(), 'hive-group-'));
++  const path = join(dir, 'kernel.db');
++  let db = new ControlDatabase(path);
++  try {
++    let plane = new ControlPlane(db);
++    const members = ['Hive', 'CB'].map(name => {
++      const project = plane.createProject({ name, rootPath: `F:/${name}`, minSlots: 0, maxSlots: 4 });
++      const slot = plane.createAgentSlot(project.id, 'developer');
++      plane.bindAgentConversation(slot.id, `conversation:${name}`);
++      return { projectId: project.id, developerSlotId: slot.id };
++    });
++    const input = { id: 'cb-hive', name: 'CB × Hive 联合开发', leadIdentity: 'cb-hive-chief', leadConversationKey: 'conversation:chief', members };
++    const router = new RpcRouter(plane, 'test-admin', 'test-browser');
++    expect(router.handle({ id: 'denied', method: 'project-group.upsert', params: input, auth: { browserToken: 'test-browser' } }).ok).toBe(false);
++    expect(router.handle({ id: 'create', method: 'project-group.upsert', params: input, auth: { adminToken: 'test-admin' } }).ok).toBe(true);
++    const group = plane.upsertProjectGroup(input);
++    const snapshot = router.handle({ id: 'snapshot', method: 'control.snapshot', auth: { browserToken: 'test-browser' } });
++    expect(snapshot.ok).toBe(true);
++    if (snapshot.ok) expect(snapshot.result).toMatchObject({ projectGroups: [group] });
++    expect(() => plane.createAgentSlot(members[0]!.projectId, 'developer')).toThrow(/role/);
++    expect(plane.upsertProjectGroup(input)).toEqual(group);
++    expect(group).not.toHaveProperty('rootPath');
++    expect(group.browserRuntime).toBe('NOT_VERIFIED');
++    expect(plane.listProjects()).toHaveLength(2);
++    expect(plane.listAgentSlots().map(s => s.role)).toEqual(['developer', 'developer']);
++    expect(() => plane.upsertProjectGroup({ ...input, leadConversationKey: 'conversation:replacement' })).toThrow(/rebind/);
++    expect(() => plane.upsertProjectGroup({ ...input, id: 'other' })).toThrow();
++    expect(() => plane.upsertProjectGroup({ ...input, members: [members[0]!, members[0]!] })).toThrow(/distinct/);
++    const extra = plane.createAgentSlot(members[0]!.projectId, 'reviewer');
++    expect(() => plane.bindAgentConversation(extra.id, 'conversation:chief')).toThrow(/group/);
++    expect(() => plane.upsertProjectGroup({ ...input, id: 'bad', leadIdentity: 'other', leadConversationKey: 'conversation:Hive' })).toThrow();
++    expect(() => plane.upsertProjectGroup({ ...input, members: [{ ...members[0]!, developerSlotId: members[1]!.developerSlotId }, members[1]!] })).toThrow(/developer/);
++    db.close();
++    db = new ControlDatabase(path);
++    plane = new ControlPlane(db);
++    expect(plane.getProjectGroup(input.id)).toEqual(group);
++    expect(db.health().ok).toBe(true);
++  } finally { db.close(); rmSync(dir, { recursive: true, force: true }); }
++});
+diff --git a/dashboard/radar.css b/dashboard/radar.css
+index 1c2a81d157caa4a9c652380c252610c7f61e6272..7c8a466d23a453489df8aee7af59595a5446bd0e 100644
+--- a/dashboard/radar.css
++++ b/dashboard/radar.css
+@@ -5,3 +5,5 @@
+ @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+ .control-panel{margin-bottom:24px}.control-panel summary{padding:18px 20px;cursor:pointer;font-weight:600;min-height:52px}.control-panel summary span{font-weight:400;color:var(--muted);font-size:12px;margin-left:12px}.control-form{padding:0 20px 20px;display:grid;gap:16px}.control-help{color:var(--muted);font-size:13px;max-width:100ch}.control-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.control-form label{display:grid;gap:8px;font-size:13px;color:var(--muted);min-width:0}.control-form select{max-width:none;width:100%;min-width:0}.control-form input:not([type=checkbox]),.control-form textarea{width:100%;background:#1b2a3e;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:10px 12px;font:inherit;min-height:44px}.control-form textarea{resize:vertical}.control-form .check-label{display:flex;align-items:center;gap:10px;min-height:44px}.check-label input{width:20px;height:20px;accent-color:var(--accent);flex-shrink:0}.control-baseline{display:flex;align-items:center;gap:16px;justify-content:space-between;font-size:13px;color:var(--muted);overflow-wrap:anywhere}.control-baseline button{flex-shrink:0}.control-actions{display:flex;align-items:center;gap:18px}.control-actions p{font-size:13px;overflow-wrap:anywhere}#control-result[data-state=error]{color:var(--warn)}#control-result[data-state=success]{color:var(--accent)}.control-form :disabled{opacity:.55;cursor:not-allowed}.control-form :focus-visible,.control-panel summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+ @media(max-width:550px){.control-grid{grid-template-columns:1fr}.control-baseline,.control-actions{align-items:stretch;flex-direction:column}.control-panel summary span{display:block;margin:6px 0 0}}
++
++.project-group{grid-column:1/-1;border:1px solid var(--line);border-radius:10px;padding:16px}.project-group summary{cursor:pointer;min-height:44px;font-weight:600}.project-group>p{overflow-wrap:anywhere;color:var(--muted);font-size:12px;margin:12px 0}.project-group>.project{margin-top:12px}
+diff --git a/dashboard/radar.ts b/dashboard/radar.ts
+index 938b7b41683cfc3c949a4a958bd44cfc14edd713..16bba5ba3bdcd702b0183d9c6084d257dca62ccb 100644
+--- a/dashboard/radar.ts
++++ b/dashboard/radar.ts
+@@ -9,6 +9,10 @@
+   if (!value || typeof value !== 'object') return false;
+   const x = value as RadarSnapshot;
+   return x.schemaVersion === 1 && typeof x.instanceId === 'string' && !!x.instanceId && Number.isFinite(x.observedAt) && Number.isFinite(x.observationTtlMs) &&
++    (x.projectGroups === undefined || (Array.isArray(x.projectGroups) && x.projectGroups.every(g => g &&
++      [g.id, g.name, g.leadIdentity, g.leadConversationKey].every(v => typeof v === 'string') &&
++      g.leadRole === 'chief_engineer' && g.browserRuntime === 'NOT_VERIFIED' && Array.isArray(g.members) &&
++      g.members.every(m => m && typeof m.projectId === 'string' && typeof m.developerSlotId === 'string')))) &&
+     Array.isArray(x.projects) && x.projects.every(p => p && [p.id, p.name, p.rootPath, p.status].every(v => typeof v === 'string') &&
+       Number.isFinite(p.minSlots) && Number.isFinite(p.maxSlots) && p.fleet && typeof p.fleet.mode === 'string' && typeof p.fleet.lifecycleLocked === 'boolean' && Number.isFinite(p.fleet.revision)) &&
+     Array.isArray(x.agents) && x.agents.every(a => a && [a.id, a.projectId, a.role, a.status, a.desiredState, a.browserState, a.pageStatus, a.rolloverState].every(v => typeof v === 'string') &&
+@@ -64,14 +68,34 @@
+     get('online-count').textContent = connected ? String(agents.filter(a => a.observationState === 'fresh' && a.browserState === 'open').length) : '—';
+     get('locked-count').textContent = String(projects.filter(p => p.fleet.lifecycleLocked).length);
+     get('instance').textContent = `Kernel ${data.instanceId}`;
+-    const projectRoot = get('projects'); projectRoot.replaceChildren();
++    const projectRoot = get('projects');
++    const expandedGroups = new Set(Array.from(projectRoot.querySelectorAll<HTMLDetailsElement>('details.project-group[open]')).map(g => g.dataset.groupId));
++    projectRoot.replaceChildren();
++    const cards = new Map<string, HTMLElement>();
+     for (const p of projects) {
+       const card = el('article', undefined, 'project'); card.append(el('h3', p.name));
+       const tags = el('div', undefined, 'tags'); tags.append(tag(labels[p.status] ?? p.status), tag(labels[p.fleet.mode] ?? p.fleet.mode),
+         tag(p.fleet.lifecycleLocked ? '生命周期已锁定 / Locked' : '生命周期未锁定 / Unlocked', p.fleet.lifecycleLocked ? 'warn' : ''),
+         tag(`${agents.filter(a => a.projectId === p.id).length} 个角色会话`));
+-      card.append(tags, el('p', `${p.rootPath} · 槽位 ${p.minSlots}–${p.maxSlots}`)); projectRoot.append(card);
++      card.append(tags, el('p', `Project ID ${p.id} · ${p.rootPath} · 槽位 ${p.minSlots}–${p.maxSlots}`)); cards.set(p.id, card);
+     }
++    for (const group of data.projectGroups ?? []) {
++      const members = group.members.filter(m => cards.has(m.projectId));
++      if (!members.length) continue;
++      const section = el('details', undefined, 'project-group');
++      section.dataset.groupId = group.id;
++      section.open = expandedGroups.has(group.id);
++      section.append(el('summary', `${group.name} · ${group.id}`),
++        el('p', `${group.leadRole} · ${group.leadIdentity} · ${group.leadConversationKey} · binding metadata · browser NOT_VERIFIED`));
++      for (const member of members) {
++        const card = cards.get(member.projectId)!;
++        const developer = data.agents.find(a => a.id === member.developerSlotId && a.projectId === member.projectId);
++        card.append(el('p', `developer · AgentSlot ${member.developerSlotId} · ${developer?.conversationKey ?? 'UNBOUND'} · ${developer?.observationState ?? 'unavailable'}`));
++        section.append(card); cards.delete(member.projectId);
++      }
++      projectRoot.append(section);
++    }
++    projectRoot.append(...cards.values());
+     if (!projects.length) projectRoot.append(el('p', '此 Kernel 尚无项目 / No projects in this Kernel.', 'empty'));
+     const agentRoot = get('agents'); agentRoot.replaceChildren();
+     for (const a of agents) {
+diff --git a/docs/T-000459-CLOSEOUT.md b/docs/T-000459-CLOSEOUT.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..031b62fc9f987cb1cab838221396bcf52f54184f
+--- /dev/null
++++ b/docs/T-000459-CLOSEOUT.md
+@@ -0,0 +1,247 @@
++# T-000459 release candidate closeout — blocked
++
++Source checks passed; transport acceptance failed. NOT_SOURCE_READY,
++NOT_PUBLISHED, NOT_DEPLOYED, NOT_REGISTERED. No candidate commit SHA or PR URL
++exists. [PR #13](https://github.com/Su9moon/Charterion/pull/13) remains the
++separate rename Draft at `0f3957deb25cb2aa2a8b198e2d4b5f0ec1265659`.
++[PCP #36](https://github.com/Su9moon/personal-ai-control-plane/issues/36)
++was read again on 2026-10-30; its latest single Developer rule governs this work.
++Raw authority metadata is in `reports/T-000459/authorities.json`.
++
++There are two explicitly different source contexts:
++
++* Registered input HEAD `26fab27ef6af399f2d07cfb3815b123a9692db99`:
++  reviewed T-000458 delta retained, hardened binding constraints and browser
++  authorization tests. It has a side panel, **no standalone Radar**. Do not deploy
++  this older context over PR #13.
++* PR #13 pinned source reconstructed inside `.build-cache/T-000459-pr13-base`
++  and copied to `.build-cache/T-000459-pr13-candidate`, without Git branch,
++  index or commit operations. Every reconstructed text file was checked against
++  the Git blob SHA in `reports/T-000459/pr13-tree.json`. Binary review screenshots
++  were not downloaded; source builds do not consume them. The mail-format patch
++  `reports/T-000459/pr13-candidate.patch` is the portable deliverable for this
++  context. It preserves all unrelated PCP/rebrand code. The cache is disposable;
++  the patch, manifest and checksums are retained repository artifacts.
++
++The prior diff and exact file inventory are `prior-tracked.diff` and
++`prior-files.txt` under that report directory. `candidate-files.json` enumerates
++each pinned-source change with old Git blob and new SHA-256. `registered-files.json`
++enumerates the retained older-context source delta. README/manifest/package
++changes only synchronize 0.5.1 metadata. No independent CB source/runtime was
++changed. No developer was added, dispatched or registered.
++
++The pinned patch fixes standalone Radar projection, validated snapshot parsing,
++expandable hierarchy, stable expansion on refresh, project/slot/lead identity
++display, filtering, ungrouped project preservation and safe text rendering.
++Group leads remain binding metadata with browser NOT_VERIFIED, never a fabricated
++online AgentSlot. Existing browser-observation counts remain independent.
++
++PR #13 already owns V28 (fleet) and V29 (conversation bootstrap), so its group
++migration is **V30**, not the prior candidate's V28. It preserves those tables
++and bindings. SQLite and application checks prevent lead/member rebinding and
++duplicate conversations/identities. Admin upsert/list/get remain on the admin
++CLI/RPC path. They are deliberately absent from the browser native allowlist;
++browser consumers read group projections through authenticated snapshots. Native
++generated-contract/routing checks pass (29 methods in registered input, 30 in
++pinned PR #13 context). No native binary build or Windows host execution claimed.
++
++Validation commands, working directories, exit codes, counts and log paths are
++in `reports/T-000459/checks.json`. Linux command-local PATH selected Node
++v22.23.4 / npm 10.9.9; exact executable paths are in `logs/runtime.txt`.
++Registered context: 9 focused tests; both typechecks and both builds passed.
++Pinned context: 6 migration, 4 group/admin/binding/restart and 2 static
++panel/Radar tests passed; both typechecks and extension/control/Radar builds
++passed. These are source tests, not browser E2E or full-suite acceptance.
++
++An initial added binding test expected a SQL `rebind` error, but the application
++correctly rejected it earlier with the existing durable-conversation `rollover`
++guard. The assertion now accepts either protective rejection; it was rerun and
++passed. The original failure log is retained as `logs/registered-focused.txt`.
++The first patch replay also failed its checksum assertion because Git skipped
++paths when invoked from a nested directory. Replay now uses an explicit
++`--directory` from the repository root; all changed-file hashes matched on rerun.
++The final older-context test command explicitly excludes `.build-cache` so its
++counts cannot accidentally include the isolated candidate's tests.
++
++Four unresolved cases in `control/tests/ipc.test.ts`, describe `named-pipe transport`:
++
++1. `survives clients that disconnect after sending a request`
++2. `rejects malformed request envelopes before routing`
++3. `round-trips one RPC request over the daemon transport`
++4. `rejects a response whose id does not match the request`
++
++All four failed on real `server.listen` with EPERM before transport assertions.
++`scripts/t000459-socket-probe.mjs`, which imports no Hive code, independently
++gets EPERM for both Unix sockets and loopback TCP. This establishes sandbox
++listen denial, **not** a host transport pass or proof that no transport bug exists.
++No test was skipped/mocked to claim a pass. Full suite, loopback HTTP acceptance,
++native binary smoke, browser E2E and Windows registration remain unverified.
++
++Publication is blocked by the execution envelope explicitly forbidding branch
++creation, add/commit/push/PR operations and assigning publication to the bridge.
++Authentication was not probed or changed; this is not an auth-failure claim.
++The patch mail header uses a null commit marker because no commit exists.
++Its parent is the exact PR #13 SHA above. Checksums are in `SHA256SUMS`.
++There is no download URL to substitute for a published candidate.
++
++## Windows source verification and ONLY the four pending tests
++
++Not executed here. Use a separate, approved Hive source copy already at the exact
++PR #13 pin, supplied by the bridge/operator; preserve existing checkouts and WIP.
++Copy the actual patch and its recorded checksum from the task artifact. This does
++not install, start or register a runtime:
++
++```powershell
++$ErrorActionPreference = 'Stop'
++$Source = Read-Host 'Absolute isolated Hive source path at PR13 HEAD'
++$Patch = Read-Host 'Absolute local path to pr13-candidate.patch'
++$ExpectedHash = Read-Host 'SHA256 from task SHA256SUMS'
++if ((Get-FileHash -LiteralPath $Patch -Algorithm SHA256).Hash -ne $ExpectedHash) { throw 'Patch hash mismatch' }
++if ((git -C $Source rev-parse HEAD).Trim() -ne '0f3957deb25cb2aa2a8b198e2d4b5f0ec1265659') { throw 'Wrong baseline' }
++if (git -C $Source status --porcelain) { throw 'Use a clean isolated source copy' }
++git -C $Source apply --check -- $Patch
++if ($LASTEXITCODE) { throw 'Patch does not apply' }
++git -C $Source apply -- $Patch
++if ($LASTEXITCODE) { throw 'Patch application failed' }
++Set-Location -LiteralPath $Source
++node --version
++npm --version
++npm ci
++if ($LASTEXITCODE) { throw 'Dependency installation failed' }
++# Exactly four transport cases, no broad suite and no runtime installation:
++npm test -- control/tests/ipc.test.ts -t '^named-pipe transport'
++if ($LASTEXITCODE) { throw 'Pending transport acceptance FAILED; do not upgrade' }
++```
++
++Capture the terminal output, source/patch hashes, OS/Node/npm versions and the
++four names with PASS before closing transport acceptance. Other IPC cases are
++excluded by this exact describe filter; exclusions are not passes.
++
++## Host upgrade gates and rollback
++
++This is a source-reviewed procedure, **not a verified Windows upgrade receipt**.
++Read-only preflight uses the actual installed entry point:
++
++```powershell
++$Install = 'F:\0 codex\Hive-PCP-Dev-Trial-001'
++$Ctl = Join-Path $Install 'PCP-Control.cmd'
++Get-Item -LiteralPath $Ctl
++Get-Content -LiteralPath (Join-Path $Install 'trial.json')
++& $Ctl health
++if ($LASTEXITCODE) { throw 'Installed Kernel unavailable' }
++& $Ctl project.list --admin
++& $Ctl agent.list --admin
++```
++
++Expected prior inventory from PCP #36: instance `b7c82d2e8c4c1930`, prior installed
++SHA `0f3957deb25cb2aa2a8b198e2d4b5f0ec1265659`. These are authoritative expected
++values, not observations made by this task. Compare real host readbacks. Do not
++use the old withdrawn joint-ProjectCell script.
++
++Upgrade must wait for a bridge-reviewed candidate source commit, four transport
++passes and host release packaging/native validation. The pinned installer
++`scripts/pcp-trial.mjs install` refuses an existing installation root; it is NOT
++an in-place updater. Do not bypass it by replacing bundles or editing release
++hashes/trial.json by hand. No safe in-place update command has been verified in
++this sandbox, so none is fabricated here.
++
++For an authorized host upgrade of this **existing new Dev Trial only**, the
++operator must use the approved host lifecycle/package workflow: verify PID,
++instance, external Chrome Dev mode and current pin; stop only that Kernel;
++take a consistent stopped backup of its entire data directory (including any
++WAL/SHM), trial/release metadata, launchers and registration targets; record
++SHA-256 hashes. Retain the prior version directory. Stage the reviewed new
++version with its generated release hashes and native manifest; preserve the
++same home/instance, extension key/ID, tokens and Native Host identity. Switch
++using the trusted package workflow, then start only that same Kernel. Never
++run the legacy installer, import an old Trial DB, replace an old Trial, change
++Chrome Dev Default, launch a new profile, or alter CB Blue/Green.
++
++Before binding, `PCP-Control.cmd health` must report that same instance and the
++host inventory must show the reviewed new commit and manifest version 0.5.1.
++Open Radar from the existing extension on the existing Chrome Dev profile; verify
++the group UI and source pin. Preserve separate evidence for browser delivery.
++
++On upgrade failure, stop only the candidate Kernel; restore the **complete
++stopped pre-upgrade data snapshot plus prior package/metadata/launchers and
++registration targets together**, and start that prior pin. Do not open a V30
++database with a V29 binary or copy only global.db from a live instance. Confirm
++health, original instance and original inventory after rollback. Retain failed
++candidate evidence. No rollback or host changes were executed by this task.
++
++## Registration after verified upgrade
++
++Use this only after the gates above. CB's true Windows code root is UNKNOWN
++here; obtain it from the host Green registry and verify its remote/HEAD read-only.
++The two roots must be distinct real checkouts. Both technical roles are
++`developer`; the group lead is `chief_engineer`, never a third ProjectCell.
++The following function uses the actual installed PCP wrapper (which selects its
++existing home/instance), not a guessed default GAM_HOME:
++
++```powershell
++$ErrorActionPreference = 'Stop'
++$Install = 'F:\0 codex\Hive-PCP-Dev-Trial-001'
++$Ctl = Join-Path $Install 'PCP-Control.cmd'
++$Trial = Get-Content -Raw -LiteralPath (Join-Path $Install 'trial.json') | ConvertFrom-Json
++$ApprovedPin = Read-Host 'Reviewed installed candidate SHA from bridge'
++if ($ApprovedPin -notmatch '^[0-9a-f]{40}$' -or $ApprovedPin -eq '0f3957deb25cb2aa2a8b198e2d4b5f0ec1265659') { throw 'Candidate pin required' }
++if ($Trial.instanceId -ne 'b7c82d2e8c4c1930' -or $Trial.sourceSha -ne $ApprovedPin) { throw 'Installed identity/pin mismatch' }
++$Manifest = Get-Content -Raw -LiteralPath (Join-Path $Install "versions\$ApprovedPin\manifest.json") | ConvertFrom-Json
++if ($Manifest.version -ne '0.5.1') { throw 'Wrong runtime version' }
++function Invoke-HiveRpc([string]$Method, [hashtable]$Params = @{}) {
++  $raw = ($Params | ConvertTo-Json -Depth 10 -Compress) | & $Ctl $Method --admin --stdin
++  if ($LASTEXITCODE) { throw "RPC failed: $Method" }
++  $reply = ($raw -join "`n") | ConvertFrom-Json
++  if (-not $reply.ok) { throw "RPC rejected: $Method" }
++  return $reply.result
++}
++if ((Invoke-HiveRpc 'health').instanceId -ne $Trial.instanceId) { throw 'Wrong Kernel' }
++$HiveRoot = (Get-Item -LiteralPath 'F:\0 codex\Hive-PCP').FullName
++$CbRoot = (Get-Item -LiteralPath (Read-Host 'CB real Windows root verified against Green registry')).FullName
++if ($HiveRoot -eq $CbRoot) { throw 'Independent roots required' }
++foreach ($root in @($HiveRoot, $CbRoot)) {
++  $top = git -C $root rev-parse --show-toplevel
++  if ($LASTEXITCODE -or (($top -replace '/', '\').TrimEnd('\') -ne $root.TrimEnd('\'))) { throw 'Root is not checkout top level' }
++  git -C $root remote -v
++  git -C $root rev-parse HEAD
++  git -C $root status --short
++}
++function Ensure-Developer([string]$Name, [string]$Root, [string]$Conversation) {
++  $matches = @(Invoke-HiveRpc 'project.list' | Where-Object { ($_.rootPath -replace '/', '\').TrimEnd('\') -eq $Root.TrimEnd('\') })
++  if ($matches.Count -gt 1) { throw 'Ambiguous project root' }
++  $project = if ($matches.Count -eq 1) { $matches[0] } else { Invoke-HiveRpc 'project.create' @{ name=$Name; rootPath=$Root; minSlots=0; maxSlots=1 } }
++  if ($project.status -eq 'archived') { throw 'Archived project requires review' }
++  $slots = @(Invoke-HiveRpc 'agent.list' | Where-Object { $_.projectId -eq $project.id -and $_.role -eq 'developer' })
++  if ($slots.Count -gt 1) { throw 'Multiple developers require explicit review' }
++  $slot = if ($slots.Count -eq 1) { $slots[0] } else { Invoke-HiveRpc 'agent.create' @{ projectId=$project.id; role='developer' } }
++  if ($slot.desiredState -ne 'active') { throw 'Inactive slot requires review' }
++  if ($slot.conversationKey -and $slot.conversationKey -ne $Conversation) { throw 'Refusing conversation rebind' }
++  if (-not $slot.conversationKey) { $slot = Invoke-HiveRpc 'agent.bind' @{ slotId=$slot.id; conversationKey=$Conversation } }
++  return @{ projectId=$project.id; developerSlotId=$slot.id }
++}
++$hive = Ensure-Developer 'Hive' $HiveRoot 'conversation:6ae37f99-31e4-83ea-9c50-10f89657dfbe'
++$cb = Ensure-Developer 'Codex Bridge' $CbRoot 'conversation:6ae37fdf-f4ac-83ea-9630-e7ad0159b595'
++$group = @{
++  id='cb-hive'; name='CB × Hive 联合开发'; leadIdentity='cb-hive-chief-engineer'
++  leadConversationKey='conversation:6ae23bab-209c-83ea-b5d0-0bf543e64500'
++  members=@($hive, $cb)
++}
++Invoke-HiveRpc 'project-group.upsert' $group
++Invoke-HiveRpc 'project-group.upsert' $group
++Invoke-HiveRpc 'project-group.get' @{ id='cb-hive' }
++Invoke-HiveRpc 'control.snapshot'
++```
++
++`cb-hive` and `cb-hive-chief-engineer` above are proposed logical metadata keys,
++not claims of host-issued identities. Project/AgentSlot IDs come only from real
++RPC responses. Stop on any existing conflicting binding; never rebind/delete to
++make this script succeed. The helper creates at most one missing Developer per
++verified project; it does not implement future `+ Developer` expansion.
++
++Record the actual two Project IDs, their independent roots, two developer Slot
++IDs, canonical keys, group chief identity and snapshot; repeat get/snapshot after
++a host-owned Kernel-only restart using verified launchers. Inspect standalone
++Radar with one expandable logical group, two real projects and preserved keys;
++inspect counts and browser online state separately. Only real post-restart host
++readbacks can close registration. Future additional Developers require explicit
++user action/authorization and confirmation, outside this release slice.
+diff --git a/manifest.json b/manifest.json
+index a2c580903007f5321b2e6440e62c757b2d7a6e0c..fa2c7bdc40b9c99339cbaca4b86d34622d006c5e 100644
+--- a/manifest.json
++++ b/manifest.json
+@@ -1,7 +1,7 @@
+ {
+   "manifest_version": 3,
+   "name": "Hive",
+-  "version": "0.5.0",
++  "version": "0.5.1",
+   "description": "Open-source multi-agent engineering control plane for ChatGPT Web Agents.",
+   "permissions": [
+     "tabs",
+diff --git a/package-lock.json b/package-lock.json
+index f394c029c37793e25fbf6fd67f6c90193c0288e2..3413a53b34668da65d87c4a1a8b206a15a3fe750 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "hive",
+-  "version": "0.5.0",
++  "version": "0.5.1",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "hive",
+-      "version": "0.5.0",
++      "version": "0.5.1",
+       "license": "Apache-2.0",
+       "devDependencies": {
+         "@types/chrome": "^0.2.8",
+diff --git a/package.json b/package.json
+index a88b9b992637e97e758204d405fb892f562008c2..92e008c9259ad4f6c8cd25ea759d4c6449cedc13 100644
+--- a/package.json
++++ b/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "hive",
+-  "version": "0.5.0",
++  "version": "0.5.1",
+   "private": true,
+   "description": "Open-source multi-agent engineering control plane for ChatGPT Web Agents.",
+   "license": "Apache-2.0",
+diff --git a/shared/radar.ts b/shared/radar.ts
+index 09697beb1a752bd5c7e5a28d48d80d3394160ded..097f86c2c50b09a5b8167808488f745d21a52063 100644
+--- a/shared/radar.ts
++++ b/shared/radar.ts
+@@ -10,7 +10,13 @@
+   quarantined: boolean; error: string | null;
+ }
+ export interface RadarEvent { seq: number; projectId: string | null; type: string; subject: string; createdAt: number }
++export interface RadarProjectGroup {
++  id: string; name: string; leadIdentity: string; leadRole: 'chief_engineer';
++  leadConversationKey: string; browserRuntime: 'NOT_VERIFIED';
++  members: { projectId: string; developerSlotId: string }[];
++}
+ export interface RadarSnapshot {
++  projectGroups?: RadarProjectGroup[];
+   schemaVersion: 1; instanceId: string; observedAt: number; refreshAfterMs: number; observationTtlMs: number;
+   projects: RadarProject[]; agents: RadarAgent[]; events: RadarEvent[];
+ }
+diff --git a/src/nativeControlLegacy.ts b/src/nativeControlLegacy.ts
+index 5c573fe5c8d68d74284a55cca3388f954569a447..cb27411ff4c49c667179058fb2f444f236f5e040 100644
+--- a/src/nativeControlLegacy.ts
++++ b/src/nativeControlLegacy.ts
+@@ -119,7 +119,14 @@
+   decidedBy?: string; decisionNote?: string; createdAt: number; updatedAt: number;
+ }
+ 
++export interface ControlProjectGroupView {
++  id: string; name: string; leadIdentity: string; leadRole: 'chief_engineer';
++  leadConversationKey: string; browserRuntime: 'NOT_VERIFIED';
++  members: { projectId: string; developerSlotId: string }[];
++}
++
+ export interface NativeControlSnapshot {
++  projectGroups?: ControlProjectGroupView[];
+   protocolVersion: 2;
+   projects: ControlProjectView[];
+   agents: ControlAgentView[];
+@@ -168,6 +175,20 @@
+ export function parseNativeControlSnapshot(value: unknown): NativeControlSnapshot {
+   const root = record(value, 'control snapshot');
+   if (root.protocolVersion !== 2) throw new Error('Unsupported control protocol version');
++  const projectGroups = arrayField(root.projectGroups ?? [], 'projectGroups').map(entry => {
++    const item = record(entry, 'projectGroup');
++    return {
++      id: stringField(item.id, 'group.id'), name: stringField(item.name, 'group.name'),
++      leadIdentity: stringField(item.leadIdentity, 'group.leadIdentity'),
++      leadRole: enumField(item.leadRole, 'group.leadRole', new Set(['chief_engineer'])) as 'chief_engineer',
++      leadConversationKey: stringField(item.leadConversationKey, 'group.leadConversationKey'),
++      browserRuntime: enumField(item.browserRuntime, 'group.browserRuntime', new Set(['NOT_VERIFIED'])) as 'NOT_VERIFIED',
++      members: arrayField(item.members, 'group.members').map(value => {
++        const member = record(value, 'group.member');
++        return { projectId: stringField(member.projectId, 'member.projectId'), developerSlotId: stringField(member.developerSlotId, 'member.developerSlotId') };
++      }),
++    };
++  });
+   const projects = arrayField(root.projects, 'projects').map((entry, index) => {
+     const item = record(entry, `projects[${index}]`);
+     return {
+@@ -283,7 +304,7 @@
+     if (item.projectId !== undefined) event.projectId = stringField(item.projectId, 'event.projectId');
+     return event;
+   });
+-  return { protocolVersion: 2, projects, agents, resources, leases, changeRequests, reviews, mergeQueue, workerRequests, browserRuntime, events };
++  return { protocolVersion: 2, projectGroups, projects, agents, resources, leases, changeRequests, reviews, mergeQueue, workerRequests, browserRuntime, events };
+ }
+ 
+ export async function readNativeControlSnapshot(): Promise<NativeControlSnapshot> {
+diff --git a/src/projectGroupCards.ts b/src/projectGroupCards.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..91a79cfc38d17ee2c8892f79d1c0bb456feb1962
+--- /dev/null
++++ b/src/projectGroupCards.ts
+@@ -0,0 +1,21 @@
++import type { NativeControlSnapshot } from './nativeControlLegacy';
++
++/** Binding metadata is never promoted to a browser online observation. */
++export function projectGroupCards(snapshot: NativeControlSnapshot, cards: HTMLElement[]): HTMLElement[] {
++  const grouped = new Set<string>();
++  const groups = (snapshot.projectGroups ?? []).map(group => {
++    const node = document.createElement('details');
++    const summary = document.createElement('summary');
++    summary.textContent = `${group.name} · ${group.id}`;
++    const lead = document.createElement('div');
++    lead.className = 'control-agent-row';
++    lead.textContent = [group.leadRole, group.leadIdentity, group.leadConversationKey, 'binding metadata', 'browser NOT_VERIFIED'].join(' · ');
++    node.append(summary, lead);
++    for (const member of group.members) {
++      const index = snapshot.projects.findIndex(project => project.id === member.projectId);
++      if (index >= 0 && cards[index]) { grouped.add(member.projectId); node.append(cards[index]!); }
++    }
++    return node;
++  });
++  return [...groups, ...cards.filter((_, index) => !grouped.has(snapshot.projects[index]!.id))];
++}
+diff --git a/src/sidepanel.ts b/src/sidepanel.ts
+index 204b6f4806d904035fbf79ec419a9d652706810a..1f78fa8608ad715b7041d9863c763e4a3ed43d99 100644
+--- a/src/sidepanel.ts
++++ b/src/sidepanel.ts
+@@ -1,3 +1,4 @@
++import { projectGroupCards } from './projectGroupCards';
+ import type {
+   AgentMessageType,
+   CreateAgentMessageInput,
+@@ -423,7 +424,7 @@
+     for (const agent of projectAgents) {
+       const row = el('div', 'control-agent-row');
+       const tab = agent.browserTabId !== undefined ? 'tab ' + agent.browserTabId : '无标签 / no tab';
+-      row.textContent = [agent.role, '期望 / desired ' + displayState(agent.desiredState), '浏览器 / browser ' + displayState(agent.browserState), tab].join(' · ');
++      row.textContent = [agent.role, agent.id, agent.conversationKey ?? 'unbound', '期望 / desired ' + displayState(agent.desiredState), '浏览器 / browser ' + displayState(agent.browserState), tab].join(' · ');
+       if (agent.browserError) row.title = agent.browserError;
+       card.append(row);
+     }
+@@ -436,7 +437,7 @@
+     for (const change of changes.slice(-5).reverse()) { const row = el('div', 'control-change-row'); const reviews = controlSnapshot!.reviews.filter((x) => x.changeRequestId === change.id); const latestReview = reviews.at(-1); const queue = controlSnapshot!.mergeQueue.find((x) => x.changeRequestId === change.id); const reviewText = latestReview ? latestReview.verdict : 'pending-review'; const queueText = queue ? queue.status + (queue.candidateSha ? ':' + queue.candidateSha.slice(0, 10) : '') : 'not-queued'; row.textContent = [change.status, change.branch + ' → ' + change.targetBranch, 'r' + change.revision, change.headSha.slice(0, 10), reviewText, queueText].join(' · '); card.append(row); }
+     return card;
+   });
+-  controlProjects.replaceChildren(...cards); const activeLeases = controlSnapshot.leases.filter((x) => x.status === 'active').length; const tabs = runtime?.openTabs ?? 0;
++  controlProjects.replaceChildren(...projectGroupCards(controlSnapshot, cards)); const activeLeases = controlSnapshot.leases.filter((x) => x.status === 'active').length; const tabs = runtime?.openTabs ?? 0;
+   controlSummary.textContent = ['ChatGPT ' + auth, tabs + ' 个标签 / tab(s)', controlSnapshot.projects.length + ' 个项目 / project(s)', controlSnapshot.agents.length + ' 个角色槽 / agent slot(s)', activeLeases + ' 个租约 / active lease(s)', controlSnapshot.mergeQueue.filter((x) => x.status === 'validating').length + ' 个验证中的合并 / validating merge(s)'].join(' · ');
+ }
+ 
+diff --git a/tests/projectGroupCards.test.ts b/tests/projectGroupCards.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..4e7a356997bb4c3372c6e08f7bdcf957045cc087
+--- /dev/null
++++ b/tests/projectGroupCards.test.ts
+@@ -0,0 +1,19 @@
++// @vitest-environment jsdom
++import { expect, it } from 'vitest';
++import { projectGroupCards } from '../src/projectGroupCards';
++import type { NativeControlSnapshot } from '../src/nativeControlLegacy';
++
++it('renders one expandable joint group and preserves standalone projects', () => {
++  const projects = ['Hive', 'CB', 'Standalone'].map(id => ({ id, name: id }));
++  const snapshot = { projects, projectGroups: [{ id: 'joint', name: 'CB × Hive', leadRole: 'chief_engineer', leadIdentity: 'chief', leadConversationKey: 'conversation:chief', members: projects.slice(0, 2).map(p => ({ projectId: p.id, developerSlotId: p.id })) }] } as NativeControlSnapshot;
++  const cards = projects.map(p => { const card = document.createElement('article'); card.textContent = p.name + ' developer'; return card; });
++  const nodes = projectGroupCards(snapshot, cards);
++  expect(nodes).toHaveLength(2);
++  expect(nodes[0]!.tagName).toBe('DETAILS');
++  expect(nodes[0]!.querySelectorAll('article')).toHaveLength(2);
++  expect(nodes[0]!.textContent).toContain('chief_engineer');
++  expect(nodes[0]!.textContent).toContain('browser NOT_VERIFIED');
++  expect(nodes[1]).toBe(cards[2]);
++  const { projectGroups, ...legacySnapshot } = snapshot;
++  expect(projectGroupCards(legacySnapshot, cards)).toEqual(cards);
++});
+diff --git a/tests/radarProjectGroups.test.ts b/tests/radarProjectGroups.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..95dd998fd2b360760791544462b8c07c1f352a3c
+--- /dev/null
++++ b/tests/radarProjectGroups.test.ts
+@@ -0,0 +1,59 @@
++import { readFileSync } from 'node:fs';
++import { JSDOM } from 'jsdom';
++import { expect, it, vi } from 'vitest';
++import { ControlDatabase } from '../control/src/database';
++import { ControlPlane } from '../control/src/controlPlane';
++import { readRadarSnapshot } from '../control/src/radarSnapshot';
++import { mountRadar } from '../dashboard/radar';
++
++it('renders real persisted group bindings in standalone Radar, filters projects, and never counts a lead as online', async () => {
++  const db = new ControlDatabase(':memory:');
++  const plane = new ControlPlane(db);
++  const members = ['Hive', 'CB'].map(name => {
++    const p = plane.createProject({ name, rootPath: `F:/${name}`, minSlots: 0 });
++    const a = plane.createAgentSlot(p.id, 'developer');
++    plane.bindAgentConversation(a.id, `conversation:${name}`);
++    return { projectId: p.id, developerSlotId: a.id };
++  });
++  const standalone = plane.createProject({ name: 'Standalone', rootPath: 'F:/standalone', minSlots: 0 });
++  plane.upsertProjectGroup({ id: 'joint', name: '<img src=x> CB × Hive', leadIdentity: 'chief', leadConversationKey: 'conversation:chief', members });
++  const data = readRadarSnapshot(plane, 'isolated-group-test');
++  expect(data.projects).toHaveLength(3);
++  expect(data.agents.map(a => a.role)).toEqual(['developer', 'developer']);
++  expect(data.projectGroups).toMatchObject([{ id: 'joint', leadRole: 'chief_engineer', browserRuntime: 'NOT_VERIFIED' }]);
++  expect(readRadarSnapshot(plane, 'test', standalone.id).projectGroups).toEqual([]);
++  expect(readRadarSnapshot(plane, 'test', members[0]!.projectId).projectGroups).toHaveLength(1);
++  const dom = new JSDOM(readFileSync('dashboard/index.html', 'utf8'), { url: 'http://127.0.0.1:34567/pcp/#read=test' });
++  const fetcher = vi.fn<typeof fetch>().mockImplementation(async () => Response.json(data));
++  const view = mountRadar(dom.window.document, dom.window as unknown as Window, fetcher);
++  try {
++    const doc = dom.window.document;
++    await vi.waitFor(() => expect(doc.body.dataset.state).toBe('connected'));
++    const group = doc.querySelector<HTMLDetailsElement>('details.project-group')!;
++    expect(group.open).toBe(false);
++    group.open = true;
++    expect(group.querySelectorAll('.project')).toHaveLength(2);
++    expect(group.textContent).toContain('chief_engineer');
++    expect(group.textContent).toContain('conversation:chief');
++    expect(group.textContent).toContain('NOT_VERIFIED');
++    for (const m of members) {
++      expect(group.textContent).toContain(m.projectId);
++      expect(group.textContent).toContain(m.developerSlotId);
++    }
++    expect(doc.querySelector('#projects > .project')?.textContent).toContain(standalone.id);
++    expect(doc.querySelector('img')).toBeNull();
++    expect(doc.getElementById('agent-count')?.textContent).toBe('2');
++    expect(doc.getElementById('online-count')?.textContent).toBe('0');
++    await view.refresh();
++    expect(doc.querySelector<HTMLDetailsElement>('details.project-group')?.open).toBe(true);
++    const filter = doc.querySelector<HTMLSelectElement>('#project-filter')!;
++    filter.value = members[0]!.projectId; filter.dispatchEvent(new dom.window.Event('change'));
++    expect(doc.querySelectorAll('details.project-group .project')).toHaveLength(1);
++    expect(doc.getElementById('agent-count')?.textContent).toBe('1');
++    fetcher.mockResolvedValueOnce(Response.json({ ...data, projectGroups: [{ ...data.projectGroups![0], members: [null] }] }));
++    await view.refresh();
++    expect(doc.body.dataset.state).toBe('unavailable');
++    expect(doc.getElementById('online-count')?.textContent).toBe('—');
++    expect(doc.querySelector('[id="control-submit"]')?.hasAttribute('disabled')).toBe(true);
++  } finally { view.dispose(); dom.window.close(); db.close(); }
++});
+-- 
+2.0.0

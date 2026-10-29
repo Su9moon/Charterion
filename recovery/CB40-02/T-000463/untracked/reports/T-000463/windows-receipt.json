@@ -1,0 +1,20 @@
+{
+  "authority": "User task text T-000463; external evidence, not locally executed or independently fetched",
+  "source": "C:\\Users\\jjyyz\\AppData\\Local\\Temp\\Hive-T459-f538ac73cd904fa886f733e430a4e839\\source",
+  "parent": "0f3957deb25cb2aa2a8b198e2d4b5f0ec1265659",
+  "patch_sha256": "2b6ce3618dd929fdc6c83bc36da85d1f6f069ab25b7c4c0edb1a274a0d7346e3",
+  "node": "Windows 24.14.0; jsdom EBADENGINE warning, runtime passed",
+  "reported_results": {
+    "targeted": "29/29 PASS",
+    "verify": "516/516 PASS; faults 34/34 PASS; extension/dist/control builds PASS",
+    "named_pipe": "4/4 PASS"
+  },
+  "repairs": {
+    "src/projectGroupCards.ts": "nativeControl facade import",
+    "control/src/database.ts": "whole migrateV30 method after migrateV29",
+    "tests/radarControlsUI.test.ts": "revision or request conflict wording",
+    "tests/radarUI.test.ts": "historical/unavailable, expired read session reopen, error, no snapshot bilingual assertions; original auth/offline/failure assertions retained",
+    "control/tests/pcpProjectFleetControl.test.ts": "schema 30"
+  },
+  "receipt_limit": "No raw Windows log or final Windows source hash supplied. Does not certify this new bilingual candidate."
+}

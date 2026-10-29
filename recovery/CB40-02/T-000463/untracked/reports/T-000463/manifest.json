@@ -1,0 +1,471 @@
+{
+  "parent": "0f3957deb25cb2aa2a8b198e2d4b5f0ec1265659",
+  "registered_head": "94552b547aecf6a6c1f96bf7beeb6457a0c09293",
+  "patch_sha256": "eb90362b09a3e0b6b9c96ed1109a6b21df1945ae509bb57cfc96dddf6a06d842",
+  "verified_baseline_files": 327,
+  "baseline_absent": [],
+  "files": [
+    {
+      "t459_sha256": "81458cb9a213799e2c16e75ccf64d1f34e5b5896667ea14ded311585122cf56b",
+      "path": "README.de.md",
+      "old_blob": "459bee039a1bc71a0fbe7a98e16c004cc8b85c12",
+      "new_sha256": null,
+      "reasons": [
+        "T-000459 candidate-files.json: README.de.md",
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": "b9e234b267d62c642f07e340e21309ff7a27a4647b442a0067515a130f894554",
+      "path": "README.es.md",
+      "old_blob": "e952352016fcca7a89ebfade465d30a4bd5608e9",
+      "new_sha256": null,
+      "reasons": [
+        "T-000459 candidate-files.json: README.es.md",
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": "4352f23660e454e2acbfffb58f3f1dc358c629a12be9d6fdaac40b5edca8b1b5",
+      "path": "README.fr.md",
+      "old_blob": "c04f3df23c16570638d6572f9f16d529d079eee0",
+      "new_sha256": null,
+      "reasons": [
+        "T-000459 candidate-files.json: README.fr.md",
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": "4d9836c8668bdeb4a5ef3512ff49eb51afbee799ebdbfd8d75d8ac35e43a1688",
+      "path": "README.ja.md",
+      "old_blob": "0638932b12d6da5172e1b9a64917b7868e148987",
+      "new_sha256": null,
+      "reasons": [
+        "T-000459 candidate-files.json: README.ja.md",
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": "8467b4eee4671f9eaa6ac9a08d0123959ad2e53a82ffae1ce97b9e3b866b97e4",
+      "path": "README.ko.md",
+      "old_blob": "c4c270249e81453cb0e004073239162ee36288d3",
+      "new_sha256": null,
+      "reasons": [
+        "T-000459 candidate-files.json: README.ko.md",
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": "86530d35afc4b0a6c3b7eba85bb3b831a84688521b2948bb3fb8166a0d4378fc",
+      "path": "README.md",
+      "old_blob": "925151af199408fb78025391d9cde54c7fa7108e",
+      "new_sha256": "f376fb0f6c6fed0c34094861c3d29165fb752900629c65232bd4c1d8d9d8f3a5",
+      "reasons": [
+        "T-000459 candidate-files.json: README.md",
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": "62d6001a7da940016f8fbb45df14913f8c70186d6cdd8c3cb5f6843b73e53ba8",
+      "path": "README.pt-BR.md",
+      "old_blob": "b75c466a1bd533913bd7eca58bf791c11db48412",
+      "new_sha256": null,
+      "reasons": [
+        "T-000459 candidate-files.json: README.pt-BR.md",
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": "94253a8175222c7bfe5758513d2e22470a2965fe8c8050d29cbeeaf2361aa63e",
+      "path": "README.ru.md",
+      "old_blob": "559ca8e2396889efd8c20f7acafcfd490258ff33",
+      "new_sha256": null,
+      "reasons": [
+        "T-000459 candidate-files.json: README.ru.md",
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": "2f364017787dc87ba15d159de18ad9e88ae8c5273c48b6d080a06da8e1b6cbd9",
+      "path": "README.zh-CN.md",
+      "old_blob": "47eb9893d6c4c808a831b1908ef88aabc44087cb",
+      "new_sha256": "32fc4b514191c53072e0a1482a7ac53ed8e51484ab18fb143d90d8bfb645548d",
+      "reasons": [
+        "T-000459 candidate-files.json: README.zh-CN.md",
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": "abdc0605107a345a3fedb1eee365df8e5d9b9b1172751e32de19bc8790cb6cd6",
+      "path": "README.zh-TW.md",
+      "old_blob": "f5d5003a7f683c9e9b71d0a6392708e6cbe2f3b0",
+      "new_sha256": null,
+      "reasons": [
+        "T-000459 candidate-files.json: README.zh-TW.md",
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": "a5e2ec7509c781a0bb55f8426aee46d668ec6e1983d660409c0e4e9a5182f72e",
+      "path": "control/src/controlPlane.ts",
+      "old_blob": "c83107b036a31be6f6b3885a0311b9fc2e5b392a",
+      "new_sha256": "a5e2ec7509c781a0bb55f8426aee46d668ec6e1983d660409c0e4e9a5182f72e",
+      "reasons": [
+        "T-000459 candidate-files.json: control/src/controlPlane.ts"
+      ]
+    },
+    {
+      "t459_sha256": "d2b2abc07452017f683ec51c77ac2259d7476d874b79158f4497f75e5515c1a1",
+      "path": "control/src/database.ts",
+      "old_blob": "14181d4900ee2c1329a2321fd07539b3448e9f78",
+      "new_sha256": "ab6920ec4978ab15d99e01973a3c9583f35e8e3622d120e1c1b9025de8e955b6",
+      "reasons": [
+        "T-000459 candidate-files.json: control/src/database.ts",
+        "Windows user-reported repair reconstructed; see windows-receipt.json"
+      ]
+    },
+    {
+      "t459_sha256": "f8e91113f4c7fcf0c8d925553a4156d3f3694e5e23bb5dc780026e94a5ef0ed6",
+      "path": "control/src/radarSnapshot.ts",
+      "old_blob": "5921807b4d9a15b7e52ad508b621f1dbd2fe5892",
+      "new_sha256": "f8e91113f4c7fcf0c8d925553a4156d3f3694e5e23bb5dc780026e94a5ef0ed6",
+      "reasons": [
+        "T-000459 candidate-files.json: control/src/radarSnapshot.ts"
+      ]
+    },
+    {
+      "t459_sha256": "03f64333a92471f217640779c0abc4e63767fd982d3ceafad5a6431522485c00",
+      "path": "control/src/rpcLegacy.ts",
+      "old_blob": "4785365eef5f3c277274d628b1a0238a5993ef37",
+      "new_sha256": "03f64333a92471f217640779c0abc4e63767fd982d3ceafad5a6431522485c00",
+      "reasons": [
+        "T-000459 candidate-files.json: control/src/rpcLegacy.ts"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "control/tests/pcpProjectFleetControl.test.ts",
+      "old_blob": "84f000fcf2b2b3526110b7e3e6e8c5c58bb6a738",
+      "new_sha256": "a2969d2c16665b3dbbb609f83c3e5a9045c09c1f31ef218f71cffc5be5754a1a",
+      "reasons": [
+        "Windows user-reported repair reconstructed; see windows-receipt.json"
+      ]
+    },
+    {
+      "t459_sha256": "8a18a8d8fbd72e657e7602184554ba67e04de5fda6dbe460ddadd156e417e2e3",
+      "path": "control/tests/projectGroupContracts.test.ts",
+      "old_blob": null,
+      "new_sha256": "8a18a8d8fbd72e657e7602184554ba67e04de5fda6dbe460ddadd156e417e2e3",
+      "reasons": [
+        "T-000459 candidate-files.json: control/tests/projectGroupContracts.test.ts"
+      ]
+    },
+    {
+      "t459_sha256": "99a2d4250a0e7b794783e47d3bbde14eb067f80a5219e1eb22937e35e6eea1c7",
+      "path": "control/tests/projectGroupMigration.test.ts",
+      "old_blob": null,
+      "new_sha256": "99a2d4250a0e7b794783e47d3bbde14eb067f80a5219e1eb22937e35e6eea1c7",
+      "reasons": [
+        "T-000459 candidate-files.json: control/tests/projectGroupMigration.test.ts"
+      ]
+    },
+    {
+      "t459_sha256": "fc8d27007bc426c1166c52e7b89b8422ca48a8086d77acfc9e780165bbfba847",
+      "path": "control/tests/projectGroups.test.ts",
+      "old_blob": null,
+      "new_sha256": "fc8d27007bc426c1166c52e7b89b8422ca48a8086d77acfc9e780165bbfba847",
+      "reasons": [
+        "T-000459 candidate-files.json: control/tests/projectGroups.test.ts"
+      ]
+    },
+    {
+      "t459_sha256": "7b0c299931111520e70380dc39935049d4e94ae8423c8eb3f8098182f2f4c696",
+      "path": "dashboard/radar.css",
+      "old_blob": "1c2a81d157caa4a9c652380c252610c7f61e6272",
+      "new_sha256": "7b0c299931111520e70380dc39935049d4e94ae8423c8eb3f8098182f2f4c696",
+      "reasons": [
+        "T-000459 candidate-files.json: dashboard/radar.css"
+      ]
+    },
+    {
+      "t459_sha256": "5d168b315df7715229a5c029bb4bd76cc5b03afba220448717c9b7a0ad6b47bb",
+      "path": "dashboard/radar.ts",
+      "old_blob": "938b7b41683cfc3c949a4a958bd44cfc14edd713",
+      "new_sha256": "5d168b315df7715229a5c029bb4bd76cc5b03afba220448717c9b7a0ad6b47bb",
+      "reasons": [
+        "T-000459 candidate-files.json: dashboard/radar.ts"
+      ]
+    },
+    {
+      "t459_sha256": "159d6f58390b91e6a421a0ee15fce5fe2be5bb3bae7d262000c65bee3acb4373",
+      "path": "docs/T-000459-CLOSEOUT.md",
+      "old_blob": null,
+      "new_sha256": "159d6f58390b91e6a421a0ee15fce5fe2be5bb3bae7d262000c65bee3acb4373",
+      "reasons": [
+        "T-000459 candidate-files.json: docs/T-000459-CLOSEOUT.md"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/GLOSSARY.json",
+      "old_blob": "1490b0bf896bd667e3476c0fa5b9e333b95fe9cd",
+      "new_sha256": "2ef6e54ed0e7ee4dfa24619ab0da5db901448abc0188407150fea6bb1e0fd34b",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/LANGUAGES.json",
+      "old_blob": "e2958e28c8089b6d7523a0aef7f32ad8e70af9d0",
+      "new_sha256": "b681e7b13e5bf1a2c896e365cd56b7d4992cdadadf2aed3cd04ed39326bd33c4",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/TRANSLATION_POLICY.md",
+      "old_blob": "817cea1e6e368ccf75e95e0ef099690090540c2d",
+      "new_sha256": "31467df6ee64c392c1557b0919e75c738f6879d59688afee919262c2fce85581",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/TRANSLATION_STATE.json",
+      "old_blob": "d337c7eec7057e5b366a0c55ff91eedb9f11d49a",
+      "new_sha256": "30e78cf2eff51b1f7f70772bb81aef62d2f3a7bc6056f75ca938a7f64dc72134",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/archive/GLOSSARY.json",
+      "old_blob": null,
+      "new_sha256": "3c45e719e3f9089b624cab40ed1553a229e2435d543854497d44c4d5ecc57ee5",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/archive/README.de.md",
+      "old_blob": null,
+      "new_sha256": "81458cb9a213799e2c16e75ccf64d1f34e5b5896667ea14ded311585122cf56b",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/archive/README.es.md",
+      "old_blob": null,
+      "new_sha256": "b9e234b267d62c642f07e340e21309ff7a27a4647b442a0067515a130f894554",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/archive/README.fr.md",
+      "old_blob": null,
+      "new_sha256": "4352f23660e454e2acbfffb58f3f1dc358c629a12be9d6fdaac40b5edca8b1b5",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/archive/README.ja.md",
+      "old_blob": null,
+      "new_sha256": "4d9836c8668bdeb4a5ef3512ff49eb51afbee799ebdbfd8d75d8ac35e43a1688",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/archive/README.ko.md",
+      "old_blob": null,
+      "new_sha256": "8467b4eee4671f9eaa6ac9a08d0123959ad2e53a82ffae1ce97b9e3b866b97e4",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/archive/README.md",
+      "old_blob": null,
+      "new_sha256": "0719b98661c13d9399fac70edb34ad67ebdf2f01c608da36e0d081a88dd0bc39",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/archive/README.pt-BR.md",
+      "old_blob": null,
+      "new_sha256": "62d6001a7da940016f8fbb45df14913f8c70186d6cdd8c3cb5f6843b73e53ba8",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/archive/README.ru.md",
+      "old_blob": null,
+      "new_sha256": "94253a8175222c7bfe5758513d2e22470a2965fe8c8050d29cbeeaf2361aa63e",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/archive/README.zh-TW.md",
+      "old_blob": null,
+      "new_sha256": "abdc0605107a345a3fedb1eee365df8e5d9b9b1172751e32de19bc8790cb6cd6",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "docs/readme/archive/TRANSLATION_STATE.json",
+      "old_blob": null,
+      "new_sha256": "9f59f44e5a0edb4e8f71a0a6c72703db518945c916cfb25c8889a777944d7981",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": "b6558c1a780f90c0a5f0a665c9a48353b5dbdd110ee193951a404a23ebbd13aa",
+      "path": "manifest.json",
+      "old_blob": "a2c580903007f5321b2e6440e62c757b2d7a6e0c",
+      "new_sha256": "b6558c1a780f90c0a5f0a665c9a48353b5dbdd110ee193951a404a23ebbd13aa",
+      "reasons": [
+        "T-000459 candidate-files.json: manifest.json"
+      ]
+    },
+    {
+      "t459_sha256": "1e6d9f13339610e2c13e57966667304c4b7d8718c10845d59f2e1b1f24b26874",
+      "path": "package-lock.json",
+      "old_blob": "f394c029c37793e25fbf6fd67f6c90193c0288e2",
+      "new_sha256": "1e6d9f13339610e2c13e57966667304c4b7d8718c10845d59f2e1b1f24b26874",
+      "reasons": [
+        "T-000459 candidate-files.json: package-lock.json"
+      ]
+    },
+    {
+      "t459_sha256": "90b1158b7963d797e15ef70dbc91aabdbbecc207b3d89a8506335c34aaa800f7",
+      "path": "package.json",
+      "old_blob": "a88b9b992637e97e758204d405fb892f562008c2",
+      "new_sha256": "90b1158b7963d797e15ef70dbc91aabdbbecc207b3d89a8506335c34aaa800f7",
+      "reasons": [
+        "T-000459 candidate-files.json: package.json"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "scripts/check-hive-brand.mjs",
+      "old_blob": "eafc7da38dcd188b7f80285a54ff9e583da82785",
+      "new_sha256": "33a25b7c10f82f3477c8d8ff792e354674735677fb23e9c1bf724912060aac3f",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "scripts/check-readme-i18n.mjs",
+      "old_blob": "c7f64eb3412d00fce61a4ff1296e5c0bfe77722f",
+      "new_sha256": "93d39552f015ccc9bdfa82ccd603cbe05ff6e909be1198eaf78ffba57d658e8b",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": "25c37458920263e6ec0e92255437bd502bc0a715c200a87633657f05130e2eef",
+      "path": "shared/radar.ts",
+      "old_blob": "09697beb1a752bd5c7e5a28d48d80d3394160ded",
+      "new_sha256": "25c37458920263e6ec0e92255437bd502bc0a715c200a87633657f05130e2eef",
+      "reasons": [
+        "T-000459 candidate-files.json: shared/radar.ts"
+      ]
+    },
+    {
+      "t459_sha256": "d68e8c93b24ff007315e80ab2d2bd83f6a95075c6d287e10aa50a8a58a6d2790",
+      "path": "src/nativeControlLegacy.ts",
+      "old_blob": "5c573fe5c8d68d74284a55cca3388f954569a447",
+      "new_sha256": "d68e8c93b24ff007315e80ab2d2bd83f6a95075c6d287e10aa50a8a58a6d2790",
+      "reasons": [
+        "T-000459 candidate-files.json: src/nativeControlLegacy.ts"
+      ]
+    },
+    {
+      "t459_sha256": "f2213396f0ee44066278123a68fcfbd254b3f0295c166faa5ff1d5dda2711e1b",
+      "path": "src/projectGroupCards.ts",
+      "old_blob": null,
+      "new_sha256": "56ad1e88664860a9a54837b9c6d45d1b31693e85af4c115bb9719050d64f5b92",
+      "reasons": [
+        "T-000459 candidate-files.json: src/projectGroupCards.ts",
+        "Windows user-reported repair reconstructed; see windows-receipt.json"
+      ]
+    },
+    {
+      "t459_sha256": "c2ca9f9ddae9b6e69cdd94b7686b6f36f60034b57a32097d6daf9c78a6a61d39",
+      "path": "src/sidepanel.ts",
+      "old_blob": "204b6f4806d904035fbf79ec419a9d652706810a",
+      "new_sha256": "c2ca9f9ddae9b6e69cdd94b7686b6f36f60034b57a32097d6daf9c78a6a61d39",
+      "reasons": [
+        "T-000459 candidate-files.json: src/sidepanel.ts"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "tests/activeLanguages.test.ts",
+      "old_blob": null,
+      "new_sha256": "780e5fcd9c2b206655c69074dc6bf2cecad5cfce6773164cf0f3f6460c1f146c",
+      "reasons": [
+        "Active en/zh-CN convergence or preserved archive"
+      ]
+    },
+    {
+      "t459_sha256": "062db000d368bd1fb69e895cc2a067475641c16041f3d33d34d9164d52111ada",
+      "path": "tests/projectGroupCards.test.ts",
+      "old_blob": null,
+      "new_sha256": "062db000d368bd1fb69e895cc2a067475641c16041f3d33d34d9164d52111ada",
+      "reasons": [
+        "T-000459 candidate-files.json: tests/projectGroupCards.test.ts"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "tests/radarControlsUI.test.ts",
+      "old_blob": "e9918e1c1deb4db9e6f7003c259bbfd5413166c8",
+      "new_sha256": "5c30c3f7d79d4953e0ff691f9fac0dc450440a8621b6422bdd40e4254410865a",
+      "reasons": [
+        "Windows user-reported repair reconstructed; see windows-receipt.json"
+      ]
+    },
+    {
+      "t459_sha256": "b1d40734c3fe97d10e5acc229f1b22ecc807b2fe8ea1715775d8fd5e0e278d80",
+      "path": "tests/radarProjectGroups.test.ts",
+      "old_blob": null,
+      "new_sha256": "b1d40734c3fe97d10e5acc229f1b22ecc807b2fe8ea1715775d8fd5e0e278d80",
+      "reasons": [
+        "T-000459 candidate-files.json: tests/radarProjectGroups.test.ts"
+      ]
+    },
+    {
+      "t459_sha256": null,
+      "path": "tests/radarUI.test.ts",
+      "old_blob": "48c358b65318daae1e2ac49986d45079193075ae",
+      "new_sha256": "9b4b0ca6664ad21a9c900ee4dd2b4fb294de26088d8f0a1d4dada67c9bb5d5a0",
+      "reasons": [
+        "Windows user-reported repair reconstructed; see windows-receipt.json"
+      ]
+    }
+  ]
+}

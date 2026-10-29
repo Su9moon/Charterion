@@ -1,0 +1,176 @@
+[
+  {
+    "path": "README.de.md",
+    "baseline_blob": "459bee039a1bc71a0fbe7a98e16c004cc8b85c12",
+    "candidate_blob": "b59796208d6761d9a12461a88713be074c79e89a",
+    "sha256": "81458cb9a213799e2c16e75ccf64d1f34e5b5896667ea14ded311585122cf56b"
+  },
+  {
+    "path": "README.es.md",
+    "baseline_blob": "e952352016fcca7a89ebfade465d30a4bd5608e9",
+    "candidate_blob": "db624463a40cc544133a774887572475354af665",
+    "sha256": "b9e234b267d62c642f07e340e21309ff7a27a4647b442a0067515a130f894554"
+  },
+  {
+    "path": "README.fr.md",
+    "baseline_blob": "c04f3df23c16570638d6572f9f16d529d079eee0",
+    "candidate_blob": "660613504f5df1e7e6f1dbf2c35ccd70104eb653",
+    "sha256": "4352f23660e454e2acbfffb58f3f1dc358c629a12be9d6fdaac40b5edca8b1b5"
+  },
+  {
+    "path": "README.ja.md",
+    "baseline_blob": "0638932b12d6da5172e1b9a64917b7868e148987",
+    "candidate_blob": "931fb1d46f5db5a0e9eb0254517145406204db2d",
+    "sha256": "4d9836c8668bdeb4a5ef3512ff49eb51afbee799ebdbfd8d75d8ac35e43a1688"
+  },
+  {
+    "path": "README.ko.md",
+    "baseline_blob": "c4c270249e81453cb0e004073239162ee36288d3",
+    "candidate_blob": "7642e4d711926c2bfc523b696498c8fdbecc3194",
+    "sha256": "8467b4eee4671f9eaa6ac9a08d0123959ad2e53a82ffae1ce97b9e3b866b97e4"
+  },
+  {
+    "path": "README.md",
+    "baseline_blob": "925151af199408fb78025391d9cde54c7fa7108e",
+    "candidate_blob": "35d13b15d11ed9a59767c0c5b63c75c44c9ff59b",
+    "sha256": "86530d35afc4b0a6c3b7eba85bb3b831a84688521b2948bb3fb8166a0d4378fc"
+  },
+  {
+    "path": "README.pt-BR.md",
+    "baseline_blob": "b75c466a1bd533913bd7eca58bf791c11db48412",
+    "candidate_blob": "bdcfc8c960f61072766dcc1210540c1ab912c468",
+    "sha256": "62d6001a7da940016f8fbb45df14913f8c70186d6cdd8c3cb5f6843b73e53ba8"
+  },
+  {
+    "path": "README.ru.md",
+    "baseline_blob": "559ca8e2396889efd8c20f7acafcfd490258ff33",
+    "candidate_blob": "d0decc194d91283385ea9e4ba218e2d682e0a21f",
+    "sha256": "94253a8175222c7bfe5758513d2e22470a2965fe8c8050d29cbeeaf2361aa63e"
+  },
+  {
+    "path": "README.zh-CN.md",
+    "baseline_blob": "47eb9893d6c4c808a831b1908ef88aabc44087cb",
+    "candidate_blob": "44472e2c87a2d56ac8273cda664f9b592c5ffb15",
+    "sha256": "2f364017787dc87ba15d159de18ad9e88ae8c5273c48b6d080a06da8e1b6cbd9"
+  },
+  {
+    "path": "README.zh-TW.md",
+    "baseline_blob": "f5d5003a7f683c9e9b71d0a6392708e6cbe2f3b0",
+    "candidate_blob": "18f527ce7e85907071bd67e37c88beaea1456bfa",
+    "sha256": "abdc0605107a345a3fedb1eee365df8e5d9b9b1172751e32de19bc8790cb6cd6"
+  },
+  {
+    "path": "control/src/controlPlane.ts",
+    "baseline_blob": "c83107b036a31be6f6b3885a0311b9fc2e5b392a",
+    "candidate_blob": "994bdf80860664b94caf74391d31694d7ee259d4",
+    "sha256": "a5e2ec7509c781a0bb55f8426aee46d668ec6e1983d660409c0e4e9a5182f72e"
+  },
+  {
+    "path": "control/src/database.ts",
+    "baseline_blob": "14181d4900ee2c1329a2321fd07539b3448e9f78",
+    "candidate_blob": "aecddb3b784d8351032688f9956c05af43b7f877",
+    "sha256": "d2b2abc07452017f683ec51c77ac2259d7476d874b79158f4497f75e5515c1a1"
+  },
+  {
+    "path": "control/src/radarSnapshot.ts",
+    "baseline_blob": "5921807b4d9a15b7e52ad508b621f1dbd2fe5892",
+    "candidate_blob": "16de299b144540bbeaa052f3d58692a748d0e760",
+    "sha256": "f8e91113f4c7fcf0c8d925553a4156d3f3694e5e23bb5dc780026e94a5ef0ed6"
+  },
+  {
+    "path": "control/src/rpcLegacy.ts",
+    "baseline_blob": "4785365eef5f3c277274d628b1a0238a5993ef37",
+    "candidate_blob": "973aa4b2736f1e02b6d2b65b354fdfe76fbd3a5b",
+    "sha256": "03f64333a92471f217640779c0abc4e63767fd982d3ceafad5a6431522485c00"
+  },
+  {
+    "path": "control/tests/projectGroupContracts.test.ts",
+    "baseline_blob": "0000000000000000000000000000000000000000",
+    "candidate_blob": "9f062f3efb0d4f2960f417c4a4f0197b7514463c",
+    "sha256": "8a18a8d8fbd72e657e7602184554ba67e04de5fda6dbe460ddadd156e417e2e3"
+  },
+  {
+    "path": "control/tests/projectGroupMigration.test.ts",
+    "baseline_blob": "0000000000000000000000000000000000000000",
+    "candidate_blob": "04ea7f70ac336b9d380f15145a544b82494fdedf",
+    "sha256": "99a2d4250a0e7b794783e47d3bbde14eb067f80a5219e1eb22937e35e6eea1c7"
+  },
+  {
+    "path": "control/tests/projectGroups.test.ts",
+    "baseline_blob": "0000000000000000000000000000000000000000",
+    "candidate_blob": "5c157f2882d0cda8cdcbb9b737c2bf43dd9b931c",
+    "sha256": "fc8d27007bc426c1166c52e7b89b8422ca48a8086d77acfc9e780165bbfba847"
+  },
+  {
+    "path": "dashboard/radar.css",
+    "baseline_blob": "1c2a81d157caa4a9c652380c252610c7f61e6272",
+    "candidate_blob": "7c8a466d23a453489df8aee7af59595a5446bd0e",
+    "sha256": "7b0c299931111520e70380dc39935049d4e94ae8423c8eb3f8098182f2f4c696"
+  },
+  {
+    "path": "dashboard/radar.ts",
+    "baseline_blob": "938b7b41683cfc3c949a4a958bd44cfc14edd713",
+    "candidate_blob": "16bba5ba3bdcd702b0183d9c6084d257dca62ccb",
+    "sha256": "5d168b315df7715229a5c029bb4bd76cc5b03afba220448717c9b7a0ad6b47bb"
+  },
+  {
+    "path": "docs/T-000459-CLOSEOUT.md",
+    "baseline_blob": "0000000000000000000000000000000000000000",
+    "candidate_blob": "031b62fc9f987cb1cab838221396bcf52f54184f",
+    "sha256": "159d6f58390b91e6a421a0ee15fce5fe2be5bb3bae7d262000c65bee3acb4373"
+  },
+  {
+    "path": "manifest.json",
+    "baseline_blob": "a2c580903007f5321b2e6440e62c757b2d7a6e0c",
+    "candidate_blob": "fa2c7bdc40b9c99339cbaca4b86d34622d006c5e",
+    "sha256": "b6558c1a780f90c0a5f0a665c9a48353b5dbdd110ee193951a404a23ebbd13aa"
+  },
+  {
+    "path": "package-lock.json",
+    "baseline_blob": "f394c029c37793e25fbf6fd67f6c90193c0288e2",
+    "candidate_blob": "3413a53b34668da65d87c4a1a8b206a15a3fe750",
+    "sha256": "1e6d9f13339610e2c13e57966667304c4b7d8718c10845d59f2e1b1f24b26874"
+  },
+  {
+    "path": "package.json",
+    "baseline_blob": "a88b9b992637e97e758204d405fb892f562008c2",
+    "candidate_blob": "92e008c9259ad4f6c8cd25ea759d4c6449cedc13",
+    "sha256": "90b1158b7963d797e15ef70dbc91aabdbbecc207b3d89a8506335c34aaa800f7"
+  },
+  {
+    "path": "shared/radar.ts",
+    "baseline_blob": "09697beb1a752bd5c7e5a28d48d80d3394160ded",
+    "candidate_blob": "097f86c2c50b09a5b8167808488f745d21a52063",
+    "sha256": "25c37458920263e6ec0e92255437bd502bc0a715c200a87633657f05130e2eef"
+  },
+  {
+    "path": "src/nativeControlLegacy.ts",
+    "baseline_blob": "5c573fe5c8d68d74284a55cca3388f954569a447",
+    "candidate_blob": "cb27411ff4c49c667179058fb2f444f236f5e040",
+    "sha256": "d68e8c93b24ff007315e80ab2d2bd83f6a95075c6d287e10aa50a8a58a6d2790"
+  },
+  {
+    "path": "src/projectGroupCards.ts",
+    "baseline_blob": "0000000000000000000000000000000000000000",
+    "candidate_blob": "91a79cfc38d17ee2c8892f79d1c0bb456feb1962",
+    "sha256": "f2213396f0ee44066278123a68fcfbd254b3f0295c166faa5ff1d5dda2711e1b"
+  },
+  {
+    "path": "src/sidepanel.ts",
+    "baseline_blob": "204b6f4806d904035fbf79ec419a9d652706810a",
+    "candidate_blob": "1f78fa8608ad715b7041d9863c763e4a3ed43d99",
+    "sha256": "c2ca9f9ddae9b6e69cdd94b7686b6f36f60034b57a32097d6daf9c78a6a61d39"
+  },
+  {
+    "path": "tests/projectGroupCards.test.ts",
+    "baseline_blob": "0000000000000000000000000000000000000000",
+    "candidate_blob": "4e7a356997bb4c3372c6e08f7bdcf957045cc087",
+    "sha256": "062db000d368bd1fb69e895cc2a067475641c16041f3d33d34d9164d52111ada"
+  },
+  {
+    "path": "tests/radarProjectGroups.test.ts",
+    "baseline_blob": "0000000000000000000000000000000000000000",
+    "candidate_blob": "95dd998fd2b360760791544462b8c07c1f352a3c",
+    "sha256": "b1d40734c3fe97d10e5acc229f1b22ecc807b2fe8ea1715775d8fd5e0e278d80"
+  }
+]

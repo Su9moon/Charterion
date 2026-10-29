@@ -1,0 +1,134 @@
+[
+  {
+    "name": "registered-check",
+    "cwd": ".",
+    "command": "npm run check",
+    "exit_code": 0,
+    "outcome": "passed",
+    "log": "reports/T-000459/logs/registered-check.txt",
+    "counts": []
+  },
+  {
+    "name": "registered-check-control",
+    "cwd": ".",
+    "command": "npm run check:control",
+    "exit_code": 0,
+    "outcome": "passed",
+    "log": "reports/T-000459/logs/registered-check-control.txt",
+    "counts": []
+  },
+  {
+    "name": "registered-focused-final",
+    "cwd": ".",
+    "command": "npm test -- control/tests/projectGroups.test.ts control/tests/projectGroupContracts.test.ts control/tests/databaseMigration.test.ts tests/projectGroupCards.test.ts --exclude '**/.build-cache/**'",
+    "exit_code": 0,
+    "outcome": "passed",
+    "log": "reports/T-000459/logs/registered-focused-final.txt",
+    "counts": [
+      "\n\n Test Files  4 passed (4)",
+      "      Tests  9 passed (9)"
+    ]
+  },
+  {
+    "name": "registered-build",
+    "cwd": ".",
+    "command": "npm run build",
+    "exit_code": 0,
+    "outcome": "passed",
+    "log": "reports/T-000459/logs/registered-build.txt",
+    "counts": []
+  },
+  {
+    "name": "registered-build-control",
+    "cwd": ".",
+    "command": "npm run build:control",
+    "exit_code": 0,
+    "outcome": "passed",
+    "log": "reports/T-000459/logs/registered-build-control.txt",
+    "counts": []
+  },
+  {
+    "name": "pr13-check-final",
+    "cwd": ".build-cache/T-000459-pr13-candidate",
+    "command": "npm run check",
+    "exit_code": 0,
+    "outcome": "passed",
+    "log": "reports/T-000459/logs/pr13-check-final.txt",
+    "counts": []
+  },
+  {
+    "name": "pr13-check-control-final",
+    "cwd": ".build-cache/T-000459-pr13-candidate",
+    "command": "npm run check:control",
+    "exit_code": 0,
+    "outcome": "passed",
+    "log": "reports/T-000459/logs/pr13-check-control-final.txt",
+    "counts": []
+  },
+  {
+    "name": "pr13-migrations-final",
+    "cwd": ".build-cache/T-000459-pr13-candidate",
+    "command": "npm test -- control/tests/databaseMigration.test.ts control/tests/projectGroupMigration.test.ts",
+    "exit_code": 0,
+    "outcome": "passed",
+    "log": "reports/T-000459/logs/pr13-migrations-final.txt",
+    "counts": [
+      "\n\n Test Files  2 passed (2)",
+      "      Tests  6 passed (6)"
+    ]
+  },
+  {
+    "name": "pr13-groups-final",
+    "cwd": ".build-cache/T-000459-pr13-candidate",
+    "command": "npm test -- control/tests/projectGroups.test.ts control/tests/projectGroupContracts.test.ts",
+    "exit_code": 0,
+    "outcome": "passed",
+    "log": "reports/T-000459/logs/pr13-groups-final.txt",
+    "counts": [
+      "\n\n Test Files  2 passed (2)",
+      "      Tests  4 passed (4)"
+    ]
+  },
+  {
+    "name": "pr13-rendering-final",
+    "cwd": ".build-cache/T-000459-pr13-candidate",
+    "command": "npm test -- tests/projectGroupCards.test.ts tests/radarProjectGroups.test.ts",
+    "exit_code": 0,
+    "outcome": "passed",
+    "log": "reports/T-000459/logs/pr13-rendering-final.txt",
+    "counts": [
+      "\n\n Test Files  2 passed (2)",
+      "      Tests  2 passed (2)"
+    ]
+  },
+  {
+    "name": "pr13-build-final",
+    "cwd": ".build-cache/T-000459-pr13-candidate",
+    "command": "npm run build",
+    "exit_code": 0,
+    "outcome": "passed",
+    "log": "reports/T-000459/logs/pr13-build-final.txt",
+    "counts": []
+  },
+  {
+    "name": "pr13-build-control-final",
+    "cwd": ".build-cache/T-000459-pr13-candidate",
+    "command": "npm run build:control",
+    "exit_code": 0,
+    "outcome": "passed",
+    "log": "reports/T-000459/logs/pr13-build-control-final.txt",
+    "counts": []
+  },
+  {
+    "name": "pr13-sockets-final",
+    "cwd": ".build-cache/T-000459-pr13-candidate",
+    "command": "npm test -- control/tests/ipc.test.ts -t '^named-pipe transport'",
+    "exit_code": 1,
+    "outcome": "failed",
+    "log": "reports/T-000459/logs/pr13-sockets-final.txt",
+    "counts": [
+      "\n\n Test Files  1 failed (1)",
+      "      Tests  4 failed | 8 skipped (12)"
+    ]
+  }
+]
