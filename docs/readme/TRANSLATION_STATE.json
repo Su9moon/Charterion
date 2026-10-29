@@ -1,7 +1,7 @@
 {
   "schema": "charterion.readme-translation-state.v1",
   "source_locale": "en",
-  "source_digest": "f0056a80b98f779a2145b1de5974396f33a4c9747f67134287bfca9cf13fb4de",
+  "source_digest": "c9cd761016fedb5cea261226de87395c47982d12834941b8b839e4b2a852e4b7",
   "source_sections": {
     "overview": "663640ff28feb58691ef1ad332d061ac0b00c0917c036ded3c38680dad3f264c",
     "capabilities": "978d1de0e3d34358c7e2b59765d2cdeb3dd41524075ba3d229daa8541dd56a6f",
@@ -19,11 +19,11 @@
     "contributing": "1b55c31e41cd4c281826043c3fcee42cdead305f4035cadda0ab891a388a6d67",
     "scope": "15670155bda4b2a5c684a2176d1c0fe6d4039b80e31eb63225c7ddb3707cbcae",
     "license": "ecf8adeddabee57fa88a27126ec1032c410b2b86967d76f9acec8e478c7a1fcf",
-    "status": "0ab9fb09efc68e120c627c25a29f56eeb8a8215b400dd76c3c7cc9d8967f3e80"
+    "status": "b8d59f8474398b7495aa3a6d95e2d5fd42f1d9c11d3ed9b25f32dcf75df08925"
   },
   "translations": {
     "zh-CN": {
-      "source_digest": "f0056a80b98f779a2145b1de5974396f33a4c9747f67134287bfca9cf13fb4de",
+      "source_digest": "c9cd761016fedb5cea261226de87395c47982d12834941b8b839e4b2a852e4b7",
       "status": "current",
       "section_digests": {
         "overview": "663640ff28feb58691ef1ad332d061ac0b00c0917c036ded3c38680dad3f264c",
@@ -42,7 +42,7 @@
         "contributing": "1b55c31e41cd4c281826043c3fcee42cdead305f4035cadda0ab891a388a6d67",
         "scope": "15670155bda4b2a5c684a2176d1c0fe6d4039b80e31eb63225c7ddb3707cbcae",
         "license": "ecf8adeddabee57fa88a27126ec1032c410b2b86967d76f9acec8e478c7a1fcf",
-        "status": "0ab9fb09efc68e120c627c25a29f56eeb8a8215b400dd76c3c7cc9d8967f3e80"
+        "status": "b8d59f8474398b7495aa3a6d95e2d5fd42f1d9c11d3ed9b25f32dcf75df08925"
       }
     }
   }
