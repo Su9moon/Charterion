@@ -1,6 +1,6 @@
 # Hive 产品更名迁移基线
 
-状态：用户批准全面更名（2026-10-29）。候选分支为 `feature/hive-rename-20261029`，**本文件不是完成验收证明**。
+状态：用户批准全面更名（2026-10-29）。Chrome Dev 更名候选分支为 `feature/hive-dev-rebrand-20261029`（Draft PR #13），**本文件不是完成验收证明**。
 
 ## 命名决定
 
@@ -19,6 +19,17 @@
 4. **本地迁移**：核实目录不存在冲突，将旧运行实例停机保全、备份，按可审计步骤安装 Hive 并校验 Native Host/快捷方式/注册表/日志/旧数据。保留可还原的原目录，直到人工验收通过。
 5. **GitHub 仓库管理员改名**：候选验证后将 `Su9moon/Charterion` 改为 `Su9moon/Hive`，核验原有 PR/Issue/分支/Release/权限/重定向，更新所有可编辑的本地 origin、PCP/CB 引用、CI、文档；保留历史不变。管理权限不等于当前连接具备 rename 动作。
 6. **最终验收**：Git、新安装目录、Chrome Dev 扩展名/按钮、雷达与侧栏、Native Host、管理命令、项目及角色数据、CB 对接均通过后，才宣称 `HIVE_RENAME_COMPLETE`。
+
+
+## 已提交的候选源码范围（尚未安装）
+
+- GitHub Draft PR #13 基于 `pcp/ch-pcp-uat-bilingual-20261028`，保留原有 Dev 功能、Extension key、`dist/sidepanel.html` 路径和 Native Messaging 的兼容 ID。
+- `manifest.json`、雷达/侧栏、npm 包与锁文件、十种语言 README 的品牌统一为 Hive。
+- 安装器为新安装创建 `%USERPROFILE%\\.hive`，旧用户如果只有 `%USERPROFILE%\\.charterion`，会继续沿用旧目录，防止 SQLite、AgentSlot、项目和凭据断连。快捷方式显示为 `Hive.lnk`。
+- 新的 release ZIP 为 `hive-v<version>.zip` 和 `hive-v<version>-windows-runtime.zip`；Release 标题显示 Hive。
+- `npm run check` 新增 `check:brand` 静态品牌/兼容校验，但 **npm/TypeScript 测试、Chrome Dev 人工 UAT、仓库管理员更名和本地迁移均未通过**。
+- 多语言 `TRANSLATION_STATE.json` 仍须由可信构建流程重新计算语义 SHA 并复核 Tier 1 译文状态；未获 Release Gate PASS 前不得发布 Hive Release。
+- 现有 CB、MCP、工作目录和 NativeMessaging 标识中的旧名称需要由单独兼容迁移操作处理。绝不能将这种 legacy 内部标识误判为产品仍未改名。
 
 ## 禁止操作
 
