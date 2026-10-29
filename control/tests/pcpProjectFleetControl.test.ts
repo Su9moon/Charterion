@@ -26,7 +26,7 @@ describe('PCP project Fleet control (first live code slice)', () => {
       projectId: project.id, mode: 'elastic', lifecycleLocked: false, revision: 0,
     });
     expect(database.db.prepare('SELECT COUNT(*) AS n FROM pcp_project_fleet_controls').get()).toMatchObject({ n: 0 });
-    expect(CONTROL_SCHEMA_VERSION).toBe(29);
+    expect(CONTROL_SCHEMA_VERSION).toBe(30);
   });
 
   it('persists explicit controlled mode, respects revisions, and audits changes', () => {

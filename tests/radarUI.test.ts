@@ -45,7 +45,7 @@ describe('standalone radar page', () => {
     const h = setup(fetcher); await vi.waitFor(() => expect(h.doc.body.dataset.state).toBe('connected'));
     await h.view.refresh(); expect(h.doc.body.dataset.state).toBe('unavailable');
     expect(h.doc.querySelector('#connection-detail')?.textContent).toContain('历史快照');
-    expect(h.doc.querySelector('.agent')?.textContent).toContain('不可用 · 历史快照');
+    expect(h.doc.querySelector('.agent')?.textContent).toContain('不可用 / Unavailable · 历史快照 / Historical');
     expect(h.doc.querySelector('#online-count')?.textContent).toBe('—'); expect(h.doc.querySelectorAll('.agent')).toHaveLength(2);
     const changed = snapshot(); changed.projects[0]!.fleet.lifecycleLocked = false; changed.agents[0]!.observationState = 'unavailable';
     fetcher.mockResolvedValueOnce(Response.json(changed)); await h.view.refresh();
@@ -56,7 +56,7 @@ describe('standalone radar page', () => {
   it('has no fabricated data on initial failure and explains expired authorization', async () => {
     const h = setup(vi.fn<typeof fetch>().mockResolvedValue(new Response('', { status: 401 })));
     await vi.waitFor(() => expect(h.doc.body.dataset.state).toBe('unavailable'));
-    expect(h.doc.querySelector('#connection-detail')?.textContent).toContain('从 Chrome 插件重新打开');
+    expect(h.doc.querySelector('#connection-detail')?.textContent).toContain('从插件重新打开 / Read session expired; reopen from extension.');
     expect(h.doc.querySelector('#project-count')?.textContent).toBe('—'); expect(h.doc.querySelectorAll('.agent')).toHaveLength(0);
   });
 
@@ -75,7 +75,7 @@ describe('standalone radar page', () => {
     const h = setup(vi.fn<typeof fetch>().mockResolvedValue(Response.json(data)));
     await vi.waitFor(() => expect(h.doc.body.dataset.state).toBe('connected'));
     const row = h.doc.querySelector('.agent')!;
-    expect(row.querySelector('.tag.bad')?.textContent).toBe('错误'); expect(row.querySelector('.tag.good')).toBeNull();
+    expect(row.querySelector('.tag.bad')?.textContent).toBe('错误 / error'); expect(row.querySelector('.tag.good')).toBeNull();
   });
 
   it('polls every three seconds without overlapping requests', async () => {
@@ -91,7 +91,7 @@ describe('standalone radar page', () => {
       options?.signal?.addEventListener('abort', () => reject(new Error('aborted')), { once: true });
     }));
     const h = setup(fetcher); await vi.advanceTimersByTimeAsync(8000);
-    expect(h.doc.body.dataset.state).toBe('unavailable'); expect(h.doc.querySelector('#connection-detail')?.textContent).toContain('尚无可用快照');
+    expect(h.doc.body.dataset.state).toBe('unavailable'); expect(h.doc.querySelector('#connection-detail')?.textContent).toContain('尚无快照 / No snapshot.');
   });
 
   it('validates the Kernel URL before any extension tab is created', () => {

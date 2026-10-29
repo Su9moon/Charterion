@@ -70,6 +70,8 @@ function checkTarget(file, target, errors) {
 const release = process.argv.includes('--release');
 const jsonMode = process.argv.includes('--json');
 const errors = [];
+if (manifest.default !== 'en' || JSON.stringify(manifest.languages.map(x => x.locale).sort()) !== JSON.stringify(['en', 'zh-CN'])) errors.push('Active languages must be exactly en and zh-CN');
+if (JSON.stringify(Object.keys(state.translations ?? {}).sort()) !== JSON.stringify(['zh-CN'])) errors.push('Translation state must contain only zh-CN');
 const warnings = [];
 const locales = new Set();
 const texts = new Map();

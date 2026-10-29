@@ -7,6 +7,7 @@ export function readRadarSnapshot(plane: ControlPlane, instanceId: string, proje
   const observationTtlMs = 180_000;
   return {
     schemaVersion: 1, instanceId, observedAt: now, refreshAfterMs: 3000, observationTtlMs,
+    projectGroups: plane.listProjectGroups().filter(g => projectId === undefined || g.members.some(m => m.projectId === projectId)),
     projects: projects.map(p => {
       const fleet = plane.getPcpProjectFleetControl(p.id);
       return { id: p.id, name: p.name, rootPath: p.rootPath, status: p.status, minSlots: p.minSlots, maxSlots: p.maxSlots,

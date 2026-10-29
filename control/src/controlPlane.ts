@@ -46,6 +46,12 @@ import type {
   TaskWorkspace,
 } from './contracts';
 
+export interface ProjectGroup {
+  id: string; name: string; leadIdentity: string; leadRole: 'chief_engineer';
+  leadConversationKey: string; browserRuntime: 'NOT_VERIFIED';
+  members: { projectId: string; developerSlotId: string }[];
+}
+
 type Row = Record<string, string | number | null>;
 
 function nonEmpty(value: string, label: string): string {
@@ -395,6 +401,43 @@ export class ControlPlane {
       this.event(id, 'PROJECT_CREATED', id, { name, rootPath, rootIdentity }, now);
       return this.requireProject(id);
     });
+  }
+
+  upsertProjectGroup(input: { id: string; name: string; leadIdentity: string; leadConversationKey: string; members: { projectId: string; developerSlotId: string }[] }, now = Date.now()): ProjectGroup {
+    const id = nonEmpty(input.id, 'Group id');
+    const name = nonEmpty(input.name, 'Group name');
+    const leadIdentity = nonEmpty(input.leadIdentity, 'Lead identity');
+    const key = canonicalConversationKey(input.leadConversationKey);
+    return this.database.transaction(() => {
+      if (input.members.length < 1 || new Set(input.members.map(m => m.projectId)).size !== input.members.length) throw new Error('Group requires distinct technical projects');
+      const previous = this.listProjectGroups().find(g => g.id === id);
+      if (previous && (previous.leadIdentity !== leadIdentity || previous.leadConversationKey !== key)) throw new Error('Group lead rebind is forbidden');
+      for (const member of input.members) {
+        const project = this.requireProject(member.projectId);
+        const slot = this.getAgentSlot(member.developerSlotId);
+        if (project.status === 'archived' || slot.projectId !== project.id || slot.role !== 'developer' || slot.desiredState !== 'active' || !slot.conversationKey) throw new Error('Group member requires an active bound project developer');
+      }
+      const keys = input.members.map(m => this.getAgentSlot(m.developerSlotId).conversationKey);
+      if (new Set([...keys, key]).size !== keys.length + 1) throw new Error('Group requires distinct conversations');
+      this.database.db.prepare(`INSERT INTO project_groups VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,updated_at=excluded.updated_at`).run(id, name, leadIdentity, key, now, now);
+      if (previous && JSON.stringify(previous.members) !== JSON.stringify([...input.members].sort((a,b) => a.projectId.localeCompare(b.projectId)))) throw new Error('Group membership rebind is forbidden');
+      for (const m of input.members) this.database.db.prepare('INSERT INTO project_group_members VALUES(?,?,?) ON CONFLICT(group_id,project_id) DO NOTHING').run(id, m.projectId, m.developerSlotId);
+      return this.getProjectGroup(id);
+    });
+  }
+
+  getProjectGroup(id: string): ProjectGroup {
+    const group = this.listProjectGroups().find(g => g.id === id);
+    if (!group) throw new Error('Unknown project group');
+    return group;
+  }
+
+  listProjectGroups(): ProjectGroup[] {
+    return (this.database.db.prepare('SELECT * FROM project_groups ORDER BY id').all() as Row[]).map(row => ({
+      id: String(row.id), name: String(row.name), leadIdentity: String(row.lead_identity),
+      leadRole: 'chief_engineer', leadConversationKey: String(row.lead_conversation_key), browserRuntime: 'NOT_VERIFIED',
+      members: (this.database.db.prepare('SELECT project_id,developer_slot_id FROM project_group_members WHERE group_id=? ORDER BY project_id').all(String(row.id)) as Row[]).map(m => ({ projectId: String(m.project_id), developerSlotId: String(m.developer_slot_id) })),
+    }));
   }
 
   listProjects(): ProjectCell[] {

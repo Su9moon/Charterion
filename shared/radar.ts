@@ -10,7 +10,13 @@ export interface RadarAgent {
   quarantined: boolean; error: string | null;
 }
 export interface RadarEvent { seq: number; projectId: string | null; type: string; subject: string; createdAt: number }
+export interface RadarProjectGroup {
+  id: string; name: string; leadIdentity: string; leadRole: 'chief_engineer';
+  leadConversationKey: string; browserRuntime: 'NOT_VERIFIED';
+  members: { projectId: string; developerSlotId: string }[];
+}
 export interface RadarSnapshot {
+  projectGroups?: RadarProjectGroup[];
   schemaVersion: 1; instanceId: string; observedAt: number; refreshAfterMs: number; observationTtlMs: number;
   projects: RadarProject[]; agents: RadarAgent[]; events: RadarEvent[];
 }

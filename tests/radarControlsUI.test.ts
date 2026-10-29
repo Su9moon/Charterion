@@ -49,7 +49,7 @@ describe('manual Fleet form', () => {
   it('reports conflict without optimistic mutation and requires reloading the reviewed revision', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ error: 'REVISION_CONFLICT' }, { status: 409 }));
     const h = setup(fetcher); h.ready(); h.submit();
-    await vi.waitFor(() => expect(h.get('control-result').textContent).toContain('版本冲突'));
+    await vi.waitFor(() => expect(h.get('control-result').textContent).toContain('版本或请求冲突'));
     expect(h.get('control-result').dataset.state).toBe('error'); expect(h.get('control-revision').textContent).toContain('Revision 1');
     expect(fetcher).toHaveBeenCalledTimes(1);
   });

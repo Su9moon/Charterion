@@ -127,9 +127,16 @@ export class RpcRouter {
     switch (request.method) {
       case 'control.snapshot':
         this.requireBrowserOrAdmin(request);
-        const changeRequests = this.plane.changes.listChangeRequests().slice(-200); return { protocolVersion: 2, projects: this.plane.listProjects(), agents: this.plane.listAgentSlots(), resources: this.plane.listResources(), leases: this.plane.listLeases(), claims: this.plane.evidence.listClaims().slice(-200), artifacts: this.plane.evidence.listArtifacts().slice(-200), verifications: this.plane.evidence.listVerifications().slice(-200), changeRequests, reviews: changeRequests.flatMap((item) => this.plane.changes.listReviews(item.id)).slice(-200), mergeQueue: this.plane.changes.listQueue().slice(-200), workerRequests: this.plane.requests.list().slice(-200), promotions: this.plane.promotions.list().slice(-200), browserRuntime: this.plane.listBrowserRuntime(), events: this.plane.listEvents(undefined, 0, 200) };
+        const changeRequests = this.plane.changes.listChangeRequests().slice(-200); return { protocolVersion: 2, projectGroups: this.plane.listProjectGroups(), projects: this.plane.listProjects(), agents: this.plane.listAgentSlots(), resources: this.plane.listResources(), leases: this.plane.listLeases(), claims: this.plane.evidence.listClaims().slice(-200), artifacts: this.plane.evidence.listArtifacts().slice(-200), verifications: this.plane.evidence.listVerifications().slice(-200), changeRequests, reviews: changeRequests.flatMap((item) => this.plane.changes.listReviews(item.id)).slice(-200), mergeQueue: this.plane.changes.listQueue().slice(-200), workerRequests: this.plane.requests.list().slice(-200), promotions: this.plane.promotions.list().slice(-200), browserRuntime: this.plane.listBrowserRuntime(), events: this.plane.listEvents(undefined, 0, 200) };
       case 'browser.report': return this.browserReport(request, params);
       case 'browser.status': this.requireBrowserOrAdmin(request); return this.plane.listBrowserRuntime();
+      case 'project-group.upsert': {
+        this.requireAdmin(request);
+        if (!Array.isArray(params.members)) throw new Error('Group members are required');
+        return this.plane.upsertProjectGroup({ id: stringParam(params, 'id')!, name: stringParam(params, 'name')!, leadIdentity: stringParam(params, 'leadIdentity')!, leadConversationKey: stringParam(params, 'leadConversationKey')!, members: params.members.map(value => { const m = record(value); return { projectId: stringParam(m, 'projectId')!, developerSlotId: stringParam(m, 'developerSlotId')! }; }) });
+      }
+      case 'project-group.list': this.requireAdmin(request); return this.plane.listProjectGroups();
+      case 'project-group.get': this.requireAdmin(request); return this.plane.getProjectGroup(stringParam(params, 'id')!);
       case 'project.create': return this.projectCreate(request, params);
       case 'project.list': this.requireBrowserOrAdmin(request); return this.plane.listProjects();
       case 'project.status': return this.projectStatus(request, params);

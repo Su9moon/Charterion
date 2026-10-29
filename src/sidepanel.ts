@@ -1,3 +1,4 @@
+import { projectGroupCards } from './projectGroupCards';
 import type {
   AgentMessageType,
   CreateAgentMessageInput,
@@ -423,7 +424,7 @@ function renderControl(): void {
     for (const agent of projectAgents) {
       const row = el('div', 'control-agent-row');
       const tab = agent.browserTabId !== undefined ? 'tab ' + agent.browserTabId : '无标签 / no tab';
-      row.textContent = [agent.role, '期望 / desired ' + displayState(agent.desiredState), '浏览器 / browser ' + displayState(agent.browserState), tab].join(' · ');
+      row.textContent = [agent.role, agent.id, agent.conversationKey ?? 'unbound', '期望 / desired ' + displayState(agent.desiredState), '浏览器 / browser ' + displayState(agent.browserState), tab].join(' · ');
       if (agent.browserError) row.title = agent.browserError;
       card.append(row);
     }
@@ -436,7 +437,7 @@ function renderControl(): void {
     for (const change of changes.slice(-5).reverse()) { const row = el('div', 'control-change-row'); const reviews = controlSnapshot!.reviews.filter((x) => x.changeRequestId === change.id); const latestReview = reviews.at(-1); const queue = controlSnapshot!.mergeQueue.find((x) => x.changeRequestId === change.id); const reviewText = latestReview ? latestReview.verdict : 'pending-review'; const queueText = queue ? queue.status + (queue.candidateSha ? ':' + queue.candidateSha.slice(0, 10) : '') : 'not-queued'; row.textContent = [change.status, change.branch + ' → ' + change.targetBranch, 'r' + change.revision, change.headSha.slice(0, 10), reviewText, queueText].join(' · '); card.append(row); }
     return card;
   });
-  controlProjects.replaceChildren(...cards); const activeLeases = controlSnapshot.leases.filter((x) => x.status === 'active').length; const tabs = runtime?.openTabs ?? 0;
+  controlProjects.replaceChildren(...projectGroupCards(controlSnapshot, cards)); const activeLeases = controlSnapshot.leases.filter((x) => x.status === 'active').length; const tabs = runtime?.openTabs ?? 0;
   controlSummary.textContent = ['ChatGPT ' + auth, tabs + ' 个标签 / tab(s)', controlSnapshot.projects.length + ' 个项目 / project(s)', controlSnapshot.agents.length + ' 个角色槽 / agent slot(s)', activeLeases + ' 个租约 / active lease(s)', controlSnapshot.mergeQueue.filter((x) => x.status === 'validating').length + ' 个验证中的合并 / validating merge(s)'].join(' · ');
 }
 

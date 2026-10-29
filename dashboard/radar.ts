@@ -9,6 +9,10 @@ function isSnapshot(value: unknown): value is RadarSnapshot {
   if (!value || typeof value !== 'object') return false;
   const x = value as RadarSnapshot;
   return x.schemaVersion === 1 && typeof x.instanceId === 'string' && !!x.instanceId && Number.isFinite(x.observedAt) && Number.isFinite(x.observationTtlMs) &&
+    (x.projectGroups === undefined || (Array.isArray(x.projectGroups) && x.projectGroups.every(g => g &&
+      [g.id, g.name, g.leadIdentity, g.leadConversationKey].every(v => typeof v === 'string') &&
+      g.leadRole === 'chief_engineer' && g.browserRuntime === 'NOT_VERIFIED' && Array.isArray(g.members) &&
+      g.members.every(m => m && typeof m.projectId === 'string' && typeof m.developerSlotId === 'string')))) &&
     Array.isArray(x.projects) && x.projects.every(p => p && [p.id, p.name, p.rootPath, p.status].every(v => typeof v === 'string') &&
       Number.isFinite(p.minSlots) && Number.isFinite(p.maxSlots) && p.fleet && typeof p.fleet.mode === 'string' && typeof p.fleet.lifecycleLocked === 'boolean' && Number.isFinite(p.fleet.revision)) &&
     Array.isArray(x.agents) && x.agents.every(a => a && [a.id, a.projectId, a.role, a.status, a.desiredState, a.browserState, a.pageStatus, a.rolloverState].every(v => typeof v === 'string') &&
@@ -64,14 +68,34 @@ export function mountRadar(doc: Document, win: Window, fetcher: typeof fetch) {
     get('online-count').textContent = connected ? String(agents.filter(a => a.observationState === 'fresh' && a.browserState === 'open').length) : '—';
     get('locked-count').textContent = String(projects.filter(p => p.fleet.lifecycleLocked).length);
     get('instance').textContent = `Kernel ${data.instanceId}`;
-    const projectRoot = get('projects'); projectRoot.replaceChildren();
+    const projectRoot = get('projects');
+    const expandedGroups = new Set(Array.from(projectRoot.querySelectorAll<HTMLDetailsElement>('details.project-group[open]')).map(g => g.dataset.groupId));
+    projectRoot.replaceChildren();
+    const cards = new Map<string, HTMLElement>();
     for (const p of projects) {
       const card = el('article', undefined, 'project'); card.append(el('h3', p.name));
       const tags = el('div', undefined, 'tags'); tags.append(tag(labels[p.status] ?? p.status), tag(labels[p.fleet.mode] ?? p.fleet.mode),
         tag(p.fleet.lifecycleLocked ? '生命周期已锁定 / Locked' : '生命周期未锁定 / Unlocked', p.fleet.lifecycleLocked ? 'warn' : ''),
         tag(`${agents.filter(a => a.projectId === p.id).length} 个角色会话`));
-      card.append(tags, el('p', `${p.rootPath} · 槽位 ${p.minSlots}–${p.maxSlots}`)); projectRoot.append(card);
+      card.append(tags, el('p', `Project ID ${p.id} · ${p.rootPath} · 槽位 ${p.minSlots}–${p.maxSlots}`)); cards.set(p.id, card);
     }
+    for (const group of data.projectGroups ?? []) {
+      const members = group.members.filter(m => cards.has(m.projectId));
+      if (!members.length) continue;
+      const section = el('details', undefined, 'project-group');
+      section.dataset.groupId = group.id;
+      section.open = expandedGroups.has(group.id);
+      section.append(el('summary', `${group.name} · ${group.id}`),
+        el('p', `${group.leadRole} · ${group.leadIdentity} · ${group.leadConversationKey} · binding metadata · browser NOT_VERIFIED`));
+      for (const member of members) {
+        const card = cards.get(member.projectId)!;
+        const developer = data.agents.find(a => a.id === member.developerSlotId && a.projectId === member.projectId);
+        card.append(el('p', `developer · AgentSlot ${member.developerSlotId} · ${developer?.conversationKey ?? 'UNBOUND'} · ${developer?.observationState ?? 'unavailable'}`));
+        section.append(card); cards.delete(member.projectId);
+      }
+      projectRoot.append(section);
+    }
+    projectRoot.append(...cards.values());
     if (!projects.length) projectRoot.append(el('p', '此 Kernel 尚无项目 / No projects in this Kernel.', 'empty'));
     const agentRoot = get('agents'); agentRoot.replaceChildren();
     for (const a of agents) {

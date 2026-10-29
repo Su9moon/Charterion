@@ -20,7 +20,7 @@ requireTrue(pkg.name === 'hive' && lock.name === 'hive' && lock.packages?.['']?.
 requireTrue(schema.invariants?.canonical_project_name === 'Hive', 'README schema brand mismatch');
 
 const heading = '# ' + schema.invariants?.canonical_project_title + '\n';
-for (const locale of ['README.md', ...['de','es','fr','ja','ko','pt-BR','ru','zh-CN','zh-TW'].map((name) => 'README.' + name + '.md')]) {
+for (const locale of ['README.md', ...['zh-CN'].map((name) => 'README.' + name + '.md')]) {
   requireTrue(read(locale).startsWith(heading), locale + ': Hive heading missing');
 }
 const radar = read('dashboard/index.html');
