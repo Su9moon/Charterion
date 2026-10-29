@@ -222,4 +222,4 @@ GAM 当前专注于 **`chatgpt.com` 上的 ChatGPT Web**。通用 LLM API、托�
 <!-- readme-section:status -->
 ## 开发状态
 
-Charterion 仍在持续开发。任何 Release Candidate 都必须通过仓库验证套件、README i18n release gate，以及基于证据的独立审查/晋级边界，才能被视为稳定版本。
+Hive 仍在持续开发。任何 Release Candidate 都必须通过仓库验证套件、README i18n release gate，以及基于证据的独立审查/晋级边界，才能被视为稳定版本。
