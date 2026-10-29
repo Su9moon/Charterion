@@ -2,10 +2,18 @@ param(
   [Parameter(Mandatory = $true)][string]$ExtensionId,
   [Parameter(Mandatory = $true)][string]$PipeName,
   [Parameter(Mandatory = $true)][string]$InstanceId,
-  [string]$GamHome = (Join-Path $env:USERPROFILE '.charterion'),
+  [string]$GamHome = '',
   [string]$PublishDir = (Join-Path (Split-Path $PSScriptRoot -Parent | Split-Path -Parent) 'dist-native-host')
 )
 $ErrorActionPreference = 'Stop'
+# Installed Native Messaging identifiers are deliberately unchanged for existing profiles.
+if ([string]::IsNullOrWhiteSpace($GamHome)) {
+  $hiveHome = Join-Path $env:USERPROFILE '.hive'
+  $legacyHome = Join-Path $env:USERPROFILE '.charterion'
+  if (Test-Path -LiteralPath $hiveHome) { $GamHome = $hiveHome }
+  elseif (Test-Path -LiteralPath $legacyHome) { $GamHome = $legacyHome }
+  else { $GamHome = $hiveHome }
+}
 . (Join-Path $PSScriptRoot 'NativeRpcProtocol.generated.ps1')
 $HostName = $CharterionNativeHostName
 if ([string]::IsNullOrWhiteSpace($HostName)) { throw 'Generated Native Host name is missing.' }
@@ -38,7 +46,7 @@ $config = [ordered]@{
 $manifestPath = Join-Path $installDir "$HostName.json"
 $manifest = [ordered]@{
   name = $HostName
-  description = 'Charterion local control-plane bridge'
+  description = 'Hive local control-plane bridge'
   path = $installedExe
   type = 'stdio'
   allowed_origins = @($allowedOrigin)
