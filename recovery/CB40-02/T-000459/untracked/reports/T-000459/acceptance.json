@@ -1,0 +1,178 @@
+{
+  "task": "T-000459",
+  "success": false,
+  "status": "CANDIDATE_BLOCKED",
+  "source_ready": false,
+  "published": false,
+  "deployed": false,
+  "registered": false,
+  "registered_input_head": "26fab27ef6af399f2d07cfb3815b123a9692db99",
+  "candidate_parent": "0f3957deb25cb2aa2a8b198e2d4b5f0ec1265659",
+  "candidate_commit": null,
+  "candidate_pr_url": null,
+  "publication_blocker": "Execution envelope forbids branch/add/commit/push/PR; publication reserved to bridge. Auth not tested.",
+  "candidate_patch": "reports/T-000459/pr13-candidate.patch",
+  "candidate_changed_files": 29,
+  "verified_baseline_text_blobs": 327,
+  "registered_focused_tests_passed": 9,
+  "pinned_candidate_tests_passed": {
+    "migrations": 6,
+    "groups_admin_bindings_restart": 4,
+    "panel_radar_static": 2
+  },
+  "socket_test_ids": [
+    "control/tests/ipc.test.ts > named-pipe transport > survives clients that disconnect after sending a request",
+    "control/tests/ipc.test.ts > named-pipe transport > rejects malformed request envelopes before routing",
+    "control/tests/ipc.test.ts > named-pipe transport > round-trips one RPC request over the daemon transport",
+    "control/tests/ipc.test.ts > named-pipe transport > rejects a response whose id does not match the request"
+  ],
+  "socket_outcome": "4 failed at listen EPERM; independent no-Hive Unix and TCP probes also EPERM; host logic unverified",
+  "windows_pending_command": "npm test -- control/tests/ipc.test.ts -t '^named-pipe transport'",
+  "full_suite": "NOT_RUN",
+  "loopback_http_acceptance": "NOT_RUN",
+  "native_binary_smoke": "NOT_RUN",
+  "browser_e2e": "NOT_RUN",
+  "windows_registration": "NOT_RUN",
+  "procedures": "docs/T-000459-CLOSEOUT.md",
+  "checks": [
+    {
+      "name": "registered-check",
+      "cwd": ".",
+      "command": "npm run check",
+      "exit_code": 0,
+      "outcome": "passed",
+      "log": "reports/T-000459/logs/registered-check.txt",
+      "counts": []
+    },
+    {
+      "name": "registered-check-control",
+      "cwd": ".",
+      "command": "npm run check:control",
+      "exit_code": 0,
+      "outcome": "passed",
+      "log": "reports/T-000459/logs/registered-check-control.txt",
+      "counts": []
+    },
+    {
+      "name": "registered-focused-final",
+      "cwd": ".",
+      "command": "npm test -- control/tests/projectGroups.test.ts control/tests/projectGroupContracts.test.ts control/tests/databaseMigration.test.ts tests/projectGroupCards.test.ts --exclude '**/.build-cache/**'",
+      "exit_code": 0,
+      "outcome": "passed",
+      "log": "reports/T-000459/logs/registered-focused-final.txt",
+      "counts": [
+        "\n\n Test Files  4 passed (4)",
+        "      Tests  9 passed (9)"
+      ]
+    },
+    {
+      "name": "registered-build",
+      "cwd": ".",
+      "command": "npm run build",
+      "exit_code": 0,
+      "outcome": "passed",
+      "log": "reports/T-000459/logs/registered-build.txt",
+      "counts": []
+    },
+    {
+      "name": "registered-build-control",
+      "cwd": ".",
+      "command": "npm run build:control",
+      "exit_code": 0,
+      "outcome": "passed",
+      "log": "reports/T-000459/logs/registered-build-control.txt",
+      "counts": []
+    },
+    {
+      "name": "pr13-check-final",
+      "cwd": ".build-cache/T-000459-pr13-candidate",
+      "command": "npm run check",
+      "exit_code": 0,
+      "outcome": "passed",
+      "log": "reports/T-000459/logs/pr13-check-final.txt",
+      "counts": []
+    },
+    {
+      "name": "pr13-check-control-final",
+      "cwd": ".build-cache/T-000459-pr13-candidate",
+      "command": "npm run check:control",
+      "exit_code": 0,
+      "outcome": "passed",
+      "log": "reports/T-000459/logs/pr13-check-control-final.txt",
+      "counts": []
+    },
+    {
+      "name": "pr13-migrations-final",
+      "cwd": ".build-cache/T-000459-pr13-candidate",
+      "command": "npm test -- control/tests/databaseMigration.test.ts control/tests/projectGroupMigration.test.ts",
+      "exit_code": 0,
+      "outcome": "passed",
+      "log": "reports/T-000459/logs/pr13-migrations-final.txt",
+      "counts": [
+        "\n\n Test Files  2 passed (2)",
+        "      Tests  6 passed (6)"
+      ]
+    },
+    {
+      "name": "pr13-groups-final",
+      "cwd": ".build-cache/T-000459-pr13-candidate",
+      "command": "npm test -- control/tests/projectGroups.test.ts control/tests/projectGroupContracts.test.ts",
+      "exit_code": 0,
+      "outcome": "passed",
+      "log": "reports/T-000459/logs/pr13-groups-final.txt",
+      "counts": [
+        "\n\n Test Files  2 passed (2)",
+        "      Tests  4 passed (4)"
+      ]
+    },
+    {
+      "name": "pr13-rendering-final",
+      "cwd": ".build-cache/T-000459-pr13-candidate",
+      "command": "npm test -- tests/projectGroupCards.test.ts tests/radarProjectGroups.test.ts",
+      "exit_code": 0,
+      "outcome": "passed",
+      "log": "reports/T-000459/logs/pr13-rendering-final.txt",
+      "counts": [
+        "\n\n Test Files  2 passed (2)",
+        "      Tests  2 passed (2)"
+      ]
+    },
+    {
+      "name": "pr13-build-final",
+      "cwd": ".build-cache/T-000459-pr13-candidate",
+      "command": "npm run build",
+      "exit_code": 0,
+      "outcome": "passed",
+      "log": "reports/T-000459/logs/pr13-build-final.txt",
+      "counts": []
+    },
+    {
+      "name": "pr13-build-control-final",
+      "cwd": ".build-cache/T-000459-pr13-candidate",
+      "command": "npm run build:control",
+      "exit_code": 0,
+      "outcome": "passed",
+      "log": "reports/T-000459/logs/pr13-build-control-final.txt",
+      "counts": []
+    },
+    {
+      "name": "pr13-sockets-final",
+      "cwd": ".build-cache/T-000459-pr13-candidate",
+      "command": "npm test -- control/tests/ipc.test.ts -t '^named-pipe transport'",
+      "exit_code": 1,
+      "outcome": "failed",
+      "log": "reports/T-000459/logs/pr13-sockets-final.txt",
+      "counts": [
+        "\n\n Test Files  1 failed (1)",
+        "      Tests  4 failed | 8 skipped (12)"
+      ]
+    }
+  ],
+  "repairs": [
+    "PR13 group migration moved to V30 to preserve existing V28/V29",
+    "Group admin methods excluded from browser native allowlist",
+    "Immutable SQLite lead/member binding plus standalone Radar hierarchy",
+    "Initial assertion accepted existing rollover rejection; focused checks rerun passed",
+    "Nested replay skipped-path failure repaired with explicit git apply --directory; SHA256 replay rerun passed"
+  ]
+}

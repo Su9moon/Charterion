@@ -1,0 +1,51 @@
+{
+  "task": "T-000458",
+  "status": "DRAFT_BLOCKED",
+  "source_ready": false,
+  "registered": false,
+  "source_head": "f4ae3d33b6845ed73f9f2abadef4bf6c55b9028e",
+  "requested_baseline": "0f3957deb25cb2aa2a8b198e2d4b5f0ec1265659",
+  "blockers": [
+    "Sandbox denies Unix socket listen: four IPC acceptance failures",
+    "Requested baseline absent locally; PR #13 separate Radar integration not verified",
+    "Windows CB root and runtime registration require host verification"
+  ],
+  "runtime": {
+    "node": "v22.23.4",
+    "npm": "10.9.9",
+    "command_prefix": "PATH=/home/jjyy/.local/opt/node-v22.23.4-linux-x64/bin:/usr/bin:/bin"
+  },
+  "final_control_suite": {
+    "command": "npm test -- control/tests tests/projectGroupCards.test.ts",
+    "passed": 181,
+    "failed": 4,
+    "files": 38
+  },
+  "focused": {
+    "command": "npm test -- control/tests/projectGroups.test.ts control/tests/databaseMigration.test.ts tests/projectGroupCards.test.ts",
+    "passed": 6,
+    "failed": 0
+  },
+  "passed_commands": [
+    "npm run check",
+    "npm run check:control",
+    "npm run build",
+    "npm run build:control"
+  ],
+  "files_sha256": {
+    "control/src/controlPlane.ts": "2eda143d363a7384a6d9295c9fb588addcd4de71dba61890aa7b147b7d8b4b9c",
+    "control/src/database.ts": "1e3c9ab3ed65c62d9f8aafb0e5660955a22d31091ffee7a7f038099bf55fb2a7",
+    "control/src/rpcLegacy.ts": "2a2a2a5423d7bb6d8a19d1aaee0e8d64a1cc0fdf95978eb0e4a63cbff1010b2a",
+    "control/tests/projectGroups.test.ts": "fc8d27007bc426c1166c52e7b89b8422ca48a8086d77acfc9e780165bbfba847",
+    "src/nativeControlLegacy.ts": "d68e8c93b24ff007315e80ab2d2bd83f6a95075c6d287e10aa50a8a58a6d2790",
+    "src/sidepanel.ts": "a8f23fc5e1fe24e8cbad8892e69260605f60385b37e80505ef5a2b1cb8fcde53",
+    "src/projectGroupCards.ts": "c98adacb0dc3280bab0307653ff828eacc18550c143ad1ab1c0d42fcff98c632",
+    "tests/projectGroupCards.test.ts": "062db000d368bd1fb69e895cc2a067475641c16041f3d33d34d9164d52111ada",
+    "shared/native-rpc-protocol.json": "e0499018f4a67c19b952ccb22bfdbabae8e365f4f286d37d9e25e2752919c7fd",
+    "src/nativeRpcProtocol.generated.ts": "e695d284f8d4ec0e0fe24b097a33ecd0224dff23d40ecc6a60f89be6a7210e2e",
+    "native-host/GamNativeHost/NativeRpcProtocol.g.cs": "dd1e5320f21423ef5afa0811c5fb7b99b1f78c1c38edd3f6e4b666c557f604bf",
+    "package.json": "c3e5f1e8d54624c67663dcb4fa31068736e1d659993291b2e9bf08a9280b6fcf",
+    "package-lock.json": "727684686712100ad6d4eb3f97107dc2a6d7ea4559dacbaa59a7f459e1323f7c",
+    "manifest.json": "707cf8d0e330e7403d74c04e3f564bc335b84e3b526e7af95acedfa246900588"
+  }
+}

@@ -1,0 +1,435 @@
+diff --git a/README.de.md b/README.de.md
+index 1249fbf..be8587a 100644
+--- a/README.de.md
++++ b/README.de.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.es.md b/README.es.md
+index 11e5971..ca63b95 100644
+--- a/README.es.md
++++ b/README.es.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.fr.md b/README.fr.md
+index e6a4698..4c46b6e 100644
+--- a/README.fr.md
++++ b/README.fr.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.ja.md b/README.ja.md
+index 52c393c..7883ac4 100644
+--- a/README.ja.md
++++ b/README.ja.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.ko.md b/README.ko.md
+index f2bea57..e266918 100644
+--- a/README.ko.md
++++ b/README.ko.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.md b/README.md
+index 88309cd..e9bb11d 100644
+--- a/README.md
++++ b/README.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.pt-BR.md b/README.pt-BR.md
+index 3e031ad..68560f2 100644
+--- a/README.pt-BR.md
++++ b/README.pt-BR.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.ru.md b/README.ru.md
+index 06ee557..fa5cfcb 100644
+--- a/README.ru.md
++++ b/README.ru.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.zh-CN.md b/README.zh-CN.md
+index 9c1e88f..11d3094 100644
+--- a/README.zh-CN.md
++++ b/README.zh-CN.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/README.zh-TW.md b/README.zh-TW.md
+index 78514cd..af162d5 100644
+--- a/README.zh-TW.md
++++ b/README.zh-TW.md
+@@ -2,7 +2,7 @@
+ 
+ [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+ [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
+-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
++[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
+ [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
+ [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
+ 
+diff --git a/control/src/controlPlane.ts b/control/src/controlPlane.ts
+index f6819e4..cbd2e60 100644
+--- a/control/src/controlPlane.ts
++++ b/control/src/controlPlane.ts
+@@ -44,6 +44,12 @@ import type {
+   TaskWorkspace,
+ } from './contracts';
+ 
++export interface ProjectGroup {
++  id: string; name: string; leadIdentity: string; leadRole: 'chief_engineer';
++  leadConversationKey: string; browserRuntime: 'NOT_VERIFIED';
++  members: { projectId: string; developerSlotId: string }[];
++}
++
+ type Row = Record<string, string | number | null>;
+ 
+ function nonEmpty(value: string, label: string): string {
+@@ -387,6 +393,43 @@ export class ControlPlane {
+     });
+   }
+ 
++  upsertProjectGroup(input: { id: string; name: string; leadIdentity: string; leadConversationKey: string; members: { projectId: string; developerSlotId: string }[] }, now = Date.now()): ProjectGroup {
++    const id = nonEmpty(input.id, 'Group id');
++    const name = nonEmpty(input.name, 'Group name');
++    const leadIdentity = nonEmpty(input.leadIdentity, 'Lead identity');
++    const key = canonicalConversationKey(input.leadConversationKey);
++    return this.database.transaction(() => {
++      if (input.members.length < 1 || new Set(input.members.map(m => m.projectId)).size !== input.members.length) throw new Error('Group requires distinct technical projects');
++      const previous = this.listProjectGroups().find(g => g.id === id);
++      if (previous && (previous.leadIdentity !== leadIdentity || previous.leadConversationKey !== key)) throw new Error('Group lead rebind is forbidden');
++      for (const member of input.members) {
++        const project = this.requireProject(member.projectId);
++        const slot = this.getAgentSlot(member.developerSlotId);
++        if (project.status === 'archived' || slot.projectId !== project.id || slot.role !== 'developer' || slot.desiredState !== 'active' || !slot.conversationKey) throw new Error('Group member requires an active bound project developer');
++      }
++      const keys = input.members.map(m => this.getAgentSlot(m.developerSlotId).conversationKey);
++      if (new Set([...keys, key]).size !== keys.length + 1) throw new Error('Group requires distinct conversations');
++      this.database.db.prepare(`INSERT INTO project_groups VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,updated_at=excluded.updated_at`).run(id, name, leadIdentity, key, now, now);
++      if (previous && JSON.stringify(previous.members) !== JSON.stringify([...input.members].sort((a,b) => a.projectId.localeCompare(b.projectId)))) throw new Error('Group membership rebind is forbidden');
++      for (const m of input.members) this.database.db.prepare('INSERT INTO project_group_members VALUES(?,?,?) ON CONFLICT(group_id,project_id) DO NOTHING').run(id, m.projectId, m.developerSlotId);
++      return this.getProjectGroup(id);
++    });
++  }
++
++  getProjectGroup(id: string): ProjectGroup {
++    const group = this.listProjectGroups().find(g => g.id === id);
++    if (!group) throw new Error('Unknown project group');
++    return group;
++  }
++
++  listProjectGroups(): ProjectGroup[] {
++    return (this.database.db.prepare('SELECT * FROM project_groups ORDER BY id').all() as Row[]).map(row => ({
++      id: String(row.id), name: String(row.name), leadIdentity: String(row.lead_identity),
++      leadRole: 'chief_engineer', leadConversationKey: String(row.lead_conversation_key), browserRuntime: 'NOT_VERIFIED',
++      members: (this.database.db.prepare('SELECT project_id,developer_slot_id FROM project_group_members WHERE group_id=? ORDER BY project_id').all(String(row.id)) as Row[]).map(m => ({ projectId: String(m.project_id), developerSlotId: String(m.developer_slot_id) })),
++    }));
++  }
++
+   listProjects(): ProjectCell[] {
+     return (this.database.db.prepare('SELECT * FROM projects ORDER BY created_at, id').all() as Row[]).map(projectFrom);
+   }
+diff --git a/control/src/database.ts b/control/src/database.ts
+index dd13c1f..11f5d1d 100644
+--- a/control/src/database.ts
++++ b/control/src/database.ts
+@@ -92,6 +92,45 @@ export class ControlDatabase {
+     `).run(String(supportedVersion));
+   }
+ 
++  private migrateV28(): void {
++    this.transaction(() => this.db.exec(`
++      CREATE TABLE IF NOT EXISTS project_groups (
++        id TEXT PRIMARY KEY, name TEXT NOT NULL,
++        lead_identity TEXT NOT NULL UNIQUE,
++        lead_conversation_key TEXT NOT NULL UNIQUE,
++        created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
++      ) STRICT;
++      CREATE TABLE IF NOT EXISTS project_group_members (
++        group_id TEXT NOT NULL REFERENCES project_groups(id),
++        project_id TEXT NOT NULL UNIQUE REFERENCES projects(id),
++        developer_slot_id TEXT NOT NULL UNIQUE REFERENCES agent_slots(id),
++        PRIMARY KEY(group_id, project_id)
++      ) STRICT;
++      CREATE TRIGGER IF NOT EXISTS group_lead_scope BEFORE INSERT ON project_groups BEGIN
++        SELECT RAISE(ABORT, 'Conversation already belongs to a project')
++        WHERE EXISTS(SELECT 1 FROM agent_slots WHERE conversation_key=NEW.lead_conversation_key);
++      END;
++      CREATE TRIGGER IF NOT EXISTS group_lead_scope_update BEFORE UPDATE ON project_groups BEGIN
++        SELECT RAISE(ABORT, 'Conversation already belongs to a project')
++        WHERE EXISTS(SELECT 1 FROM agent_slots WHERE conversation_key=NEW.lead_conversation_key);
++      END;
++      CREATE TRIGGER IF NOT EXISTS group_member_assignment BEFORE INSERT ON project_group_members BEGIN
++        SELECT RAISE(ABORT, 'Invalid group developer assignment') WHERE NOT EXISTS (
++          SELECT 1 FROM agent_slots WHERE id=NEW.developer_slot_id AND project_id=NEW.project_id
++          AND role='developer' AND desired_state='active' AND conversation_key IS NOT NULL
++        );
++      END;
++      CREATE TRIGGER IF NOT EXISTS group_member_reassignment BEFORE UPDATE OF project_id,role,conversation_key ON agent_slots
++      WHEN EXISTS(SELECT 1 FROM project_group_members WHERE developer_slot_id=OLD.id)
++      AND (NEW.project_id<>OLD.project_id OR NEW.role<>OLD.role OR NEW.conversation_key IS NOT OLD.conversation_key)
++      BEGIN SELECT RAISE(ABORT, 'Group developer rebind is forbidden'); END;
++      CREATE TRIGGER IF NOT EXISTS agent_group_scope BEFORE UPDATE OF conversation_key ON agent_slots BEGIN
++        SELECT RAISE(ABORT, 'Conversation already belongs to a group')
++        WHERE EXISTS(SELECT 1 FROM project_groups WHERE lead_conversation_key=NEW.conversation_key);
++      END;
++    `));
++  }
++
+   private migrateV1(): void {
+     this.transaction(() => {
+       this.createCoreTables();
+diff --git a/control/src/rpcLegacy.ts b/control/src/rpcLegacy.ts
+index e49a4bd..d5e04fc 100644
+--- a/control/src/rpcLegacy.ts
++++ b/control/src/rpcLegacy.ts
+@@ -125,9 +125,16 @@ export class RpcRouter {
+     switch (request.method) {
+       case 'control.snapshot':
+         this.requireBrowserOrAdmin(request);
+-        const changeRequests = this.plane.changes.listChangeRequests().slice(-200); return { protocolVersion: 2, projects: this.plane.listProjects(), agents: this.plane.listAgentSlots(), resources: this.plane.listResources(), leases: this.plane.listLeases(), claims: this.plane.evidence.listClaims().slice(-200), artifacts: this.plane.evidence.listArtifacts().slice(-200), verifications: this.plane.evidence.listVerifications().slice(-200), changeRequests, reviews: changeRequests.flatMap((item) => this.plane.changes.listReviews(item.id)).slice(-200), mergeQueue: this.plane.changes.listQueue().slice(-200), workerRequests: this.plane.requests.list().slice(-200), promotions: this.plane.promotions.list().slice(-200), browserRuntime: this.plane.listBrowserRuntime(), events: this.plane.listEvents(undefined, 0, 200) };
++        const changeRequests = this.plane.changes.listChangeRequests().slice(-200); return { protocolVersion: 2, projectGroups: this.plane.listProjectGroups(), projects: this.plane.listProjects(), agents: this.plane.listAgentSlots(), resources: this.plane.listResources(), leases: this.plane.listLeases(), claims: this.plane.evidence.listClaims().slice(-200), artifacts: this.plane.evidence.listArtifacts().slice(-200), verifications: this.plane.evidence.listVerifications().slice(-200), changeRequests, reviews: changeRequests.flatMap((item) => this.plane.changes.listReviews(item.id)).slice(-200), mergeQueue: this.plane.changes.listQueue().slice(-200), workerRequests: this.plane.requests.list().slice(-200), promotions: this.plane.promotions.list().slice(-200), browserRuntime: this.plane.listBrowserRuntime(), events: this.plane.listEvents(undefined, 0, 200) };
+       case 'browser.report': return this.browserReport(request, params);
+       case 'browser.status': this.requireBrowserOrAdmin(request); return this.plane.listBrowserRuntime();
++      case 'project-group.upsert': {
++        this.requireAdmin(request);
++        if (!Array.isArray(params.members)) throw new Error('Group members are required');
++        return this.plane.upsertProjectGroup({ id: stringParam(params, 'id')!, name: stringParam(params, 'name')!, leadIdentity: stringParam(params, 'leadIdentity')!, leadConversationKey: stringParam(params, 'leadConversationKey')!, members: params.members.map(value => { const m = record(value); return { projectId: stringParam(m, 'projectId')!, developerSlotId: stringParam(m, 'developerSlotId')! }; }) });
++      }
++      case 'project-group.list': this.requireAdmin(request); return this.plane.listProjectGroups();
++      case 'project-group.get': this.requireAdmin(request); return this.plane.getProjectGroup(stringParam(params, 'id')!);
+       case 'project.create': return this.projectCreate(request, params);
+       case 'project.list': this.requireBrowserOrAdmin(request); return this.plane.listProjects();
+       case 'project.status': return this.projectStatus(request, params);
+diff --git a/manifest.json b/manifest.json
+index d318312..ab245fa 100644
+--- a/manifest.json
++++ b/manifest.json
+@@ -1,7 +1,7 @@
+ {
+   "manifest_version": 3,
+   "name": "Charterion",
+-  "version": "0.5.0",
++  "version": "0.5.1",
+   "description": "Open-source multi-agent engineering control plane for ChatGPT Web Agents.",
+   "permissions": [
+     "tabs",
+diff --git a/native-host/GamNativeHost/NativeRpcProtocol.g.cs b/native-host/GamNativeHost/NativeRpcProtocol.g.cs
+index 0dd55d4..2d078cf 100644
+--- a/native-host/GamNativeHost/NativeRpcProtocol.g.cs
++++ b/native-host/GamNativeHost/NativeRpcProtocol.g.cs
+@@ -25,6 +25,9 @@ internal static class NativeRpcProtocol
+         "browser.operation-dispatch",
+         "browser.operation-settle",
+         "incident.report",
++        "project-group.upsert",
++        "project-group.list",
++        "project-group.get",
+         "project.list",
+         "agent.list",
+         "resource.list",
+diff --git a/package-lock.json b/package-lock.json
+index 9e03904..4f69b5f 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "charterion",
+-  "version": "0.5.0",
++  "version": "0.5.1",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "charterion",
+-      "version": "0.5.0",
++      "version": "0.5.1",
+       "license": "Apache-2.0",
+       "devDependencies": {
+         "@types/chrome": "^0.2.8",
+diff --git a/package.json b/package.json
+index 7d080e1..4b53315 100644
+--- a/package.json
++++ b/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "charterion",
+-  "version": "0.5.0",
++  "version": "0.5.1",
+   "private": true,
+   "description": "Open-source multi-agent engineering control plane for ChatGPT Web Agents.",
+   "license": "Apache-2.0",
+diff --git a/shared/native-rpc-protocol.json b/shared/native-rpc-protocol.json
+index ec54961..c258dd6 100644
+--- a/shared/native-rpc-protocol.json
++++ b/shared/native-rpc-protocol.json
+@@ -19,6 +19,9 @@
+     { "name": "browser.operation-dispatch", "domain": "browser" },
+     { "name": "browser.operation-settle", "domain": "browser" },
+     { "name": "incident.report", "domain": "incident" },
++    { "name": "project-group.upsert", "domain": "project" },
++    { "name": "project-group.list", "domain": "project" },
++    { "name": "project-group.get", "domain": "project" },
+     { "name": "project.list", "domain": "project" },
+     { "name": "agent.list", "domain": "agent" },
+     { "name": "resource.list", "domain": "resource" },
+diff --git a/src/nativeControlLegacy.ts b/src/nativeControlLegacy.ts
+index 5c573fe..cb27411 100644
+--- a/src/nativeControlLegacy.ts
++++ b/src/nativeControlLegacy.ts
+@@ -119,7 +119,14 @@ export interface ControlWorkerRequestView {
+   decidedBy?: string; decisionNote?: string; createdAt: number; updatedAt: number;
+ }
+ 
++export interface ControlProjectGroupView {
++  id: string; name: string; leadIdentity: string; leadRole: 'chief_engineer';
++  leadConversationKey: string; browserRuntime: 'NOT_VERIFIED';
++  members: { projectId: string; developerSlotId: string }[];
++}
++
+ export interface NativeControlSnapshot {
++  projectGroups?: ControlProjectGroupView[];
+   protocolVersion: 2;
+   projects: ControlProjectView[];
+   agents: ControlAgentView[];
+@@ -168,6 +175,20 @@ function stringArrayField(value: unknown, label: string): string[] {
+ export function parseNativeControlSnapshot(value: unknown): NativeControlSnapshot {
+   const root = record(value, 'control snapshot');
+   if (root.protocolVersion !== 2) throw new Error('Unsupported control protocol version');
++  const projectGroups = arrayField(root.projectGroups ?? [], 'projectGroups').map(entry => {
++    const item = record(entry, 'projectGroup');
++    return {
++      id: stringField(item.id, 'group.id'), name: stringField(item.name, 'group.name'),
++      leadIdentity: stringField(item.leadIdentity, 'group.leadIdentity'),
++      leadRole: enumField(item.leadRole, 'group.leadRole', new Set(['chief_engineer'])) as 'chief_engineer',
++      leadConversationKey: stringField(item.leadConversationKey, 'group.leadConversationKey'),
++      browserRuntime: enumField(item.browserRuntime, 'group.browserRuntime', new Set(['NOT_VERIFIED'])) as 'NOT_VERIFIED',
++      members: arrayField(item.members, 'group.members').map(value => {
++        const member = record(value, 'group.member');
++        return { projectId: stringField(member.projectId, 'member.projectId'), developerSlotId: stringField(member.developerSlotId, 'member.developerSlotId') };
++      }),
++    };
++  });
+   const projects = arrayField(root.projects, 'projects').map((entry, index) => {
+     const item = record(entry, `projects[${index}]`);
+     return {
+@@ -283,7 +304,7 @@ export function parseNativeControlSnapshot(value: unknown): NativeControlSnapsho
+     if (item.projectId !== undefined) event.projectId = stringField(item.projectId, 'event.projectId');
+     return event;
+   });
+-  return { protocolVersion: 2, projects, agents, resources, leases, changeRequests, reviews, mergeQueue, workerRequests, browserRuntime, events };
++  return { protocolVersion: 2, projectGroups, projects, agents, resources, leases, changeRequests, reviews, mergeQueue, workerRequests, browserRuntime, events };
+ }
+ 
+ export async function readNativeControlSnapshot(): Promise<NativeControlSnapshot> {
+diff --git a/src/nativeRpcProtocol.generated.ts b/src/nativeRpcProtocol.generated.ts
+index e575c91..b324cc6 100644
+--- a/src/nativeRpcProtocol.generated.ts
++++ b/src/nativeRpcProtocol.generated.ts
+@@ -21,6 +21,9 @@ export const NATIVE_RPC_METHODS = [
+   "browser.operation-dispatch",
+   "browser.operation-settle",
+   "incident.report",
++  "project-group.upsert",
++  "project-group.list",
++  "project-group.get",
+   "project.list",
+   "agent.list",
+   "resource.list",
+@@ -73,6 +76,9 @@ export const NATIVE_RPC_METHOD_DOMAIN: Readonly<Record<NativeRpcMethod, NativeRp
+   "browser.operation-dispatch": "browser",
+   "browser.operation-settle": "browser",
+   "incident.report": "incident",
++  "project-group.upsert": "project",
++  "project-group.list": "project",
++  "project-group.get": "project",
+   "project.list": "project",
+   "agent.list": "agent",
+   "resource.list": "resource",
+diff --git a/src/sidepanel.ts b/src/sidepanel.ts
+index 6cce49f..a569c75 100644
+--- a/src/sidepanel.ts
++++ b/src/sidepanel.ts
+@@ -1,3 +1,4 @@
++import { projectGroupCards } from './projectGroupCards';
+ import type {
+   AgentMessageType,
+   CreateAgentMessageInput,
+@@ -406,7 +407,7 @@ function renderControl(): void {
+     for (const agent of projectAgents) {
+       const row = el('div', 'control-agent-row');
+       const tab = agent.browserTabId !== undefined ? 'tab ' + agent.browserTabId : 'no tab';
+-      row.textContent = [agent.role, 'desired ' + agent.desiredState, 'browser ' + agent.browserState, tab].join(' · ');
++      row.textContent = [agent.role, agent.id, agent.conversationKey ?? 'unbound', 'desired ' + agent.desiredState, 'browser ' + agent.browserState, tab].join(' · ');
+       if (agent.browserError) row.title = agent.browserError;
+       card.append(row);
+     }
+@@ -419,7 +420,7 @@ function renderControl(): void {
+     for (const change of changes.slice(-5).reverse()) { const row = el('div', 'control-change-row'); const reviews = controlSnapshot!.reviews.filter((x) => x.changeRequestId === change.id); const latestReview = reviews.at(-1); const queue = controlSnapshot!.mergeQueue.find((x) => x.changeRequestId === change.id); const reviewText = latestReview ? latestReview.verdict : 'pending-review'; const queueText = queue ? queue.status + (queue.candidateSha ? ':' + queue.candidateSha.slice(0, 10) : '') : 'not-queued'; row.textContent = [change.status, change.branch + ' → ' + change.targetBranch, 'r' + change.revision, change.headSha.slice(0, 10), reviewText, queueText].join(' · '); card.append(row); }
+     return card;
+   });
+-  controlProjects.replaceChildren(...cards); const activeLeases = controlSnapshot.leases.filter((x) => x.status === 'active').length; const tabs = runtime?.openTabs ?? 0;
++  controlProjects.replaceChildren(...projectGroupCards(controlSnapshot, cards)); const activeLeases = controlSnapshot.leases.filter((x) => x.status === 'active').length; const tabs = runtime?.openTabs ?? 0;
+   controlSummary.textContent = ['ChatGPT ' + auth, tabs + ' tab(s)', controlSnapshot.projects.length + ' project(s)', controlSnapshot.agents.length + ' agent slot(s)', activeLeases + ' active lease(s)', controlSnapshot.mergeQueue.filter((x) => x.status === 'validating').length + ' validating merge(s)'].join(' · ');
+ }
+ 
