@@ -15,6 +15,7 @@ import type {
   UpdateChangeRequestInput,
   LeaseMode,
   ProjectStatus,
+  PcpFleetMode,
   RegisterArtifactInput,
   ResourceKind,
   SubmitClaimInput,
@@ -30,6 +31,7 @@ import type {
 
 const ISOLATION_TIERS = ['c0-host', 'c1-container', 'c2-hypervisor', 'c3-ephemeral-vm'] as const;
 const PROJECT_STATUSES = ['active', 'draining', 'paused', 'archived'] as const;
+const PCP_FLEET_MODES = ['elastic', 'controlled'] as const;
 const RESOURCE_KINDS = ['workspace','repo','branch','server','gpu','port','service','database','dataset','browser-capacity','remote-lane'] as const;
 const LEASE_MODES = ['shared', 'exclusive'] as const;
 const ARTIFACT_KINDS = ['file','test-log','report','git-bundle','other'] as const;
@@ -125,16 +127,34 @@ export class RpcRouter {
     switch (request.method) {
       case 'control.snapshot':
         this.requireBrowserOrAdmin(request);
-        const changeRequests = this.plane.changes.listChangeRequests().slice(-200); return { protocolVersion: 2, projects: this.plane.listProjects(), agents: this.plane.listAgentSlots(), resources: this.plane.listResources(), leases: this.plane.listLeases(), claims: this.plane.evidence.listClaims().slice(-200), artifacts: this.plane.evidence.listArtifacts().slice(-200), verifications: this.plane.evidence.listVerifications().slice(-200), changeRequests, reviews: changeRequests.flatMap((item) => this.plane.changes.listReviews(item.id)).slice(-200), mergeQueue: this.plane.changes.listQueue().slice(-200), workerRequests: this.plane.requests.list().slice(-200), promotions: this.plane.promotions.list().slice(-200), browserRuntime: this.plane.listBrowserRuntime(), events: this.plane.listEvents(undefined, 0, 200) };
+        const changeRequests = this.plane.changes.listChangeRequests().slice(-200); return { protocolVersion: 2, projectGroups: this.plane.listProjectGroups(), projects: this.plane.listProjects(), agents: this.plane.listAgentSlots(), resources: this.plane.listResources(), leases: this.plane.listLeases(), claims: this.plane.evidence.listClaims().slice(-200), artifacts: this.plane.evidence.listArtifacts().slice(-200), verifications: this.plane.evidence.listVerifications().slice(-200), changeRequests, reviews: changeRequests.flatMap((item) => this.plane.changes.listReviews(item.id)).slice(-200), mergeQueue: this.plane.changes.listQueue().slice(-200), workerRequests: this.plane.requests.list().slice(-200), promotions: this.plane.promotions.list().slice(-200), browserRuntime: this.plane.listBrowserRuntime(), events: this.plane.listEvents(undefined, 0, 200) };
       case 'browser.report': return this.browserReport(request, params);
       case 'browser.status': this.requireBrowserOrAdmin(request); return this.plane.listBrowserRuntime();
+      case 'project-group.upsert': {
+        this.requireAdmin(request);
+        if (!Array.isArray(params.members)) throw new Error('Group members are required');
+        return this.plane.upsertProjectGroup({ id: stringParam(params, 'id')!, name: stringParam(params, 'name')!, leadIdentity: stringParam(params, 'leadIdentity')!, leadConversationKey: stringParam(params, 'leadConversationKey')!, members: params.members.map(value => { const m = record(value); return { projectId: stringParam(m, 'projectId')!, developerSlotId: stringParam(m, 'developerSlotId')! }; }) });
+      }
+      case 'project-group.list': this.requireAdmin(request); return this.plane.listProjectGroups();
+      case 'project-group.get': this.requireAdmin(request); return this.plane.getProjectGroup(stringParam(params, 'id')!);
       case 'project.create': return this.projectCreate(request, params);
       case 'project.list': this.requireBrowserOrAdmin(request); return this.plane.listProjects();
       case 'project.status': return this.projectStatus(request, params);
+      case 'project.fleet-control-get': this.requireBrowserOrAdmin(request); return this.plane.getPcpProjectFleetControl(stringParam(params, 'projectId')!);
+      case 'project.fleet-control-set': return this.projectFleetControlSet(request, params);
       case 'agent.create':
       case 'agent.spawn': return this.agentCreate(request, params);
       case 'agent.list': return this.agentList(request, params);
       case 'agent.bind': return this.agentBind(request, params);
+      case 'agent.conversation-bootstrap-authorize':
+        this.requireAdmin(request);
+        this.plane.authorizeConversationBootstrap({
+          slotId: stringParam(params, 'slotId')!, projectId: stringParam(params, 'projectId')!, role: stringParam(params, 'role')!,
+          expectedLeaseEpoch: numberParam(params, 'expectedLeaseEpoch')!, profileId: stringParam(params, 'profileId')!,
+          tabId: numberParam(params, 'tabId')!, provisionalKey: stringParam(params, 'provisionalKey')!,
+          actor: stringParam(params, 'actor')!, reason: stringParam(params, 'reason')!,
+        });
+        return { authorized: true };
       case 'agent.suspend': return this.agentSuspend(request, params);
       case 'agent.resume': return this.agentResume(request, params);
       case 'agent.retire': return this.agentRetire(request, params);
@@ -198,9 +218,37 @@ export class RpcRouter {
     );
   }
 
+  private projectFleetControlSet(request: RpcRequest, params: Record<string, unknown>): unknown {
+    this.requireAdmin(request);
+    const mode = enumParam<PcpFleetMode>(params, 'mode', PCP_FLEET_MODES, true);
+    const lifecycleLocked = params.lifecycleLocked;
+    if (lifecycleLocked !== undefined && typeof lifecycleLocked !== 'boolean') {
+      throw new Error('lifecycleLocked must be a boolean');
+    }
+    const expectedRevision = numberParam(params, 'expectedRevision')!;
+    return this.plane.setPcpProjectFleetControl(stringParam(params, 'projectId')!, {
+      ...(mode === undefined ? {} : { mode }),
+      ...(lifecycleLocked === undefined ? {} : { lifecycleLocked }),
+      expectedRevision,
+      actor: stringParam(params, 'actor')!,
+      reason: stringParam(params, 'reason')!,
+    });
+  }
+
+  private requirePcpFleetOperationAllowed(request: RpcRequest, projectId: string): void {
+    // Admin may explicitly operate a controlled/locked project. A scoped fleet
+    // capability cannot bypass PCP's manual lifecycle intent.
+    if (request.auth?.adminToken) return;
+    const control = this.plane.getPcpProjectFleetControl(projectId);
+    if (control.mode === 'controlled' || control.lifecycleLocked) {
+      throw new Error('PCP project fleet is controlled or lifecycle-locked');
+    }
+  }
+
   private agentCreate(request: RpcRequest, params: Record<string, unknown>): unknown {
     const projectId = stringParam(params, 'projectId')!;
     this.requireFleetAuthority(request, projectId);
+    this.requirePcpFleetOperationAllowed(request, projectId);
     return this.plane.createAgentSlot(projectId, stringParam(params, 'role')!);
   }
   private agentList(request: RpcRequest, params: Record<string, unknown>): unknown {
@@ -219,18 +267,21 @@ export class RpcRouter {
   private agentSuspend(request: RpcRequest, params: Record<string, unknown>): unknown {
     const slot = this.plane.getAgentSlot(stringParam(params, 'slotId')!);
     this.requireFleetAuthority(request, slot.projectId);
+    this.requirePcpFleetOperationAllowed(request, slot.projectId);
     return this.plane.suspendAgentSlot(slot.id);
   }
 
   private agentResume(request: RpcRequest, params: Record<string, unknown>): unknown {
     const slot = this.plane.getAgentSlot(stringParam(params, 'slotId')!);
     this.requireFleetAuthority(request, slot.projectId);
+    this.requirePcpFleetOperationAllowed(request, slot.projectId);
     return this.plane.resumeAgentSlot(slot.id);
   }
 
   private agentRetire(request: RpcRequest, params: Record<string, unknown>): unknown {
     const slot = this.plane.getAgentSlot(stringParam(params, 'slotId')!);
     this.requireFleetAuthority(request, slot.projectId);
+    this.requirePcpFleetOperationAllowed(request, slot.projectId);
     return this.plane.retireAgentSlot(slot.id);
   }
 
@@ -240,14 +291,27 @@ export class RpcRouter {
     const tabId = numberParam(params, 'tabId', true);
     const conversationKey = stringParam(params, 'conversationKey', true);
     const error = stringParam(params, 'error', true);
-    return this.plane.reportAgentBrowser({ slotId: stringParam(params, 'slotId')!, profileId: stringParam(params, 'profileId')!, browserState: enumParam(params, 'browserState', ['absent','opening','open','closing','error'] as const)!, ...(tabId !== undefined ? { tabId } : {}), ...(conversationKey !== undefined ? { conversationKey } : {}), ...(error !== undefined ? { error } : {}), ...(observedAt !== undefined ? { observedAt } : {}) });
+    // Authorization expiry uses the server clock, never a browser-supplied timestamp.
+    return this.plane.reportAgentBrowser({ slotId: stringParam(params, 'slotId')!, profileId: stringParam(params, 'profileId')!, browserState: enumParam(params, 'browserState', ['absent','opening','open','closing','error'] as const)!, ...(tabId !== undefined ? { tabId } : {}), ...(conversationKey !== undefined ? { conversationKey } : {}), ...(error !== undefined ? { error } : {}), ...(observedAt !== undefined ? { observedAt } : {}) }, undefined, Date.now());
   }
 
   private agentRolloverRequest(request: RpcRequest, params: Record<string, unknown>): unknown {
-    this.requireBrowserOrAdmin(request);
-    return this.plane.requestAgentConversationRollover(stringParam(params,'slotId')!, stringParam(params,'reason')!, stringParam(params,'handoffText')!, objectParam(params,'state',true) ?? {});
+    this.requireAdmin(request);
+    const slot = this.plane.getAgentSlot(stringParam(params, 'slotId')!);
+    const rollover = this.plane.requestAgentConversationRollover(slot.id, stringParam(params,'reason')!, stringParam(params,'handoffText')!, objectParam(params,'state',true) ?? {});
+    this.plane.database.db.prepare('INSERT INTO events(project_id,type,subject,payload_json,created_at) VALUES(?,?,?,?,?)')
+      .run(slot.projectId, 'CONVERSATION_ROLLOVER_AUTHORIZED', rollover.id, JSON.stringify({ actor: 'admin', slotId: slot.id }), Date.now());
+    return rollover;
   }
-  private agentRolloverBegin(request: RpcRequest, params: Record<string, unknown>): unknown { this.requireBrowserOrAdmin(request); return this.plane.beginAgentConversationRollover(stringParam(params,'slotId')!, stringParam(params,'rolloverId')!); }
+  private agentRolloverBegin(request: RpcRequest, params: Record<string, unknown>): unknown {
+    this.requireBrowserOrAdmin(request);
+    const slot = this.plane.getAgentSlot(stringParam(params, 'slotId')!);
+    const rolloverId = stringParam(params, 'rolloverId')!;
+    if (!request.auth?.adminToken && !this.plane.database.db.prepare("SELECT seq FROM events WHERE project_id=? AND type='CONVERSATION_ROLLOVER_AUTHORIZED' AND subject=? LIMIT 1").get(slot.projectId, rolloverId)) {
+      throw new Error('Admin authentication is required to authorize this Conversation rollover');
+    }
+    return this.plane.beginAgentConversationRollover(slot.id, rolloverId);
+  }
   private agentRolloverBootstrap(request: RpcRequest, params: Record<string, unknown>): unknown { this.requireBrowserOrAdmin(request); return this.plane.markAgentRolloverBootstrap(stringParam(params,'slotId')!, stringParam(params,'rolloverId')!, stringParam(params,'attemptId')!); }
   private agentRolloverComplete(request: RpcRequest, params: Record<string, unknown>): unknown { this.requireBrowserOrAdmin(request); return this.plane.completeAgentConversationRollover(stringParam(params,'slotId')!, stringParam(params,'attemptId')!); }
   private agentRolloverFail(request: RpcRequest, params: Record<string, unknown>): unknown { this.requireBrowserOrAdmin(request); return this.plane.failAgentConversationRollover(stringParam(params,'slotId')!, stringParam(params,'error')!); }

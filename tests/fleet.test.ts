@@ -22,6 +22,12 @@ function tab(tabId: number, conversationKey: string, agentSlotId: string | null 
   };
 }
 describe('agent fleet reconciliation', () => {
+  it('does not reopen client-local conversation URLs as durable history', () => {
+    for (const id of ['local-chatgpt:pending', 'LOCAL-CHATGPT%3Apending']) {
+      expect(agentConversationUrl(`conversation:${id}`)).toBe('https://chatgpt.com/');
+    }
+  });
+
   it('opens an active slot and resumes a durable conversation URL', () => {
     expect(agentConversationUrl()).toBe('https://chatgpt.com/');
     expect(agentConversationUrl('conversation:abc/def')).toBe('https://chatgpt.com/c/abc%2Fdef');

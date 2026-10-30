@@ -183,6 +183,11 @@ export async function readNativeControlSnapshot(): Promise<NativeControlSnapshot
   return parseNativeControlSnapshot(await persistentNativeResult('control.snapshot', {}));
 }
 
+export async function readNativeRadarUrl(): Promise<string> {
+  const result = record(await persistentNativeResult('radar.open', {}), 'radar discovery');
+  return stringField(result.url, 'radar URL');
+}
+
 export async function reportNativeBrowserRuntime(input: BrowserRuntimeReportInput): Promise<void> {
   await persistentNativeResult('browser.report', input as unknown as Record<string, unknown>);
 }

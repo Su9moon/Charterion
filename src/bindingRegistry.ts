@@ -1,5 +1,5 @@
 import { createBindingStore } from './bindingStore';
-import type { ChatSnapshot, RoleBinding } from './contracts';
+import { EMPTY_BINDING, type ChatSnapshot, type RoleBinding } from './contracts';
 import { MutationLane } from './mutationLane';
 
 type StorageArea = {
@@ -11,7 +11,8 @@ type BindingStorage = { local: StorageArea; session: StorageArea };
 type BindingKeys = { persistent: string; ephemeral: string };
 type BindingResolver = (tabId: number, snapshot: ChatSnapshot) => RoleBinding;
 
-export function createBindingRegistry(storage: BindingStorage, keys: BindingKeys) {
+export function createBindingRegistry(storage: BindingStorage, keys: BindingKeys,
+  confirm?: (tabId: number, snapshot: ChatSnapshot, binding: RoleBinding, provisionalKey?: string) => Promise<boolean>) {
   const store = createBindingStore(storage, keys);
   const lane = new MutationLane();
 
@@ -22,8 +23,15 @@ export function createBindingRegistry(storage: BindingStorage, keys: BindingKeys
   async function resolve(tabId: number, snapshot: ChatSnapshot): Promise<RoleBinding> {
     return run(async () => {
       const stores = await store.read();
-      const binding = store.resolve(tabId, snapshot, stores);
-      await store.persist(stores);
+      let binding = store.resolve(tabId, snapshot, stores);
+      const pending = stores.ephemeral[String(tabId)];
+      if (!binding.role && snapshot.conversationId && pending?.provisionalKey && !stores.persistent[snapshot.conversationKey] && confirm) {
+        const { provisionalKey, ...candidate } = pending;
+        if (await confirm(tabId, snapshot, candidate, provisionalKey)) {
+          await store.update(tabId, snapshot.conversationKey, candidate, true);
+          binding = candidate;
+        }
+      } else if (binding.role && confirm && !await confirm(tabId, snapshot, binding)) return { ...EMPTY_BINDING };
       return binding;
     });
   }
@@ -37,8 +45,8 @@ export function createBindingRegistry(storage: BindingStorage, keys: BindingKeys
     });
   }
 
-  function update(tabId: number, conversationKey: string, binding: RoleBinding): Promise<void> {
-    return run(() => store.update(tabId, conversationKey, binding));
+  function update(tabId: number, conversationKey: string, binding: RoleBinding, confirmedByKernel = false): Promise<void> {
+    return run(() => store.update(tabId, conversationKey, binding, confirmedByKernel));
   }
 
   function clear(conversationKey: string | undefined, tabId: number | undefined): Promise<void> {

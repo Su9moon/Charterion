@@ -1,80 +1,80 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Charterion</title>
+  <title>Hive</title>
   <link rel="stylesheet" href="sidepanel.css">
 </head>
 <body>
   <header class="topbar">
-    <div><h1>Charterion</h1><p>Coordinate open ChatGPT conversations locally.</p></div>
-    <button id="refresh" type="button">Refresh</button>
+    <div><h1>Hive</h1><p>在本地协调 ChatGPT 对话 / Coordinate ChatGPT conversations locally.</p></div>
+    <div><button id="open-console" type="button">打开控制台 / Open Console</button><button id="refresh" type="button">刷新 / Refresh</button></div>
   </header>
   <main>
     <section class="composer-card control-plane-card">
-      <div class="section-heading"><h2>Local control plane</h2><span id="control-status" class="muted">Checking…</span></div>
-      <p id="control-summary" class="muted">GAM Kernel / SQLite authority, ChatGPT authentication, Change Requests, reviews, and merge queue.</p>
+      <div class="section-heading"><h2>本地控制平面 / Local Control Plane</h2><span id="control-status" class="muted">正在检查 / Checking…</span></div>
+      <p id="control-summary" class="muted">GAM Kernel、SQLite 状态、登录、变更、审核及合并队列 / Kernel, authentication, change requests, reviews and merge queue.</p>
       <div id="control-projects" class="control-projects"></div>
     </section>
     <section class="composer-card">
-      <label for="instruction">Instruction for selected agents</label>
-      <textarea id="instruction" rows="3" placeholder="Send a one-off instruction."></textarea>
+      <label for="instruction">所选角色的指令 / Instruction for selected agents</label>
+      <textarea id="instruction" rows="3" placeholder="发送一次性指令 / Send a one-off instruction"></textarea>
       <div class="actions">
-        <button id="send-selected" class="primary" type="button">Send selected</button>
-        <button id="select-idle" type="button">Select idle</button>
-        <button id="clear-selection" type="button">Clear</button>
+        <button id="send-selected" class="primary" type="button">发送给选中角色 / Send Selected</button>
+        <button id="select-idle" type="button">选择空闲角色 / Select Idle</button>
+        <button id="clear-selection" type="button">清除选择 / Clear</button>
       </div>
       <p id="send-status" class="muted" aria-live="polite"></p>
     </section>
 
     <section class="composer-card task-editor">
-      <div class="section-heading"><h2>Task DAG</h2><div class="actions compact"><label class="toggle"><input id="supervisor-enabled" type="checkbox"> Auto supervisor</label><button id="run-ready" class="primary" type="button">Run ready</button></div></div>
+      <div class="section-heading"><h2>任务依赖图 / Task DAG</h2><div class="actions compact"><label class="toggle"><input id="supervisor-enabled" type="checkbox"> 自动主管 / Auto Supervisor</label><button id="run-ready" class="primary" type="button">执行就绪任务 / Run Ready</button></div></div>
       <div class="task-form-grid">
-        <label>Title<input id="task-title" autocomplete="off" placeholder="Implement feature"></label>
-        <label id="task-role-wrap">Role<input id="task-role" autocomplete="off" placeholder="worker-1"></label>
-        <label>Project<input id="task-project" autocomplete="off" placeholder="optional exact project"></label>
-        <label>Kind<select id="task-kind"><option value="work">Work</option><option value="review">Review</option><option value="human">Human decision</option></select></label>
-        <label class="wide">Dependencies<select id="task-deps" multiple size="5"></select></label>
-        <label id="task-review-target-wrap" hidden>Review target<select id="task-review-target"></select></label>
-        <label id="task-review-rounds-wrap" hidden>Max review rounds<input id="task-review-rounds" type="number" min="1" max="10" value="3"></label>
-        <label class="wide">Instruction<textarea id="task-instruction" rows="3" placeholder="Exact instruction or human decision question"></textarea></label>
+        <label>标题 / Title<input id="task-title" autocomplete="off" placeholder="实现功能 / Implement feature"></label>
+        <label id="task-role-wrap">角色 / Role<input id="task-role" autocomplete="off" placeholder="worker-1 / 工作角色"></label>
+        <label>项目 / Project<input id="task-project" autocomplete="off" placeholder="可选精确项目 / Optional exact project"></label>
+        <label>类型 / Kind<select id="task-kind"><option value="work">工作 / Work</option><option value="review">审核 / Review</option><option value="human">人工决策 / Human Decision</option></select></label>
+        <label class="wide">依赖项 / Dependencies<select id="task-deps" multiple size="5"></select></label>
+        <label id="task-review-target-wrap" hidden>审核目标 / Review Target<select id="task-review-target"></select></label>
+        <label id="task-review-rounds-wrap" hidden>最大审核轮数 / Max Review Rounds<input id="task-review-rounds" type="number" min="1" max="10" value="3"></label>
+        <label class="wide">指令 / Instruction<textarea id="task-instruction" rows="3" placeholder="准确指令或人工决策问题 / Exact instruction or human question"></textarea></label>
       </div>
-      <div class="actions"><button id="create-task" type="button">Create task</button></div>
+      <div class="actions"><button id="create-task" type="button">创建任务 / Create Task</button></div>
       <p id="task-status" class="muted" aria-live="polite"></p>
       <div id="dag-view" class="dag-view"></div>
       <div id="tasks" class="tasks"></div>
     </section>
     <section class="composer-card message-editor">
-      <div class="section-heading"><h2>Team messages</h2><span class="muted">Semantic plane</span></div>
+      <div class="section-heading"><h2>团队消息 / Team Messages</h2><span class="muted">语义交接 / Semantic Plane</span></div>
       <div class="task-form-grid">
-        <label>Project<input id="message-project" autocomplete="off" placeholder="required project"></label>
-        <label>From role<input id="message-from" autocomplete="off" placeholder="ROLE01"></label>
-        <label>Target<select id="message-target-kind"><option value="role">Role</option><option value="project">Everyone in project</option></select></label>
-        <label id="message-target-role-wrap">Target role<input id="message-target-role" autocomplete="off" placeholder="ROLE02"></label>
-        <label>Type<select id="message-type"><option value="result">Result</option><option value="blocker">Blocker</option><option value="question">Question</option><option value="answer">Answer</option><option value="review-request">Review request</option><option value="review-result">Review result</option><option value="announcement">Announcement</option></select></label>
-        <label>Related task<input id="message-task" autocomplete="off" placeholder="optional task id"></label>
-        <label class="wide">Message<textarea id="message-content" rows="3" placeholder="Semantic context to deliver to the target agent(s)"></textarea></label>
+        <label>项目 / Project<input id="message-project" autocomplete="off" placeholder="必填项目 / Required project"></label>
+        <label>来源角色 / From Role<input id="message-from" autocomplete="off" placeholder="ROLE01"></label>
+        <label>目标 / Target<select id="message-target-kind"><option value="role">角色 / Role</option><option value="project">项目全部角色 / Everyone in Project</option></select></label>
+        <label id="message-target-role-wrap">目标角色 / Target Role<input id="message-target-role" autocomplete="off" placeholder="ROLE02"></label>
+        <label>类型 / Type<select id="message-type"><option value="result">结果 / Result</option><option value="blocker">阻断 / Blocker</option><option value="question">提问 / Question</option><option value="answer">回答 / Answer</option><option value="review-request">请求审核 / Review Request</option><option value="review-result">审核结果 / Review Result</option><option value="announcement">公告 / Announcement</option></select></label>
+        <label>关联任务 / Related Task<input id="message-task" autocomplete="off" placeholder="可选 Task ID / Optional task ID"></label>
+        <label class="wide">消息 / Message<textarea id="message-content" rows="3" placeholder="发送给目标角色的语义消息 / Message for target agents"></textarea></label>
       </div>
-      <div class="actions"><button id="queue-message" type="button">Queue message</button></div>
+      <div class="actions"><button id="queue-message" type="button">加入消息队列 / Queue Message</button></div>
       <p id="message-status" class="muted" aria-live="polite"></p>
       <div id="messages" class="messages"></div>
     </section>
 
     <section class="composer-card">
-      <div class="section-heading"><h2>State backup</h2><span class="muted">Schema v2</span></div>
-      <textarea id="state-json" rows="6" spellcheck="false" placeholder="Exported manager state appears here. Paste a state document here to import."></textarea>
+      <div class="section-heading"><h2>状态备份 / State Backup</h2><span class="muted">结构版本 v2 / Schema v2</span></div>
+      <textarea id="state-json" rows="6" spellcheck="false" placeholder="导出状态显示在此；粘贴状态文档可导入 / Exported state appears here; paste a state document to import."></textarea>
       <div class="actions">
-        <button id="export-state" type="button">Export state</button>
-        <button id="import-state" type="button">Import state</button>
+        <button id="export-state" type="button">导出状态 / Export State</button>
+        <button id="import-state" type="button">导入状态 / Import State</button>
       </div>
       <p id="state-status" class="muted" aria-live="polite"></p>
     </section>
 
     <section>
-      <div class="section-heading"><h2>Agents</h2><span id="summary" class="muted"></span></div>
+      <div class="section-heading"><h2>角色会话 / Agents</h2><span id="summary" class="muted"></span></div>
       <div id="agents" class="agents"></div>
-      <div id="empty" class="empty" hidden>No open ChatGPT conversations were detected.</div>
+      <div id="empty" class="empty" hidden>未检测到已打开的 ChatGPT 会话 / No open ChatGPT conversations detected.</div>
     </section>
   </main>
   <script src="sidepanel.js"></script>

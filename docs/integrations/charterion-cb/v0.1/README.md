@@ -5,7 +5,7 @@
 
 - 唯一权威：[PCP 接入基线](https://github.com/Su9moon/personal-ai-control-plane/blob/61402b2d2e042f5b950e58bcb230901e3c58fb12/governance/integrations/charterion-cb/v0.1/BASELINE.md)。
 - 精确版本与快照字节校验：integration-lock.json；upstream/ 文件为 NON_CANONICAL_AUTHORIZED_SNAPSHOT。
-- 本侧实施入口：[工单](../../../../workorders/WO-20261028-CHAR-CB-CHARTERION-01.md)，repo=Su9moon/Charterion，path=workorders/WO-20261028-CHAR-CB-CHARTERION-01.md。
+- 本侧实施入口：[工单](../../../../workorders/WO-20261028-CHAR-CB-CHARTERION-01.md)，repo=Su9moon/Hive，path=workorders/WO-20261028-CHAR-CB-CHARTERION-01.md。
 - 对侧仓库：https://github.com/Su9moon/codex-bridge/tree/main/docs/integrations/charterion-cb/v0.1 （导航链接，不作为契约版本来源）。
 - 联合验证：[待安排工单](https://github.com/Su9moon/personal-ai-control-plane/blob/61402b2d2e042f5b950e58bcb230901e3c58fb12/workorders/WO-20261028-CHAR-CB-JOINT-01.md)。
 

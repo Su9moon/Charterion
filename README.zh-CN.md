@@ -1,13 +1,13 @@
-# Charterion: Open-Source Multi-Agent Engineering Control Plane for ChatGPT Web Agents
+# Hive: Open-Source Multi-Agent Engineering Control Plane for ChatGPT Web Agents
 
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
+[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
 [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
 [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
 
 <!-- readme-i18n:navigation:start -->
-<p align="center"><a href="README.md">English</a> · <strong>简体中文</strong> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.ru.md">Русский</a></p>
+<p align="center"><a href="README.md">English</a> · <strong>简体中文</strong></p>
 <!-- readme-i18n:navigation:end -->
 
 **一个本地优先的工程控制平面，把多个 ChatGPT Web 对话组织成持久、基于角色的 Agent 团队。**
@@ -19,7 +19,7 @@
 <!-- readme-section:overview -->
 ## 项目简介
 
-Charterion把多个 **ChatGPT Web 对话**组织成具有持久身份、岗位分工和工程权限边界的 Agent 团队，并由本地确定性的 GAM Kernel 管理项目、Git、租约、能力令牌、证据、审查和恢复状态。
+Hive 把多个 **ChatGPT Web 对话**组织成具有持久身份、岗位分工和工程权限边界的 Agent 团队，并由本地确定性的 GAM Kernel 管理项目、Git、租约、能力令牌、证据、审查和恢复状态。
 
 浏览器标签页只是可替换的运行载体，不是 Agent 的真实身份。GAM 的目标不是“批量操控网页”，而是把多个 GPT Worker 管理成一个小型软件工程组织。
 
@@ -222,4 +222,8 @@ GAM 当前专注于 **`chatgpt.com` 上的 ChatGPT Web**。通用 LLM API、托�
 <!-- readme-section:status -->
 ## 开发状态
 
-Charterion 仍在持续开发。任何 Release Candidate 都必须通过仓库验证套件、README i18n release gate，以及基于证据的独立审查/晋级边界，才能被视为稳定版本。
+Hive 仍在持续开发。任何 Release Candidate 都必须通过仓库验证套件、README i18n release gate，以及基于证据的独立审查/晋级边界，才能被视为稳定版本。
+
+## PCP 联合接入档案：Hive—CB（2026-10-28）
+
+本仓保留用户批准的历史接入档案：[接入说明](docs/integrations/charterion-cb/v0.1/README.md)和[实施工单](workorders/WO-20261028-CHAR-CB-CHARTERION-01.md)与原有固定契约对应。CB 仍是外部 Codex 执行服务，不因 Hive 产品更名而改变现有协议名、已绑定标识或本地执行与审查权限。文档完成不代表联调、Windows 部署或浏览器验收通过，相关结果须按实际运行证据确认。

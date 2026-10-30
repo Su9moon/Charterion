@@ -6,6 +6,7 @@ export const NATIVE_MAX_MESSAGE_BYTES = 1048576 as const;
 
 export const NATIVE_RPC_METHODS = [
   "health",
+  "radar.open",
   "control.snapshot",
   "browser.report",
   "browser.status",
@@ -58,6 +59,7 @@ export type NativeRpcDomain = typeof NATIVE_RPC_DOMAINS[number];
 
 export const NATIVE_RPC_METHOD_DOMAIN: Readonly<Record<NativeRpcMethod, NativeRpcDomain>> = {
   "health": "system",
+  "radar.open": "control",
   "control.snapshot": "control",
   "browser.report": "browser",
   "browser.status": "browser",

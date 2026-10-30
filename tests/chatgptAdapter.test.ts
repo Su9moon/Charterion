@@ -5,6 +5,7 @@ import {
   extractConversationId,
   normalizePageTitle,
   observePageStatus,
+  findComposer,
   findSendButton,
   readComposerText,
   sendPrompt,
@@ -33,6 +34,18 @@ describe('ChatGPT adapter identity', () => {
     expect(() => conversationKey('https://chatgpt.com/', 'url:https://chatgpt.com/')).toThrow(/scoped provisional/i);
   });
 
+  it('keeps current client-local conversation URLs provisional until the server assigns an id', () => {
+    const pending = '3b057caf-2cb2-4677-ab88-ed4544c1bbff';
+    for (const path of [`/c/local-chatgpt:${pending}`, `/c/local-chatgpt%3A${pending}`, `/g/g-helper/c/LOCAL-CHATGPT%3A${pending}`]) {
+      expect(extractConversationId(`https://chatgpt.com${path}`)).toBeUndefined();
+      const snapshot = snapshotFromDocument(new JSDOM('<textarea id="prompt-textarea"></textarea>').window.document,
+        `https://chatgpt.com${path}`, 'provisional:owned-tab');
+      expect(snapshot.conversationKey).toBe('provisional:owned-tab');
+      expect(snapshot.conversationId).toBeUndefined();
+    }
+    expect(conversationKey(`https://chatgpt.com/c/${pending}`, 'provisional:owned-tab')).toBe(`conversation:${pending}`);
+  });
+
   it('normalizes the browser page title without inventing a role', () => {
     expect(normalizePageTitle('Worker 01 - ChatGPT')).toBe('Worker 01');
     expect(normalizePageTitle('ChatGPT')).toBe('ChatGPT');
@@ -40,6 +53,47 @@ describe('ChatGPT adapter identity', () => {
 });
 
 describe('ChatGPT page observation', () => {
+  it('recognizes the current scoped markdown composer without the legacy prompt id', async () => {
+    const dom = new JSDOM(`<!doctype html><form data-chatgpt-composer>
+      <div contenteditable="true" role="textbox" data-composer-markdown class="ProseMirror"><p><br></p></div>
+      <button type="submit" data-composer-submit></button></form>`, { url: 'https://chatgpt.com/' });
+    expect(observePageStatus(dom.window.document, 'https://chatgpt.com/').status).toBe('idle');
+    const editor = dom.window.document.querySelector<HTMLElement>('[data-composer-markdown]')!;
+    expect(findComposer(dom.window.document)).toBe(editor);
+    dom.window.document.querySelector('button')!.addEventListener('click', event => {
+      event.preventDefault(); editor.replaceChildren();
+    });
+    await expect(sendPrompt(dom.window.document, 'CH-PCP-003 test', 100)).resolves.toBeUndefined();
+  });
+
+  it('does not mistake unrelated or disabled rich text editors for the ChatGPT composer', () => {
+    const unrelated = new JSDOM('<div role="textbox" contenteditable="true" data-composer-markdown></div>');
+    expect(findComposer(unrelated.window.document)).toBeNull();
+    const disabled = new JSDOM('<form data-chatgpt-composer><div role="textbox" contenteditable="true" data-composer-markdown aria-disabled="true"></div></form>');
+    expect(findComposer(disabled.window.document)).toBeNull();
+  });
+
+  it('captures current assistant message identity once per turn and preserves legacy ordering', () => {
+    const dom = new JSDOM(`<!doctype html>
+      <div data-chatgpt-selection-message-id="user"><div data-markdown-text-style="user-message">instruction</div></div>
+      <div data-message-author-role="assistant" data-message-id="legacy">
+        <div data-chatgpt-selection-message-id="legacy"><div data-markdown-text-style="assistant-message">first</div></div>
+      </div>
+      <div data-chatgpt-selection-message-id="current">
+        <div data-markdown-text-style="assistant-message">latest</div><div data-markdown-text-style="assistant-message">result</div>
+      </div>
+      <form data-chatgpt-composer><div role="textbox" contenteditable="true" data-composer-markdown></div></form>`);
+    const snapshot = snapshotFromDocument(dom.window.document, 'https://chatgpt.com/c/current', 'provisional:test');
+    expect(snapshot.assistantMessageCount).toBe(2);
+    expect(snapshot.latestAssistantMessageId).toBe('message:current');
+    expect(snapshot.latestAssistantText.replace(/\s/g, '')).toBe('latestresult');
+  });
+
+  it('ignores unscoped assistant-like markdown without a stable message container', () => {
+    const dom = new JSDOM('<div data-markdown-text-style="assistant-message">unrelated preview</div>');
+    expect(snapshotFromDocument(dom.window.document, 'https://chatgpt.com/', 'provisional:test').assistantMessageCount).toBe(0);
+  });
+
   it('marks a ready composer idle and captures the latest assistant message', () => {
     const dom = new JSDOM(`<!doctype html><title>Role 02 - ChatGPT</title>
       <div data-message-author-role="assistant" data-message-id="m1">first</div>

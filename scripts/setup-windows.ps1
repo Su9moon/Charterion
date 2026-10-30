@@ -1,11 +1,22 @@
 param(
-  [string]$GamHome = (Join-Path $env:USERPROFILE '.charterion'),
+  [string]$GamHome = '',
   [string]$ExtensionId = '',
   [switch]$SkipVerify,
   [switch]$CreateDesktopShortcut,
   [switch]$NoStart
 )
 $ErrorActionPreference = 'Stop'
+# Preserve existing project/AgentSlot/credential storage when upgrading a legacy install.
+# New installs use .hive; explicit -GamHome always takes precedence.
+if ([string]::IsNullOrWhiteSpace($GamHome)) {
+  $hiveHome = Join-Path $env:USERPROFILE '.hive'
+  $legacyHome = Join-Path $env:USERPROFILE '.charterion'
+  if (Test-Path -LiteralPath $hiveHome) { $GamHome = $hiveHome }
+  elseif (Test-Path -LiteralPath $legacyHome) {
+    $GamHome = $legacyHome
+    Write-Warning 'Hive is preserving the legacy data directory until an audited state migration.'
+  } else { $GamHome = $hiveHome }
+}
 $Repo = Split-Path $PSScriptRoot -Parent
 Set-Location $Repo
 $env:GAM_HOME = $GamHome
@@ -50,12 +61,12 @@ Write-Host "GAM pipe: $PipeName"
 Write-Host "GAM launcher: $wrapper"
 if ($CreateDesktopShortcut) {
   $desktop = [Environment]::GetFolderPath('Desktop')
-  $shortcutPath = Join-Path $desktop 'Charterion.lnk'
+  $shortcutPath = Join-Path $desktop 'Hive.lnk'
   $shell = New-Object -ComObject WScript.Shell
   $shortcut = $shell.CreateShortcut($shortcutPath)
   $shortcut.TargetPath = $wrapper
   $shortcut.WorkingDirectory = $Repo
-  $shortcut.Description = 'Start Charterion'
+  $shortcut.Description = 'Start Hive'
   $shortcut.Save()
   Write-Host "Desktop shortcut: $shortcutPath"
 }

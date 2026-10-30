@@ -1,13 +1,13 @@
-# Charterion: Open-Source Multi-Agent Engineering Control Plane for ChatGPT Web Agents
+# Hive: Open-Source Multi-Agent Engineering Control Plane for ChatGPT Web Agents
 
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
+[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
 [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
 [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
 
 <!-- readme-i18n:navigation:start -->
-<p align="center"><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a> · <a href="README.zh-TW.md">繁體中文</a> · <a href="README.ja.md">日本語</a> · <a href="README.ko.md">한국어</a> · <a href="README.es.md">Español</a> · <a href="README.pt-BR.md">Português (Brasil)</a> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> · <a href="README.ru.md">Русский</a></p>
+<p align="center"><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
 <!-- readme-i18n:navigation:end -->
 
 **A local-first engineering control plane that turns multiple ChatGPT Web conversations into a durable, role-based Agent organization.**
@@ -19,7 +19,7 @@
 <!-- readme-section:overview -->
 ## Overview
 
-Charterion manages multiple ChatGPT Web conversations as persistent engineering workers backed by a local deterministic Kernel. Browser tabs are disposable runtime surfaces; Agent identity, projects, Git work, leases, capabilities, evidence, reviews, and recovery state are durable.
+Hive manages multiple ChatGPT Web conversations as persistent engineering workers backed by a local deterministic Kernel. Browser tabs are disposable runtime surfaces; Agent identity, projects, Git work, leases, capabilities, evidence, reviews, and recovery state are durable.
 
 GAM is designed to behave more like a small software company than a tab automator: independent workers operate in isolated scopes, Supervisors review exact evidence, and the Kernel enforces authority boundaries.
 
@@ -226,7 +226,7 @@ Licensed under [Apache-2.0](LICENSE). See [NOTICE](NOTICE) and [Third-Party Noti
 <!-- readme-section:status -->
 ## Development status
 
-Charterion is under active development. Release candidates must pass the repository verification suite, README i18n release gate, and evidence-based review/promotion boundaries before they are treated as stable.
+Hive is under active development. Release candidates must pass the repository verification suite, README i18n release gate, and evidence-based review/promotion boundaries before they are treated as stable.
 
 ## PCP integration profile: Charterion—CB (2026-10-28)
 

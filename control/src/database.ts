@@ -789,6 +789,90 @@ export class ControlDatabase {
     });
   }
 
+  /** Additive PCP project controls: existing installations remain in legacy elastic mode. */
+  private migrateV28(): void {
+    this.transaction(() => {
+      this.db.exec(`
+        CREATE TABLE IF NOT EXISTS pcp_project_fleet_controls (
+          project_id TEXT PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+          mode TEXT NOT NULL CHECK(mode IN ('elastic','controlled')),
+          lifecycle_locked INTEGER NOT NULL DEFAULT 0 CHECK(lifecycle_locked IN (0,1)),
+          revision INTEGER NOT NULL CHECK(revision > 0),
+          actor TEXT NOT NULL,
+          reason TEXT NOT NULL,
+          updated_at INTEGER NOT NULL
+        ) STRICT;
+      `);
+    });
+  }
+
+  private migrateV29(): void {
+    this.transaction(() => this.db.exec(`
+      CREATE TABLE IF NOT EXISTS conversation_bootstrap_authorizations (
+        slot_id TEXT PRIMARY KEY REFERENCES agent_slots(id) ON DELETE CASCADE,
+        lease_epoch INTEGER NOT NULL,
+        browser_lease_id TEXT NOT NULL,
+        profile_id TEXT NOT NULL,
+        tab_id INTEGER NOT NULL,
+        provisional_key TEXT NOT NULL,
+        actor TEXT NOT NULL,
+        reason TEXT NOT NULL,
+        authorized_at INTEGER NOT NULL,
+        expires_at INTEGER NOT NULL,
+        consumed_key TEXT
+      ) STRICT;
+    `));
+  }
+
+  private migrateV30(): void {
+    this.transaction(() => this.db.exec(`
+      CREATE TABLE IF NOT EXISTS project_groups (
+        id TEXT PRIMARY KEY, name TEXT NOT NULL,
+        lead_identity TEXT NOT NULL UNIQUE,
+        lead_conversation_key TEXT NOT NULL UNIQUE,
+        created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+      ) STRICT;
+      CREATE TABLE IF NOT EXISTS project_group_members (
+        group_id TEXT NOT NULL REFERENCES project_groups(id),
+        project_id TEXT NOT NULL UNIQUE REFERENCES projects(id),
+        developer_slot_id TEXT NOT NULL UNIQUE REFERENCES agent_slots(id),
+        PRIMARY KEY(group_id, project_id)
+      ) STRICT;
+      CREATE TRIGGER IF NOT EXISTS group_lead_immutable BEFORE UPDATE OF lead_identity,lead_conversation_key ON project_groups
+      WHEN NEW.lead_identity IS NOT OLD.lead_identity OR NEW.lead_conversation_key IS NOT OLD.lead_conversation_key
+      BEGIN SELECT RAISE(ABORT, 'Group lead rebind is forbidden'); END;
+      CREATE TRIGGER IF NOT EXISTS group_member_immutable BEFORE UPDATE ON project_group_members
+      WHEN NEW.group_id IS NOT OLD.group_id OR NEW.project_id IS NOT OLD.project_id OR NEW.developer_slot_id IS NOT OLD.developer_slot_id
+      BEGIN SELECT RAISE(ABORT, 'Group membership rebind is forbidden'); END;
+      CREATE TRIGGER IF NOT EXISTS agent_group_insert_scope BEFORE INSERT ON agent_slots BEGIN
+        SELECT RAISE(ABORT, 'Conversation already belongs to a group')
+        WHERE EXISTS(SELECT 1 FROM project_groups WHERE lead_conversation_key=NEW.conversation_key);
+      END;
+      CREATE TRIGGER IF NOT EXISTS group_lead_scope BEFORE INSERT ON project_groups BEGIN
+        SELECT RAISE(ABORT, 'Conversation already belongs to a project')
+        WHERE EXISTS(SELECT 1 FROM agent_slots WHERE conversation_key=NEW.lead_conversation_key);
+      END;
+      CREATE TRIGGER IF NOT EXISTS group_lead_scope_update BEFORE UPDATE ON project_groups BEGIN
+        SELECT RAISE(ABORT, 'Conversation already belongs to a project')
+        WHERE EXISTS(SELECT 1 FROM agent_slots WHERE conversation_key=NEW.lead_conversation_key);
+      END;
+      CREATE TRIGGER IF NOT EXISTS group_member_assignment BEFORE INSERT ON project_group_members BEGIN
+        SELECT RAISE(ABORT, 'Invalid group developer assignment') WHERE NOT EXISTS (
+          SELECT 1 FROM agent_slots WHERE id=NEW.developer_slot_id AND project_id=NEW.project_id
+          AND role='developer' AND desired_state='active' AND conversation_key IS NOT NULL
+        );
+      END;
+      CREATE TRIGGER IF NOT EXISTS group_member_reassignment BEFORE UPDATE OF project_id,role,conversation_key ON agent_slots
+      WHEN EXISTS(SELECT 1 FROM project_group_members WHERE developer_slot_id=OLD.id)
+      AND (NEW.project_id<>OLD.project_id OR NEW.role<>OLD.role OR NEW.conversation_key IS NOT OLD.conversation_key)
+      BEGIN SELECT RAISE(ABORT, 'Group developer rebind is forbidden'); END;
+      CREATE TRIGGER IF NOT EXISTS agent_group_scope BEFORE UPDATE OF conversation_key ON agent_slots BEGIN
+        SELECT RAISE(ABORT, 'Conversation already belongs to a group')
+        WHERE EXISTS(SELECT 1 FROM project_groups WHERE lead_conversation_key=NEW.conversation_key);
+      END;
+    `));
+  }
+
   private createConversationContinuityTables(): void {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS agent_conversations (

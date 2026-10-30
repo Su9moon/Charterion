@@ -1,0 +1,186 @@
+{
+  "workorder": "CH-PCP-007",
+  "observedAt": "2026-10-27T16:17:13.508Z",
+  "runtimeSourceSha": "2a7988e41348e30b3d0bedd1bc7b6c6bbae8b590",
+  "fixCommit": "53240ae5e960ba8b254cf709f8adce147afdff2e",
+  "extension": {
+    "id": "kheifdlffdfcgmapmbbahdgkpccckmbn",
+    "version": "0.5.0",
+    "profile": "C:\\Users\\jjyyz\\AppData\\Local\\Google\\Chrome Dev\\User Data\\Default",
+    "initialDevPid": 48804,
+    "currentDevPid": 39756,
+    "newProfile": false,
+    "newCdp": false,
+    "changedByUser": true,
+    "host": "com.charterion.pcp_trial_1cc2ff54f7742042"
+  },
+  "health": {
+    "status": "ok",
+    "protocolVersion": 2,
+    "instanceId": "1cc2ff54f7742042"
+  },
+  "projectId": "e3b56b16-0c28-4782-bea6-919fd9e646d2",
+  "slotId": "e2ac5204-5086-496f-a4b6-1c2448ead83d",
+  "role": "chief_engineer",
+  "conversationKey": "conversation:6ae0caf8-3f78-83ea-9fd3-c73db21eb006",
+  "conversationGeneration": 1,
+  "initialTabId": 859945551,
+  "reopenedTabId": 859945706,
+  "agentBrowserState": "open",
+  "agentPageStatus": "idle",
+  "agentStatus": "assigned",
+  "runtime": {
+    "profileId": "gam-default",
+    "authStatus": "authenticated",
+    "pageHealth": "ready",
+    "openTabs": 4,
+    "extensionVersion": "0.5.0",
+    "observedAt": 1793117831119
+  },
+  "bootstrapBoundEvents": 1,
+  "workCounts": {
+    "tasks": 0,
+    "attempts": 1,
+    "messages": 0
+  },
+  "attempt": {
+    "attemptId": "a66d7ba3-8fbc-4262-8618-c0277f12bf62",
+    "state": "reply-observed",
+    "createdAt": 1793116916262,
+    "replyObservedAt": 1793117028320,
+    "replyMatchesMarker": true
+  },
+  "operations": [
+    {
+      "id": "a66d7ba3-8fbc-4262-8618-c0277f12bf62",
+      "operation": "prompt.send",
+      "state": "settled",
+      "outcome": "reply-observed",
+      "slotId": "e2ac5204-5086-496f-a4b6-1c2448ead83d"
+    }
+  ],
+  "fleet": {
+    "projectId": "e3b56b16-0c28-4782-bea6-919fd9e646d2",
+    "mode": "elastic",
+    "lifecycleLocked": true,
+    "revision": 1,
+    "updatedAt": 1793109169916,
+    "actor": "CH-PCP-007 user-authorized acceptance",
+    "reason": "Retain the manual test role during login, idle and restart acceptance"
+  },
+  "closedPageRestoredSameConversation": true,
+  "kernelRestart": {
+    "observedAt": "2026-10-27T16:09:10.1710781Z",
+    "afterPid": 17192,
+    "profileTouched": false,
+    "browserRestarted": false,
+    "beforePid": 38376
+  },
+  "chromeDevStop": {
+    "observedAt": "2026-10-27T16:14:41.0735425Z",
+    "oldPid": 48804,
+    "dedicatedDevExitedNormally": true,
+    "ordinaryChromeStillRunning": true
+  },
+  "chromeDevRestart": {
+    "cdp": false,
+    "restoredExistingProfile": true,
+    "commandLine": "\"C:\\Program Files\\Google\\Chrome Dev\\Application\\chrome.exe\" --profile-directory=Default --restore-last-session",
+    "windowHandle": 4915870,
+    "newPid": 39756,
+    "observedAt": "2026-10-27T16:14:50.8649834Z",
+    "executable": "C:\\Program Files\\Google\\Chrome Dev\\Application\\chrome.exe"
+  },
+  "profileStorageMetadata": {
+    "observedAt": "2026-10-27T16:16:27.0965812Z",
+    "metadata": [
+      {
+        "length": null,
+        "path": "C:\\Users\\jjyyz\\AppData\\Local\\Google\\Chrome Dev\\User Data\\Default",
+        "creationTimeUnchanged": true,
+        "creationTimeUtc": "2026-10-22T20:05:37.6183236Z"
+      },
+      {
+        "length": 65536,
+        "path": "C:\\Users\\jjyyz\\AppData\\Local\\Google\\Chrome Dev\\User Data\\Default\\Network\\Cookies",
+        "creationTimeUnchanged": true,
+        "creationTimeUtc": "2026-10-22T20:05:37.9752653Z"
+      }
+    ],
+    "valuesRead": false,
+    "copied": false
+  },
+  "noResendObserved": true,
+  "radar": {
+    "newProfile": false,
+    "realBrowser": true,
+    "cdp": false,
+    "labels": [
+      "已连接 Kernel",
+      "生命周期已锁定",
+      "CH-PCP-007 · Chief Engineer 真实会话验收",
+      "生命周期已锁定",
+      "conversation:6ae0caf8-3f78-83ea-9fd3-c73db21eb006",
+      "Kernel 1cc2ff54f7742042"
+    ],
+    "observedAt": "2026-10-27T16:16:32.3093175Z",
+    "detailsExpanded": true,
+    "openedThroughPlugin": true
+  },
+  "preservation": {
+    "devPid": 39756,
+    "cookieValuesRead": false,
+    "originalDatabaseMetadataUnchanged": true,
+    "profileCopied": false,
+    "devProfileCreatedAt": "2026-10-22T20:05:37.6183236Z",
+    "observedAt": "2026-10-27T16:16:27.5276361Z",
+    "ordinaryChromePid": 31588,
+    "ordinaryChromeStillRunning": true,
+    "devProfilePath": "C:\\Users\\jjyyz\\AppData\\Local\\Google\\Chrome Dev\\User Data\\Default",
+    "otherHostRegistrations": [
+      {
+        "name": "com.gpt_agent_manager.control",
+        "unchanged": true
+      },
+      {
+        "name": "com.microsoft.browsercore",
+        "unchanged": true
+      },
+      {
+        "name": "com.quark.hostclient",
+        "unchanged": true
+      },
+      {
+        "name": "org.xdown.xmsg",
+        "unchanged": true
+      }
+    ],
+    "devNoCdp": true,
+    "trialHostManifest": "F:\\0 codex\\Charterion-PCP-Trial-006\\versions\\2a7988e41348e30b3d0bedd1bc7b6c6bbae8b590\\native-host\\com.charterion.pcp_trial_1cc2ff54f7742042.json"
+  },
+  "tests": {
+    "files": 88,
+    "passed": 508,
+    "durationSeconds": 134.45,
+    "scope": "current source including reply revision fix",
+    "checks": [
+      "check",
+      "check:control",
+      "build",
+      "build:control",
+      "check:dist",
+      "check:architecture"
+    ]
+  },
+  "limitations": {
+    "fixDeployedToDev": "NOT_RUN",
+    "freshConversationOnFixedBuild": "NOT_RUN",
+    "nativeHostRebuildThisResume": "NOT_RUN",
+    "actualSidePanelControlSnapshot": "NOT_RUN",
+    "radarScreenshot": "NOT_RUN_FOREGROUND_GUARD",
+    "kernelExitBeforeResume": "UNKNOWN",
+    "managerTabControlStatus": "unavailable: sender.tab is rejected by existing manager:control-snapshot guard",
+    "legacyStartCmd": "Still launches Chrome for Testing; not used for Chrome Dev acceptance",
+    "restoredHistoryTab": "Browser session restoration retained a temporary Tab; the Kernel-leased role uses its own restored canonical Tab. No automatic adoption or resend."
+  }
+}

@@ -1,8 +1,8 @@
-# Charterion: Open-Source Multi-Agent Engineering Control Plane for ChatGPT Web Agents
+# Hive: Open-Source Multi-Agent Engineering Control Plane for ChatGPT Web Agents
 
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
+[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
 [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
 [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
 
@@ -19,7 +19,7 @@
 <!-- readme-section:overview -->
 ## Visão geral
 
-Charterion gerencia várias conversas do ChatGPT Web como engineering Workers persistentes. Um deterministic Kernel local mantém Agent identity, projetos, Git, leases, capabilities, evidence, reviews e recovery state. Tabs do navegador são runtime surfaces substituíveis, não a Source of Truth do Agent.
+Hive gerencia várias conversas do ChatGPT Web como engineering Workers persistentes. Um deterministic Kernel local mantém Agent identity, projetos, Git, leases, capabilities, evidence, reviews e recovery state. Tabs do navegador são runtime surfaces substituíveis, não a Source of Truth do Agent.
 
 O GAM foi projetado para funcionar como uma pequena empresa de software: Workers operam em scopes isolados, Supervisors revisam exact evidence e o Kernel impõe os authority boundaries.
 
@@ -222,4 +222,4 @@ Este projeto usa [Apache-2.0](LICENSE) e inclui [NOTICE](NOTICE) e [Third-Party 
 <!-- readme-section:status -->
 ## Status de desenvolvimento
 
-Charterion está em active development. Um Release Candidate só é considerado stable após passar repository verification, README i18n release gate e evidence-based review/promotion boundaries.
+Hive está em active development. Um Release Candidate só é considerado stable após passar repository verification, README i18n release gate e evidence-based review/promotion boundaries.

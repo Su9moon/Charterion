@@ -1,3 +1,4 @@
+import { projectGroupCards } from './projectGroupCards';
 import type {
   AgentMessageType,
   CreateAgentMessageInput,
@@ -15,6 +16,11 @@ import type {
 import type { NativeControlSnapshot } from './nativeControl';
 
 const controlStatus = required<HTMLSpanElement>('control-status');
+required<HTMLButtonElement>('open-console').addEventListener('click', () => {
+  void chrome.runtime.sendMessage({ type: 'manager:open-console' }).then((response: { ok: boolean; error?: string }) => {
+    if (!response.ok) controlStatus.textContent = response.error ?? '控制台不可用';
+  }).catch(() => { controlStatus.textContent = '控制台不可用，请检查扩展和 Kernel'; });
+});
 const controlSummary = required<HTMLParagraphElement>('control-summary');
 const controlProjects = required<HTMLDivElement>('control-projects');
 const agentsRoot = required<HTMLDivElement>('agents');
@@ -28,6 +34,18 @@ const sendStatus = required<HTMLParagraphElement>('send-status');
 const taskStatus = required<HTMLParagraphElement>('task-status');
 const messageStatus = required<HTMLParagraphElement>('message-status');
 const stateStatus = required<HTMLParagraphElement>('state-status');
+// Visible state labels only; protocol identifiers and task payloads remain unchanged.
+const stateLabels: Record<string, string> = {
+  idle: '空闲 / idle', generating: '生成中 / generating', blocked: '受阻 / blocked',
+  unauthorized: '未登录 / unauthorized', unknown: '未知 / unknown', unavailable: '不可用 / unavailable',
+  active: '运行 / active', suspended: '暂停 / suspended', retired: '退役 / retired',
+  pending: '待处理 / pending', ready: '就绪 / ready', running: '执行中 / running',
+  completed: '完成 / completed', skipped: '跳过 / skipped', cancelled: '取消 / cancelled',
+  rejected: '拒绝 / rejected', error: '错误 / error', attention: '需关注 / attention',
+  'waiting-human': '等待人工 / waiting-human', 'reply-observed': '已观察回复 / reply-observed',
+  acknowledged: '已确认 / acknowledged', failed: '失败 / failed', uncertain: '结果不明 / uncertain',
+};
+const displayState = (value: string) => stateLabels[value] ?? value;
 const selected = new Set<number>();
 let tabs: ManagedTab[] = [];
 let tasks: ManagedTask[] = [];
@@ -108,14 +126,14 @@ function renderAgent(tab: ManagedTab): HTMLElement {
   small.textContent = tab.binding.project || tab.snapshot.title;
   title.append(strong, small);
   const badge = el('span', `status status-${tab.snapshot.status}`);
-  badge.textContent = tab.snapshot.status;
+  badge.textContent = displayState(tab.snapshot.status);
   head.append(checkbox, title, badge);
   card.append(head);
 
   const grid = el('div', 'binding-grid');
-  const role = bindingInput('Role', tab.binding.role);
-  const project = bindingInput('Project', tab.binding.project);
-  const notes = bindingInput('Notes', tab.binding.notes, true);
+  const role = bindingInput('角色 / Role', tab.binding.role);
+  const project = bindingInput('项目 / Project', tab.binding.project);
+  const notes = bindingInput('备注 / Notes', tab.binding.notes, true);
   const inputs = [role.input, project.input, notes.input] as const;
   for (const input of inputs) input.addEventListener('change', () => {
     void persistBinding(tab, inputs).catch((error) => setStatus(sendStatus, String(error), true));
@@ -131,13 +149,13 @@ function renderAgent(tab: ManagedTab): HTMLElement {
   if (tab.lastAttempt) {
     const attempt = el('div', `attempt attempt-${tab.lastAttempt.state}`);
     const replySuffix = tab.lastAttempt.replyMessageId ? ` · ${tab.lastAttempt.replyMessageId}` : '';
-    attempt.textContent = `Last send: ${tab.lastAttempt.state}${replySuffix}`;
+    attempt.textContent = `最近发送 / Last send: ${displayState(tab.lastAttempt.state)}${replySuffix}`;
     card.append(attempt);
   }
   const actions = el('div', 'agent-actions');
   const focus = el('button');
   focus.type = 'button';
-  focus.textContent = 'Focus tab';
+  focus.textContent = '切换标签 / Focus Tab';
   focus.addEventListener('click', () => {
     void request({ type: 'manager:focus', tabId: tab.tabId })
       .catch((error) => setStatus(sendStatus, String(error), true));
@@ -151,12 +169,12 @@ function renderAttemptHistory(managed: ManagedTask): HTMLElement | undefined {
   if (managed.attemptHistory.length === 0) return undefined;
   const details = el('details', 'task-history');
   const summaryNode = el('summary');
-  summaryNode.textContent = `Attempt history (${managed.attemptHistory.length})`;
+  summaryNode.textContent = `尝试记录 / Attempt History (${managed.attemptHistory.length})`;
   details.append(summaryNode);
   for (const attempt of [...managed.attemptHistory].reverse()) {
     const item = el('div', `history-item history-${attempt.state}`);
     const meta = el('div', 'history-meta');
-    meta.textContent = `${attempt.state} · ${attempt.attemptId}`;
+    meta.textContent = `${displayState(attempt.state)} · ${attempt.attemptId}`;
     item.append(meta);
     if (attempt.error) {
       const error = el('div', 'task-error');
@@ -184,7 +202,7 @@ function renderTask(managed: ManagedTask): HTMLElement {
   small.textContent = `${managed.task.kind} · ${managed.task.completionPolicy} · ${role}${managed.task.project ? ` · ${managed.task.project}` : ''}`;
   title.append(strong, small);
   const badge = el('span', `task-state task-state-${managed.status}`);
-  badge.textContent = managed.status;
+  badge.textContent = displayState(managed.status);
   head.append(title, badge);
   card.append(head);
 
@@ -193,13 +211,13 @@ function renderTask(managed: ManagedTask): HTMLElement {
   card.append(id);
   if (managed.task.dependsOn.length > 0) {
     const deps = el('div', 'task-deps');
-    deps.textContent = `Depends on: ${managed.task.dependsOn.map(taskName).join(' · ')}`;
+    deps.textContent = `依赖 / Depends on: ${managed.task.dependsOn.map(taskName).join(' · ')}`;
     card.append(deps);
   }
   if (managed.task.kind === 'review') {
     const reviewMeta = el('div', 'task-deps');
     const target = managed.task.reviewTargetTaskId ? taskName(managed.task.reviewTargetTaskId) : 'missing target';
-    reviewMeta.textContent = `Review target: ${target} · round ${managed.reviewRound ?? 0}/${managed.task.maxReviewRounds ?? 3}`;
+    reviewMeta.textContent = `审核目标 / Review target: ${target} · 轮次 / Round ${managed.reviewRound ?? 0}/${managed.task.maxReviewRounds ?? 3}`;
     card.append(reviewMeta);
   }
   const body = el('div', 'task-instruction');
@@ -207,7 +225,7 @@ function renderTask(managed: ManagedTask): HTMLElement {
   card.append(body);
   if (managed.task.revisionInstruction) {
     const revision = el('div', 'task-review-remediation');
-    revision.textContent = `Revision requested: ${managed.task.revisionInstruction}`;
+    revision.textContent = `要求修订 / Revision requested: ${managed.task.revisionInstruction}`;
     card.append(revision);
   }
   if (managed.lastAttempt?.error) {
@@ -217,7 +235,7 @@ function renderTask(managed: ManagedTask): HTMLElement {
   }
   if (managed.structuredResult) {
     const result = el('div', 'task-review task-review-pass');
-    result.textContent = `Structured result: ${managed.structuredResult.summary}`;
+    result.textContent = `结构化结果 / Structured result: ${managed.structuredResult.summary}`;
     card.append(result);
     const evidence = el('pre', 'history-reply');
     evidence.textContent = managed.structuredResult.evidence.map((item) => `- ${item}`).join('\n');
@@ -225,32 +243,32 @@ function renderTask(managed: ManagedTask): HTMLElement {
   }
   if (managed.structuredResultError) {
     const resultError = el('div', 'task-error');
-    resultError.textContent = `Structured-result protocol error: ${managed.structuredResultError}`;
+    resultError.textContent = `结构化结果协议错误 / Structured-result protocol error: ${managed.structuredResultError}`;
     card.append(resultError);
   }
   if (managed.reviewResult) {
     const review = el('div', `task-review task-review-${managed.reviewResult.decision}`);
-    review.textContent = `Review ${managed.reviewResult.decision.toUpperCase()}: ${managed.reviewResult.reason}`;
+    review.textContent = `审核 / Review ${managed.reviewResult.decision.toUpperCase()}: ${managed.reviewResult.reason}`;
     card.append(review);
     if (managed.reviewResult.nextInstruction) {
       const remediation = el('div', 'task-review-remediation');
-      remediation.textContent = `Next: ${managed.reviewResult.nextInstruction}`;
+      remediation.textContent = `后续 / Next: ${managed.reviewResult.nextInstruction}`;
       card.append(remediation);
     }
   }
   if (managed.reviewError) {
     const reviewError = el('div', 'task-error');
-    reviewError.textContent = `Review protocol error: ${managed.reviewError}`;
+    reviewError.textContent = `审核协议错误 / Review protocol error: ${managed.reviewError}`;
     card.append(reviewError);
   }
   if (managed.reviewLoopExhausted) {
     const exhausted = el('div', 'task-error');
-    exhausted.textContent = 'Review loop exhausted its configured maximum rounds.';
+    exhausted.textContent = '审核轮次已达到上限 / Review loop exhausted its configured maximum rounds.';
     card.append(exhausted);
   }
   if (managed.task.humanDecision) {
     const human = el('div', `task-human task-human-${managed.task.humanDecision.decision}`);
-    human.textContent = `Human ${managed.task.humanDecision.decision.toUpperCase()}${managed.task.humanDecision.reason ? `: ${managed.task.humanDecision.reason}` : ''}`;
+    human.textContent = `人工决策 / Human ${managed.task.humanDecision.decision.toUpperCase()}${managed.task.humanDecision.reason ? `: ${managed.task.humanDecision.reason}` : ''}`;
     card.append(human);
   }
   const history = renderAttemptHistory(managed);
@@ -262,11 +280,11 @@ function renderTask(managed: ManagedTask): HTMLElement {
     for (const decision of ['approve', 'reject'] as HumanDecision[]) {
       const button = el('button');
       button.type = 'button';
-      button.textContent = decision === 'approve' ? 'Approve' : 'Reject';
+      button.textContent = decision === 'approve' ? '批准 / Approve' : '拒绝 / Reject';
       button.addEventListener('click', () => {
-        const reason = window.prompt(`Optional reason for ${decision}:`, '') ?? '';
+        const reason = window.prompt(`可选原因 / Optional reason for ${decision}:`, '') ?? '';
         void request({ type: 'manager:decide-human-task', taskId: managed.task.id, decision, reason })
-          .then(async () => { setStatus(taskStatus, `Human task ${decision}d.`); await refresh(); })
+          .then(async () => { setStatus(taskStatus, `人工任务已处理 / Human task ${decision}d.`); await refresh(); })
           .catch((error) => setStatus(taskStatus, String(error), true));
       });
       actions.append(button);
@@ -276,10 +294,10 @@ function renderTask(managed: ManagedTask): HTMLElement {
   if (managed.task.kind === 'review' && managed.reviewResult?.decision === 'fail' && !managed.reviewLoopExhausted) {
     const revise = el('button');
     revise.type = 'button';
-    revise.textContent = 'Revise & re-review';
+    revise.textContent = '修订并复审 / Revise & Re-review';
     revise.addEventListener('click', () => {
       void request({ type: 'manager:retry-review-loop', taskId: managed.task.id })
-        .then(async () => { setStatus(taskStatus, 'Revision requested from producer; review will re-run after it completes.'); await refresh(); })
+        .then(async () => { setStatus(taskStatus, '已请求修订；完成后重新审核 / Revision requested; review will re-run after completion.'); await refresh(); })
         .catch((error) => setStatus(taskStatus, String(error), true));
     });
     actions.append(revise);
@@ -290,10 +308,10 @@ function renderTask(managed: ManagedTask): HTMLElement {
   if (plainRetry) {
     const retry = el('button');
     retry.type = 'button';
-    retry.textContent = 'Retry';
+    retry.textContent = '重试 / Retry';
     retry.addEventListener('click', () => {
       void request({ type: 'manager:retry-task', taskId: managed.task.id })
-        .then(async () => { setStatus(taskStatus, 'Retry requested.'); await refresh(); })
+        .then(async () => { setStatus(taskStatus, '已请求重试 / Retry requested.'); await refresh(); })
         .catch((error) => setStatus(taskStatus, String(error), true));
     });
     actions.append(retry);
@@ -302,11 +320,11 @@ function renderTask(managed: ManagedTask): HTMLElement {
   if (['pending', 'ready', 'waiting-human', 'error', 'attention', 'blocked'].includes(managed.status)) {
     const skip = el('button');
     skip.type = 'button';
-    skip.textContent = 'Skip';
+    skip.textContent = '跳过 / Skip';
     skip.addEventListener('click', () => {
-      const reason = window.prompt('Optional skip reason:', '') ?? '';
+      const reason = window.prompt('可选跳过原因 / Optional skip reason:', '') ?? '';
       void request({ type: 'manager:skip-task', taskId: managed.task.id, reason })
-        .then(async () => { setStatus(taskStatus, 'Task skipped.'); await refresh(); })
+        .then(async () => { setStatus(taskStatus, '已跳过 / Task skipped.'); await refresh(); })
         .catch((error) => setStatus(taskStatus, String(error), true));
     });
     actions.append(skip);
@@ -315,11 +333,11 @@ function renderTask(managed: ManagedTask): HTMLElement {
   if (!['completed', 'skipped', 'cancelled', 'rejected'].includes(managed.status)) {
     const cancel = el('button');
     cancel.type = 'button';
-    cancel.textContent = 'Cancel';
+    cancel.textContent = '取消 / Cancel';
     cancel.addEventListener('click', () => {
-      const reason = window.prompt('Optional cancellation reason:', '') ?? '';
+      const reason = window.prompt('可选取消原因 / Optional cancellation reason:', '') ?? '';
       void request({ type: 'manager:cancel-task', taskId: managed.task.id, reason })
-        .then(async () => { setStatus(taskStatus, 'Task orchestration cancelled.'); await refresh(); })
+        .then(async () => { setStatus(taskStatus, '已取消任务编排 / Task orchestration cancelled.'); await refresh(); })
         .catch((error) => setStatus(taskStatus, String(error), true));
     });
     actions.append(cancel);
@@ -342,7 +360,7 @@ function renderDag(): void {
     const edge = el('span', 'dag-edge');
     edge.textContent = `${parents} → `;
     const node = el('span', `dag-node task-state-${managed.status}`);
-    node.textContent = `${managed.task.title} [${managed.status}]`;
+    node.textContent = `${managed.task.title} [${displayState(managed.status)}]`;
     row.append(edge, node);
     return row;
   });
@@ -355,7 +373,7 @@ function updateTaskEditorOptions(): void {
   const depOptions = tasks.map((managed) => {
     const option = el('option');
     option.value = managed.task.id;
-    option.textContent = `${managed.task.title} · ${managed.status}`;
+    option.textContent = `${managed.task.title} · ${displayState(managed.status)}`;
     option.selected = selectedDeps.has(managed.task.id);
     return option;
   });
@@ -370,7 +388,7 @@ function updateTaskEditorOptions(): void {
     return option;
   })];
   targetOptions[0]!.value = '';
-  targetOptions[0]!.textContent = 'Select reviewed task';
+  targetOptions[0]!.textContent = '选择待审核任务 / Select Reviewed Task';
   reviewTarget.replaceChildren(...targetOptions);
   if (tasks.some((managed) => managed.task.id === currentTarget)) reviewTarget.value = currentTarget;
 }
@@ -393,20 +411,20 @@ function ensureReviewTargetDependency(): void {
 }
 
 function renderControl(): void {
-  if (!controlSnapshot) { controlProjects.replaceChildren(); controlSummary.textContent = 'Browser orchestration remains available without the local control plane.'; return; }
+  if (!controlSnapshot) { controlProjects.replaceChildren(); controlSummary.textContent = '本地控制平面不可用时仍可浏览器编排 / Browser orchestration remains available without the local control plane.'; return; }
   const runtime = [...controlSnapshot.browserRuntime].sort((x, y) => y.observedAt - x.observedAt)[0];
   const auth = runtime?.authStatus ?? 'unknown';
   const cards = controlSnapshot.projects.map((project) => {
     const card = el('article', 'control-project-card'); const title = el('strong'); title.textContent = project.name; const meta = el('small');
     const agentCount = controlSnapshot!.agents.filter((x) => x.projectId === project.id).length; const resourceCount = controlSnapshot!.resources.filter((x) => x.projectId === project.id).length; const leaseCount = controlSnapshot!.leases.filter((x) => x.projectId === project.id && x.status === 'active').length;
     const changes = controlSnapshot!.changeRequests.filter((x) => x.projectId === project.id); const openRequests = controlSnapshot!.workerRequests.filter((x) => x.projectId === project.id && x.status === 'open'); const reviewable = changes.filter((x) => x.status === 'open').length; const mergeReady = changes.filter((x) => x.status === 'approved' || x.status === 'queued').length;
-    meta.textContent = [project.status, project.isolationTier, agentCount + ' agent(s)', resourceCount + ' resource(s)', leaseCount + ' active lease(s)', reviewable + ' reviewable CR(s)', openRequests.length + ' worker request(s)', mergeReady + ' merge-ready'].join(' · ');
+    meta.textContent = [project.status, project.isolationTier, agentCount + ' 个角色 / agent(s)', resourceCount + ' 个资源 / resource(s)', leaseCount + ' 个租约 / active lease(s)', reviewable + ' 个待审变更 / reviewable CR(s)', openRequests.length + ' 个 Worker 请求 / worker request(s)', mergeReady + ' 个可合并 / merge-ready'].join(' · ');
     const path = el('code', 'control-project-path'); path.textContent = project.rootPath; card.append(title, meta, path);
     const projectAgents = controlSnapshot!.agents.filter((agent) => agent.projectId === project.id);
     for (const agent of projectAgents) {
       const row = el('div', 'control-agent-row');
-      const tab = agent.browserTabId !== undefined ? 'tab ' + agent.browserTabId : 'no tab';
-      row.textContent = [agent.role, 'desired ' + agent.desiredState, 'browser ' + agent.browserState, tab].join(' · ');
+      const tab = agent.browserTabId !== undefined ? 'tab ' + agent.browserTabId : '无标签 / no tab';
+      row.textContent = [agent.role, agent.id, agent.conversationKey ?? 'unbound', '期望 / desired ' + displayState(agent.desiredState), '浏览器 / browser ' + displayState(agent.browserState), tab].join(' · ');
       if (agent.browserError) row.title = agent.browserError;
       card.append(row);
     }
@@ -419,8 +437,8 @@ function renderControl(): void {
     for (const change of changes.slice(-5).reverse()) { const row = el('div', 'control-change-row'); const reviews = controlSnapshot!.reviews.filter((x) => x.changeRequestId === change.id); const latestReview = reviews.at(-1); const queue = controlSnapshot!.mergeQueue.find((x) => x.changeRequestId === change.id); const reviewText = latestReview ? latestReview.verdict : 'pending-review'; const queueText = queue ? queue.status + (queue.candidateSha ? ':' + queue.candidateSha.slice(0, 10) : '') : 'not-queued'; row.textContent = [change.status, change.branch + ' → ' + change.targetBranch, 'r' + change.revision, change.headSha.slice(0, 10), reviewText, queueText].join(' · '); card.append(row); }
     return card;
   });
-  controlProjects.replaceChildren(...cards); const activeLeases = controlSnapshot.leases.filter((x) => x.status === 'active').length; const tabs = runtime?.openTabs ?? 0;
-  controlSummary.textContent = ['ChatGPT ' + auth, tabs + ' tab(s)', controlSnapshot.projects.length + ' project(s)', controlSnapshot.agents.length + ' agent slot(s)', activeLeases + ' active lease(s)', controlSnapshot.mergeQueue.filter((x) => x.status === 'validating').length + ' validating merge(s)'].join(' · ');
+  controlProjects.replaceChildren(...projectGroupCards(controlSnapshot, cards)); const activeLeases = controlSnapshot.leases.filter((x) => x.status === 'active').length; const tabs = runtime?.openTabs ?? 0;
+  controlSummary.textContent = ['ChatGPT ' + auth, tabs + ' 个标签 / tab(s)', controlSnapshot.projects.length + ' 个项目 / project(s)', controlSnapshot.agents.length + ' 个角色槽 / agent slot(s)', activeLeases + ' 个租约 / active lease(s)', controlSnapshot.mergeQueue.filter((x) => x.status === 'validating').length + ' 个验证中的合并 / validating merge(s)'].join(' · ');
 }
 
 async function refreshControlOnce(force = false): Promise<void> {
@@ -430,10 +448,10 @@ async function refreshControlOnce(force = false): Promise<void> {
   try {
     const response = await request<{ snapshot: NativeControlSnapshot }>({ type: 'manager:control-snapshot' });
     controlSnapshot = response.snapshot;
-    setStatus(controlStatus, 'connected');
+    setStatus(controlStatus, '已连接 / connected');
   } catch (error) {
     controlSnapshot = undefined;
-    setStatus(controlStatus, 'unavailable', true);
+    setStatus(controlStatus, '不可用 / unavailable', true);
     controlSummary.textContent = error instanceof Error ? error.message : String(error);
   }
   renderControl();
@@ -469,7 +487,7 @@ function render(): void {
   const idle = tabs.filter((tab) => tab.snapshot.status === 'idle').length;
   const generating = tabs.filter((tab) => tab.snapshot.status === 'generating').length;
   const attention = tabs.filter((tab) => !['idle', 'generating'].includes(tab.snapshot.status)).length;
-  summary.textContent = `${tabs.length} open · ${idle} idle · ${generating} generating · ${attention} attention`;
+  summary.textContent = `${tabs.length} 已打开 / open · ${idle} 空闲 / idle · ${generating} 生成中 / generating · ${attention} 需关注 / attention`;
 }
 
 let refreshInFlight: Promise<void> | undefined;
@@ -515,18 +533,18 @@ function scheduleRefresh(): void {
 
 async function sendSelected(): Promise<void> {
   const text = instruction.value.trim();
-  if (!text) return setStatus(sendStatus, 'Enter an instruction first.', true);
+  if (!text) return setStatus(sendStatus, '请先填写指令 / Enter an instruction first.', true);
   const tabIds = [...selected];
-  if (tabIds.length === 0) return setStatus(sendStatus, 'Select at least one agent.', true);
-  setStatus(sendStatus, `Sending to ${tabIds.length} selected agent(s)…`);
+  if (tabIds.length === 0) return setStatus(sendStatus, '请至少选择一个角色 / Select at least one agent.', true);
+  setStatus(sendStatus, `正在发送到 ${tabIds.length} 个角色 / Sending to ${tabIds.length} agent(s)…`);
   try {
     const response = await request<{ results: SendResult[] }>({ type: 'manager:send', tabIds, text });
     const failed = response.results.filter((result) => !result.ok);
     setStatus(
       sendStatus,
       failed.length === 0
-        ? `Sent to ${response.results.length} agent(s).`
-        : `${failed.length}/${response.results.length} send(s) failed.`,
+        ? `已发送到 ${response.results.length} 个角色 / Sent to ${response.results.length} agent(s).`
+        : `${failed.length}/${response.results.length} 个发送失败 / send(s) failed.`,
       failed.length > 0,
     );
     await refresh();
@@ -555,10 +573,10 @@ async function createTask(): Promise<void> {
     if (reviewTarget) input.reviewTargetTaskId = reviewTarget;
     input.maxReviewRounds = Number(required<HTMLInputElement>('task-review-rounds').value);
   }
-  setStatus(taskStatus, 'Creating task…');
+  setStatus(taskStatus, '正在创建任务 / Creating task…');
   try {
     await request({ type: 'manager:create-task', input });
-    setStatus(taskStatus, 'Task created.');
+    setStatus(taskStatus, '任务已创建 / Task created.');
     required<HTMLInputElement>('task-title').value = '';
     required<HTMLTextAreaElement>('task-instruction').value = '';
     required<HTMLSelectElement>('task-deps').selectedIndex = -1;
@@ -569,7 +587,7 @@ async function createTask(): Promise<void> {
 }
 
 async function runReadyTasks(): Promise<void> {
-  setStatus(taskStatus, 'Dispatching ready tasks…');
+  setStatus(taskStatus, '正在派发就绪任务 / Dispatching ready tasks…');
   try {
     const response = await request<{ results: TaskDispatchResult[] }>({ type: 'manager:run-ready-tasks' });
     const failed = response.results.filter((result) => !result.ok);
@@ -577,8 +595,8 @@ async function runReadyTasks(): Promise<void> {
     setStatus(
       taskStatus,
       response.results.length === 0
-        ? 'No tasks are ready.'
-        : `${sent} task(s) dispatched · ${failed.length} not dispatched.`,
+        ? '暂无就绪任务 / No tasks are ready.'
+        : `${sent} 个已派发 / dispatched · ${failed.length} 个未派发 / not dispatched.`,
       failed.length > 0,
     );
     await refresh();
@@ -588,11 +606,11 @@ async function runReadyTasks(): Promise<void> {
 }
 
 async function setSupervisorMode(enabled: boolean): Promise<void> {
-  setStatus(taskStatus, enabled ? 'Enabling auto supervisor…' : 'Disabling auto supervisor…');
+  setStatus(taskStatus, enabled ? '正在启用自动主管 / Enabling auto supervisor…' : '正在停用自动主管 / Disabling auto supervisor…');
   try {
     await request({ type: 'manager:set-supervisor-enabled', enabled });
     supervisorEnabled = enabled;
-    setStatus(taskStatus, enabled ? 'Auto supervisor enabled.' : 'Auto supervisor disabled.');
+    setStatus(taskStatus, enabled ? '自动主管已启用 / Auto supervisor enabled.' : '自动主管已停用 / Auto supervisor disabled.');
     await refresh();
   } catch (error) {
     required<HTMLInputElement>('supervisor-enabled').checked = supervisorEnabled;
@@ -601,11 +619,11 @@ async function setSupervisorMode(enabled: boolean): Promise<void> {
 }
 
 async function exportState(): Promise<void> {
-  setStatus(stateStatus, 'Exporting state…');
+  setStatus(stateStatus, '正在导出状态 / Exporting state…');
   try {
     const response = await request<{ document: string }>({ type: 'manager:export-state' });
     required<HTMLTextAreaElement>('state-json').value = response.document;
-    setStatus(stateStatus, 'State exported.');
+    setStatus(stateStatus, '状态已导出 / State exported.');
   } catch (error) {
     setStatus(stateStatus, error instanceof Error ? error.message : String(error), true);
   }
@@ -613,11 +631,11 @@ async function exportState(): Promise<void> {
 
 async function importState(): Promise<void> {
   const document = required<HTMLTextAreaElement>('state-json').value.trim();
-  if (!document) return setStatus(stateStatus, 'Paste a state document first.', true);
-  setStatus(stateStatus, 'Validating and importing state…');
+  if (!document) return setStatus(stateStatus, '请先粘贴状态文档 / Paste a state document first.', true);
+  setStatus(stateStatus, '正在验证并导入状态 / Validating and importing state…');
   try {
     await request({ type: 'manager:import-state', document });
-    setStatus(stateStatus, 'State imported.');
+    setStatus(stateStatus, '状态已导入 / State imported.');
     await refresh();
   } catch (error) {
     setStatus(stateStatus, error instanceof Error ? error.message : String(error), true);
@@ -667,7 +685,7 @@ function renderMessage(managed: ManagedMessage): HTMLElement {
   small.textContent = `${managed.message.type} · ${managed.message.project}`;
   title.append(strong, small);
   const badge = el('span', 'message-attempt-count');
-  badge.textContent = `${managed.attemptHistory.length} send(s)`;
+  badge.textContent = `${managed.attemptHistory.length} 次发送 / send(s)`;
   head.append(title, badge);
   card.append(head);
 
@@ -676,13 +694,13 @@ function renderMessage(managed: ManagedMessage): HTMLElement {
   card.append(body);
   if (managed.message.taskId) {
     const related = el('div', 'task-deps');
-    related.textContent = `Related task: ${taskName(managed.message.taskId)}`;
+    related.textContent = `关联任务 / Related task: ${taskName(managed.message.taskId)}`;
     card.append(related);
   }
   if (managed.attemptHistory.length > 0) {
     const details = el('details', 'message-history');
     const summaryNode = el('summary');
-    summaryNode.textContent = 'Delivery history';
+    summaryNode.textContent = '投递记录 / Delivery History';
     details.append(summaryNode);
     for (const attempt of [...managed.attemptHistory].reverse()) {
       const item = el('div', `history-item history-${attempt.state}`);
@@ -706,11 +724,11 @@ function renderMessage(managed: ManagedMessage): HTMLElement {
   const actions = el('div', 'message-actions');
   const deliver = el('button');
   deliver.type = 'button';
-  deliver.textContent = 'Deliver';
+  deliver.textContent = '投递 / Deliver';
   deliver.addEventListener('click', () => {
     void request<{ results: SendResult[] }>({ type: 'manager:dispatch-message', messageId: managed.message.id })
       .then(async (response) => {
-        setStatus(messageStatus, response.results.length === 0 ? 'Message already delivered to all current recipients.' : `Delivered to ${response.results.length} recipient(s).`);
+        setStatus(messageStatus, response.results.length === 0 ? '消息已投递给全部当前接收者 / Message already delivered to all current recipients.' : `已投递给 ${response.results.length} 个接收者 / Delivered to ${response.results.length} recipient(s).`);
         await refresh();
       })
       .catch((error) => setStatus(messageStatus, String(error), true));
@@ -738,11 +756,11 @@ async function queueMessage(): Promise<void> {
   };
   const taskId = required<HTMLInputElement>('message-task').value.trim();
   if (taskId) input.taskId = taskId;
-  setStatus(messageStatus, 'Queueing message…');
+  setStatus(messageStatus, '正在加入消息队列 / Queueing message…');
   try {
     await request({ type: 'manager:create-message', input });
     required<HTMLTextAreaElement>('message-content').value = '';
-    setStatus(messageStatus, 'Message queued. Use Deliver when recipients are ready.');
+    setStatus(messageStatus, '消息已入队，接收者就绪时再投递 / Message queued. Use Deliver when recipients are ready.');
     await refresh();
   } catch (error) {
     setStatus(messageStatus, error instanceof Error ? error.message : String(error), true);

@@ -119,7 +119,14 @@ export interface ControlWorkerRequestView {
   decidedBy?: string; decisionNote?: string; createdAt: number; updatedAt: number;
 }
 
+export interface ControlProjectGroupView {
+  id: string; name: string; leadIdentity: string; leadRole: 'chief_engineer';
+  leadConversationKey: string; browserRuntime: 'NOT_VERIFIED';
+  members: { projectId: string; developerSlotId: string }[];
+}
+
 export interface NativeControlSnapshot {
+  projectGroups?: ControlProjectGroupView[];
   protocolVersion: 2;
   projects: ControlProjectView[];
   agents: ControlAgentView[];
@@ -168,6 +175,20 @@ function stringArrayField(value: unknown, label: string): string[] {
 export function parseNativeControlSnapshot(value: unknown): NativeControlSnapshot {
   const root = record(value, 'control snapshot');
   if (root.protocolVersion !== 2) throw new Error('Unsupported control protocol version');
+  const projectGroups = arrayField(root.projectGroups ?? [], 'projectGroups').map(entry => {
+    const item = record(entry, 'projectGroup');
+    return {
+      id: stringField(item.id, 'group.id'), name: stringField(item.name, 'group.name'),
+      leadIdentity: stringField(item.leadIdentity, 'group.leadIdentity'),
+      leadRole: enumField(item.leadRole, 'group.leadRole', new Set(['chief_engineer'])) as 'chief_engineer',
+      leadConversationKey: stringField(item.leadConversationKey, 'group.leadConversationKey'),
+      browserRuntime: enumField(item.browserRuntime, 'group.browserRuntime', new Set(['NOT_VERIFIED'])) as 'NOT_VERIFIED',
+      members: arrayField(item.members, 'group.members').map(value => {
+        const member = record(value, 'group.member');
+        return { projectId: stringField(member.projectId, 'member.projectId'), developerSlotId: stringField(member.developerSlotId, 'member.developerSlotId') };
+      }),
+    };
+  });
   const projects = arrayField(root.projects, 'projects').map((entry, index) => {
     const item = record(entry, `projects[${index}]`);
     return {
@@ -283,7 +304,7 @@ export function parseNativeControlSnapshot(value: unknown): NativeControlSnapsho
     if (item.projectId !== undefined) event.projectId = stringField(item.projectId, 'event.projectId');
     return event;
   });
-  return { protocolVersion: 2, projects, agents, resources, leases, changeRequests, reviews, mergeQueue, workerRequests, browserRuntime, events };
+  return { protocolVersion: 2, projectGroups, projects, agents, resources, leases, changeRequests, reviews, mergeQueue, workerRequests, browserRuntime, events };
 }
 
 export async function readNativeControlSnapshot(): Promise<NativeControlSnapshot> {

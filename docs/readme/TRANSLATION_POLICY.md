@@ -4,7 +4,7 @@
 
 ## Invariants
 
-- Keep the canonical project name `Charterion` unchanged in every locale.
+- Keep the canonical project name `Hive` unchanged in every locale.
 - Preserve section IDs, section order, commands, code blocks, paths, identifiers, JSON keys, environment variables, protocol names, database tables, SHAs, branches, and API symbols.
 - Translate explanatory prose naturally; do not force word-for-word translations of architecture terms.
 - Keep `fail-closed`, `Source of Truth`, `AgentSlot`, `ProjectCell`, `WorkClaim`, `GAM_HOME`, and other canonical contract tokens when translation would weaken precision.
@@ -21,4 +21,5 @@
 6. Run `python scripts/check_readme_i18n.py`.
 7. Before release, run `python scripts/check_readme_i18n.py --release`.
 
-Tier 0 is English. Tier 1 locales must be current for release. Tier 2 locales may be temporarily stale, but staleness must remain visible in translation state and release evidence.
+Active languages are exactly en and zh-CN. Both must be current for release. Historical translations are frozen under archive/ and excluded from navigation, generation, version metadata and acceptance.
+活跃语言仅为英文和简体中文；历史译文仅归档。

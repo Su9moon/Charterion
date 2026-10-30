@@ -31,6 +31,8 @@ import type {
   IssuedCapability,
   ProjectCell,
   ProjectStatus,
+  PcpFleetMode,
+  PcpProjectFleetControl,
   ResourceKind,
   ResourceLease,
   ResourceRecord,
@@ -43,6 +45,12 @@ import type {
   VerifiedTaskCompletion,
   TaskWorkspace,
 } from './contracts';
+
+export interface ProjectGroup {
+  id: string; name: string; leadIdentity: string; leadRole: 'chief_engineer';
+  leadConversationKey: string; browserRuntime: 'NOT_VERIFIED';
+  members: { projectId: string; developerSlotId: string }[];
+}
 
 type Row = Record<string, string | number | null>;
 
@@ -57,7 +65,7 @@ function canonicalConversationKey(value: string): string {
   const key = nonEmpty(value, 'Conversation key');
   if (!key.startsWith('conversation:')) throw new Error('Only durable ChatGPT conversation identities may bind an agent slot');
   const id = key.slice('conversation:'.length);
-  if (!id || id === 'new' || /^WEB:/i.test(id)) throw new Error('Conversation key must be a canonical durable ChatGPT identity');
+  if (!id || id === 'new' || /^WEB:/i.test(id) || /^local-chatgpt(?::|%3A)/i.test(id)) throw new Error('Conversation key must be a canonical durable ChatGPT identity');
   return key;
 }
 
@@ -201,7 +209,15 @@ export class ControlPlane {
     this.findings = new FindingAuthority(database);
     this.reviewPool = new ReviewPoolAuthority(database);
     this.organizationExecution = new OrganizationExecutionBridge(database, this.organization, this.work);
-    this.organizationRuntime = new OrganizationRuntimeAcquisitionAuthority(database, this.organization, (projectId, role, now) => this.createAgentSlot(projectId, role, now));
+    this.organizationRuntime = new OrganizationRuntimeAcquisitionAuthority(database, this.organization, (projectId, role, now) => {
+      // Organization intake/review recovery can acquire runtime without going
+      // through the Fleet RPCs. Reuse is safe; new capacity needs manual intent.
+      const control = this.getPcpProjectFleetControl(projectId);
+      if (control.mode === 'controlled' || control.lifecycleLocked) {
+        throw new Error('Cannot automatically create an AgentSlot in a controlled or lifecycle-locked PCP project');
+      }
+      return this.createAgentSlot(projectId, role, now);
+    });
     this.autonomousIntake = new AutonomousIntakeAuthority(this);
     this.organizationWorkflow = new OrganizationWorkflowCoordinator(database, this.changes, this.reviewPool, this.organization, this.organizationRuntime, this.organizationExecution, this.promotions, gitPath);
   }
@@ -387,6 +403,43 @@ export class ControlPlane {
     });
   }
 
+  upsertProjectGroup(input: { id: string; name: string; leadIdentity: string; leadConversationKey: string; members: { projectId: string; developerSlotId: string }[] }, now = Date.now()): ProjectGroup {
+    const id = nonEmpty(input.id, 'Group id');
+    const name = nonEmpty(input.name, 'Group name');
+    const leadIdentity = nonEmpty(input.leadIdentity, 'Lead identity');
+    const key = canonicalConversationKey(input.leadConversationKey);
+    return this.database.transaction(() => {
+      if (input.members.length < 1 || new Set(input.members.map(m => m.projectId)).size !== input.members.length) throw new Error('Group requires distinct technical projects');
+      const previous = this.listProjectGroups().find(g => g.id === id);
+      if (previous && (previous.leadIdentity !== leadIdentity || previous.leadConversationKey !== key)) throw new Error('Group lead rebind is forbidden');
+      for (const member of input.members) {
+        const project = this.requireProject(member.projectId);
+        const slot = this.getAgentSlot(member.developerSlotId);
+        if (project.status === 'archived' || slot.projectId !== project.id || slot.role !== 'developer' || slot.desiredState !== 'active' || !slot.conversationKey) throw new Error('Group member requires an active bound project developer');
+      }
+      const keys = input.members.map(m => this.getAgentSlot(m.developerSlotId).conversationKey);
+      if (new Set([...keys, key]).size !== keys.length + 1) throw new Error('Group requires distinct conversations');
+      this.database.db.prepare(`INSERT INTO project_groups VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,updated_at=excluded.updated_at`).run(id, name, leadIdentity, key, now, now);
+      if (previous && JSON.stringify(previous.members) !== JSON.stringify([...input.members].sort((a,b) => a.projectId.localeCompare(b.projectId)))) throw new Error('Group membership rebind is forbidden');
+      for (const m of input.members) this.database.db.prepare('INSERT INTO project_group_members VALUES(?,?,?) ON CONFLICT(group_id,project_id) DO NOTHING').run(id, m.projectId, m.developerSlotId);
+      return this.getProjectGroup(id);
+    });
+  }
+
+  getProjectGroup(id: string): ProjectGroup {
+    const group = this.listProjectGroups().find(g => g.id === id);
+    if (!group) throw new Error('Unknown project group');
+    return group;
+  }
+
+  listProjectGroups(): ProjectGroup[] {
+    return (this.database.db.prepare('SELECT * FROM project_groups ORDER BY id').all() as Row[]).map(row => ({
+      id: String(row.id), name: String(row.name), leadIdentity: String(row.lead_identity),
+      leadRole: 'chief_engineer', leadConversationKey: String(row.lead_conversation_key), browserRuntime: 'NOT_VERIFIED',
+      members: (this.database.db.prepare('SELECT project_id,developer_slot_id FROM project_group_members WHERE group_id=? ORDER BY project_id').all(String(row.id)) as Row[]).map(m => ({ projectId: String(m.project_id), developerSlotId: String(m.developer_slot_id) })),
+    }));
+  }
+
   listProjects(): ProjectCell[] {
     return (this.database.db.prepare('SELECT * FROM projects ORDER BY created_at, id').all() as Row[]).map(projectFrom);
   }
@@ -439,6 +492,7 @@ export class ControlPlane {
     const key = canonicalConversationKey(conversationKey);
     return this.database.transaction(() => {
       const slot = this.getAgentSlot(slotId);
+      this.assertConversationProject(slot, key);
       const project = this.requireProject(slot.projectId);
       if (project.status === 'archived') throw new Error('Cannot bind an agent in an archived project');
       if (slot.desiredState !== 'active') throw new Error('Cannot bind a non-active agent slot');
@@ -479,6 +533,62 @@ export class ControlPlane {
     const slot = this.getAgentSlot(slotId); const project = this.requireProject(slot.projectId);
     if (project.status !== 'active' || slot.desiredState !== 'active') throw new Error('Conversation rollover requires an active project and AgentSlot');
     return this.conversations.request(slot, reason, handoffText, state, now);
+  }
+
+  private assertConversationProject(slot: AgentSlot, key: string): void {
+    // Historical identities count too: a closed/retired conversation must not
+    // become another project's context merely because its tab disappeared.
+    const conflict = this.database.db.prepare(`
+      SELECT project_id FROM agent_slots WHERE conversation_key=? AND project_id<>?
+      UNION ALL SELECT project_id FROM agent_conversations WHERE conversation_key=? AND project_id<>?
+      LIMIT 1
+    `).get(key, slot.projectId, key, slot.projectId);
+    if (conflict) throw new Error('Conversation belongs to another project');
+  }
+
+  authorizeConversationBootstrap(input: {
+    slotId: string; projectId: string; role: string; expectedLeaseEpoch: number;
+    profileId: string; tabId: number; provisionalKey: string; actor: string; reason: string;
+  }, now = Date.now()): void {
+    if (!/^provisional:[^\s]+$/.test(input.provisionalKey)) throw new Error('A scoped provisional Conversation key is required');
+    const actor = nonEmpty(input.actor, 'Bootstrap actor');
+    const reason = nonEmpty(input.reason, 'Bootstrap reason');
+    this.database.transaction(() => {
+      const slot = this.getAgentSlot(input.slotId);
+      if (slot.projectId !== input.projectId || slot.role !== input.role) throw new Error('Bootstrap project/role does not match AgentSlot');
+      if (this.requireProject(slot.projectId).status !== 'active') throw new Error('Bootstrap requires an active project');
+      if (slot.leaseEpoch !== input.expectedLeaseEpoch) throw new Error('Bootstrap lease epoch conflict');
+      if (slot.conversationKey || slot.desiredState !== 'active' || slot.rolloverState !== 'idle' || !slot.browserLeaseId ||
+          !['open','opening'].includes(slot.browserState) || slot.browserTabId !== input.tabId || slot.browserProfileId !== input.profileId) {
+        throw new Error('Bootstrap requires an unbound active AgentSlot at its leased browser address');
+      }
+      this.database.db.prepare(`INSERT INTO conversation_bootstrap_authorizations
+        (slot_id,lease_epoch,browser_lease_id,profile_id,tab_id,provisional_key,actor,reason,authorized_at,expires_at,consumed_key)
+        VALUES(?,?,?,?,?,?,?,?,?,?,NULL)
+        ON CONFLICT(slot_id) DO UPDATE SET lease_epoch=excluded.lease_epoch,browser_lease_id=excluded.browser_lease_id,
+          profile_id=excluded.profile_id,tab_id=excluded.tab_id,provisional_key=excluded.provisional_key,
+          actor=excluded.actor,reason=excluded.reason,authorized_at=excluded.authorized_at,expires_at=excluded.expires_at,consumed_key=NULL
+      `).run(slot.id, slot.leaseEpoch, slot.browserLeaseId, input.profileId, input.tabId, input.provisionalKey, actor, reason, now, now + 600_000);
+      this.event(slot.projectId, 'CONVERSATION_BOOTSTRAP_AUTHORIZED', slot.id,
+        { role: slot.role, provisionalKey: input.provisionalKey, tabId: input.tabId, actor, reason, leaseEpoch: slot.leaseEpoch }, now);
+    });
+  }
+
+  private consumeConversationBootstrap(slot: AgentSlot, input: ReportAgentBrowserInput, key: string, now: number): void {
+    const grant = this.database.db.prepare('SELECT * FROM conversation_bootstrap_authorizations WHERE slot_id=?').get(slot.id) as Row | undefined;
+    if (!grant || grant.consumed_key || Number(grant.expires_at) < now || Number(grant.authorized_at) > now ||
+        Number(grant.lease_epoch) !== slot.leaseEpoch || grant.browser_lease_id !== slot.browserLeaseId ||
+        grant.profile_id !== input.profileId || Number(grant.tab_id) !== input.tabId || input.browserState !== 'open') {
+      throw new Error('First canonical Conversation requires explicit bootstrap authorization at the current leased tab');
+    }
+    const attempt = this.database.db.prepare(`SELECT id FROM browser_operations WHERE slot_id=? AND operation='prompt.send'
+      AND tab_id=? AND conversation_key=? AND planned_at>=? AND content_epoch=?
+      AND (state='dispatched' OR (state='settled' AND outcome IN ('acknowledged','uncertain','reply-observed')))
+      LIMIT 1`).get(slot.id, input.tabId!, String(grant.provisional_key), Number(grant.authorized_at), slot.browserContentEpoch ?? '') as { id?: string } | undefined;
+    if (!attempt) throw new Error('First canonical Conversation requires a dispatched bootstrap prompt for the authorized provisional identity');
+    this.database.db.prepare('UPDATE conversation_bootstrap_authorizations SET consumed_key=? WHERE slot_id=?').run(key, slot.id);
+    this.event(slot.projectId, 'CONVERSATION_BOOTSTRAP_BOUND', slot.id,
+      { conversationKey: key, role: slot.role, attemptId: attempt.id, actor: grant.actor, reason: grant.reason }, now);
   }
 
   beginAgentConversationRollover(slotId: string, rolloverId: string, now = Date.now()) {
@@ -540,6 +650,75 @@ export class ControlPlane {
     });
   }
 
+  /**
+   * Legacy projects without a row remain elastic. A controlled PCP project is
+   * never autonomously spawned, resumed, or suspended by Elastic Fleet.
+   * This is separate from the explicit administrative AgentSlot lifecycle.
+   */
+  getPcpProjectFleetControl(projectId: string): PcpProjectFleetControl {
+    this.requireProject(projectId);
+    const row = this.database.db.prepare(
+      'SELECT * FROM pcp_project_fleet_controls WHERE project_id=?'
+    ).get(projectId) as Row | undefined;
+    if (!row) return { projectId, mode: 'elastic', lifecycleLocked: false, revision: 0 };
+    return {
+      projectId,
+      mode: String(row.mode) as PcpFleetMode,
+      lifecycleLocked: Number(row.lifecycle_locked) === 1,
+      revision: Number(row.revision),
+      updatedAt: Number(row.updated_at),
+      actor: String(row.actor),
+      reason: String(row.reason),
+    };
+  }
+
+  listPcpProjectFleetControls(): PcpProjectFleetControl[] {
+    return this.listProjects().map((project) => this.getPcpProjectFleetControl(project.id));
+  }
+
+  setPcpProjectFleetControl(
+    projectId: string,
+    update: { mode?: PcpFleetMode; lifecycleLocked?: boolean; expectedRevision: number; actor: string; reason: string },
+    now = Date.now(),
+  ): PcpProjectFleetControl {
+    if (!Number.isInteger(update.expectedRevision) || update.expectedRevision < 0) {
+      throw new Error('expectedRevision must be a non-negative integer');
+    }
+    const actor = nonEmpty(update.actor, 'Fleet control actor');
+    const reason = nonEmpty(update.reason, 'Fleet control reason');
+    if (update.mode !== undefined && update.mode !== 'elastic' && update.mode !== 'controlled') {
+      throw new Error('Fleet mode is invalid');
+    }
+    if (update.lifecycleLocked !== undefined && typeof update.lifecycleLocked !== 'boolean') {
+      throw new Error('lifecycleLocked must be a boolean');
+    }
+    if (update.mode === undefined && update.lifecycleLocked === undefined) {
+      throw new Error('At least one fleet control setting is required');
+    }
+    return this.database.transaction(() => {
+      const before = this.getPcpProjectFleetControl(projectId);
+      if (before.revision !== update.expectedRevision) {
+        throw new Error(`Fleet control revision conflict for project ${projectId}: expected ${update.expectedRevision}, got ${before.revision}`);
+      }
+      const mode = update.mode ?? before.mode;
+      const lifecycleLocked = update.lifecycleLocked ?? before.lifecycleLocked;
+      if (mode === before.mode && lifecycleLocked === before.lifecycleLocked) return before;
+      const revision = before.revision + 1;
+      this.database.db.prepare(`
+        INSERT INTO pcp_project_fleet_controls(project_id,mode,lifecycle_locked,revision,actor,reason,updated_at)
+        VALUES(?,?,?,?,?,?,?)
+        ON CONFLICT(project_id) DO UPDATE SET
+          mode=excluded.mode, lifecycle_locked=excluded.lifecycle_locked,
+          revision=excluded.revision, actor=excluded.actor, reason=excluded.reason,
+          updated_at=excluded.updated_at
+      `).run(projectId, mode, Number(lifecycleLocked), revision, actor, reason, now);
+      this.event(projectId, 'PCP_PROJECT_FLEET_CONTROL_CHANGED', projectId,
+        { from: { mode: before.mode, lifecycleLocked: before.lifecycleLocked, revision: before.revision },
+          to: { mode, lifecycleLocked, revision }, actor, reason }, now);
+      return this.getPcpProjectFleetControl(projectId);
+    });
+  }
+
   reconcileElasticFleet(now = Date.now(), idleGraceMs?: number): ElasticFleetDecision[] {
     const work = this.work.snapshot();
     const agents = this.listAgentSlots();
@@ -549,6 +728,8 @@ export class ControlPlane {
     const unsettledBrowserSlotIds = new Set(unsettledRows.map((row) => String(row.slot_id)));
     const decisions: ElasticFleetDecision[] = [];
     for (const project of this.listProjects()) {
+      const control = this.getPcpProjectFleetControl(project.id);
+      if (control.mode === 'controlled' || control.lifecycleLocked) continue;
       const planned = planElasticFleet({ project, agents, work, activeLeaseHolderIds, unsettledBrowserSlotIds, now, ...(idleGraceMs === undefined ? {} : { idleGraceMs }) });
       for (const decision of planned) {
         if (decision.kind === 'suspend') {
@@ -607,7 +788,7 @@ export class ControlPlane {
     });
   }
 
-  reportAgentBrowser(input: ReportAgentBrowserInput, now = input.observedAt ?? Date.now()): AgentSlot {
+  reportAgentBrowser(input: ReportAgentBrowserInput, now = input.observedAt ?? Date.now(), authorizationNow = now): AgentSlot {
     const profileId = nonEmpty(input.profileId, 'Browser profile id');
     if (!['absent','opening','open','closing','error'].includes(input.browserState)) throw new Error('Agent browser state is invalid');
     if (input.tabId !== undefined && (!Number.isInteger(input.tabId) || input.tabId <= 0)) throw new Error('Agent browser tabId is invalid');
@@ -629,6 +810,7 @@ export class ControlPlane {
       let nextEpoch = slot.leaseEpoch;
       if (input.conversationKey) {
         const key = canonicalConversationKey(input.conversationKey);
+        this.assertConversationProject(slot, key);
         const organizationConversation = organizationAgent?.id ? this.agentContinuity.active(organizationAgent.id) : undefined;
         const activeRollover = this.conversations.activeRollover(slot.id);
         const organizationRolloverAllowed = Boolean(
@@ -642,6 +824,10 @@ export class ControlPlane {
         const conflict = this.database.db.prepare('SELECT id FROM agent_slots WHERE project_id=? AND conversation_key=? AND id<>?').get(slot.projectId, key, slot.id) as { id?: string } | undefined;
         if (conflict?.id) throw new Error(`Conversation ${key} is already bound inside project ${slot.projectId}`);
         if (!conversationKey) {
+          if (!activeRollover) this.consumeConversationBootstrap(slot, input, key, authorizationNow);
+          else if (!slot.browserLeaseId || slot.browserTabId !== input.tabId || slot.browserProfileId !== profileId || input.browserState !== 'open') {
+            throw new Error('Conversation rollover requires its current leased browser address');
+          }
           const accepted = this.conversations.acceptCanonical(slot, key, now);
           conversationKey = key; conversationGeneration = accepted.generation; nextEpoch += 1;
         }
@@ -931,12 +1117,13 @@ export class ControlPlane {
       openTabs: Number(row.open_tabs), extensionVersion: String(row.extension_version), observedAt: Number(row.observed_at),
     }));
   }
-  listEvents(projectId?: string, afterSeq = 0, limit = 200): ControlEvent[] {
+  listEvents(projectId?: string, afterSeq = 0, limit = 200, newestFirst = false): ControlEvent[] {
     if (!Number.isInteger(afterSeq) || afterSeq < 0) throw new Error('afterSeq is invalid');
     if (!Number.isInteger(limit) || limit < 1 || limit > 2000) throw new Error('limit is invalid');
+    const order = newestFirst ? 'DESC' : 'ASC';
     const rows = (projectId
-      ? this.database.db.prepare(`SELECT * FROM events WHERE project_id = ? AND seq > ? ORDER BY seq LIMIT ?`).all(projectId, afterSeq, limit)
-      : this.database.db.prepare(`SELECT * FROM events WHERE seq > ? ORDER BY seq LIMIT ?`).all(afterSeq, limit)) as Row[];
+      ? this.database.db.prepare(`SELECT * FROM events WHERE project_id = ? AND seq > ? ORDER BY seq ${order} LIMIT ?`).all(projectId, afterSeq, limit)
+      : this.database.db.prepare(`SELECT * FROM events WHERE seq > ? ORDER BY seq ${order} LIMIT ?`).all(afterSeq, limit)) as Row[];
     return rows.map((row) => {
       const event: ControlEvent = {
         seq: Number(row.seq),

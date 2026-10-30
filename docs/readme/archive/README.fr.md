@@ -1,8 +1,8 @@
-# Charterion: Open-Source Multi-Agent Engineering Control Plane for ChatGPT Web Agents
+# Hive: Open-Source Multi-Agent Engineering Control Plane for ChatGPT Web Agents
 
 [![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Chromium](https://img.shields.io/badge/Chromium-Manifest%20V3-4285F4.svg)](manifest.json)
-[![Version](https://img.shields.io/badge/version-0.5.0-2ea44f.svg)](manifest.json)
+[![Version](https://img.shields.io/badge/version-0.5.1-2ea44f.svg)](manifest.json)
 [![ChatGPT Web](https://img.shields.io/badge/target-ChatGPT%20Web-111111.svg)](https://chatgpt.com/)
 [![Latest Release](https://img.shields.io/github/v/release/Xalzeroph/Charterion?display_name=tag)](https://github.com/Xalzeroph/Charterion/releases/latest)
 
@@ -19,7 +19,7 @@
 <!-- readme-section:overview -->
 ## Vue d’ensemble
 
-Charterion gère plusieurs conversations ChatGPT Web comme des engineering Workers persistants. Un deterministic Kernel local conserve Agent identity, projets, Git, leases, capabilities, evidence, reviews et recovery state. Les tabs du navigateur sont des runtime surfaces remplaçables, pas la Source of Truth de l’Agent.
+Hive gère plusieurs conversations ChatGPT Web comme des engineering Workers persistants. Un deterministic Kernel local conserve Agent identity, projets, Git, leases, capabilities, evidence, reviews et recovery state. Les tabs du navigateur sont des runtime surfaces remplaçables, pas la Source of Truth de l’Agent.
 
 GAM vise le fonctionnement d’une petite entreprise logicielle : Workers dans des scopes isolés, Supervisors sur des exact evidence, Kernel responsable des authority boundaries.
 
@@ -222,4 +222,4 @@ Ce projet utilise [Apache-2.0](LICENSE) et inclut [NOTICE](NOTICE) ainsi que [Th
 <!-- readme-section:status -->
 ## État du développement
 
-Charterion est en active development. Un Release Candidate n’est considéré stable qu’après repository verification, README i18n release gate et evidence-based review/promotion boundaries.
+Hive est en active development. Un Release Candidate n’est considéré stable qu’après repository verification, README i18n release gate et evidence-based review/promotion boundaries.

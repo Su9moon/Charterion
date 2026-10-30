@@ -1,5 +1,7 @@
 ## 2. Deployment modes
 
+Hive uses `%USERPROFILE%\\.hive` for fresh installs. If a legacy `%USERPROFILE%\\.charterion` home already exists and the new home does not, setup intentionally reuses that existing home to preserve Agent, project, SQLite, token and Chrome profile continuity. An audited migration must be completed before removing the legacy directory. The Native Messaging host identifier `com.charterion.control` is a protocol compatibility name, **not** the Hive display brand; do not rename that identifier without a dual-host migration.
+
 Use a release archive for normal operation. Use source deployment for development
 or when rebuilding the Native Host.
 
@@ -9,13 +11,13 @@ SQLite database, browser token, named pipe, browser profile, and logs.
 Default home:
 
 ~~~text
-%USERPROFILE%\\.charterion
+%USERPROFILE%\\.hive
 ~~~
 
 Custom home example:
 
 ~~~text
-E:\\Agent-Research-Workspace\\state\\charterion-runtime
+E:\\Agent-Research-Workspace\\state\\hive-runtime
 ~~~
 ## 3. Release deployment
 
@@ -30,12 +32,12 @@ E:\\Agent-Research-Workspace\\state\\charterion-runtime
 
 The installer checks Node.js and required files, derives the stable extension ID
 from manifest.json, registers the Native Host for Chrome and Edge, creates
-runtime wrappers, and starts Charterion.
+runtime wrappers, and starts Hive.
 
 Custom home:
 
 ~~~powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\install-runtime-windows.ps1 -GamHome "E:\\Agent-Research-Workspace\\state\\charterion-runtime"
+powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\install-runtime-windows.ps1 -GamHome "E:\\Agent-Research-Workspace\\state\\hive-runtime"
 ~~~
 
 Install without opening a browser:
@@ -66,7 +68,7 @@ GAM.cmd and GAMCTL.cmd wrappers in GAM_HOME.
 Development runtime with a dedicated home:
 
 ~~~powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\setup-windows.ps1 -GamHome "E:\\Agent-Research-Workspace\\state\\charterion-dev"
+powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\setup-windows.ps1 -GamHome "E:\\Agent-Research-Workspace\\state\\hive-dev"
 ~~~
 
 Fast iteration after verification:
@@ -91,18 +93,18 @@ GAM_HOME\\chrome-profile, loads the unpacked extension, and opens
 https://chatgpt.com/. Sign in manually in the official ChatGPT page when asked.
 
 Never paste passwords, MFA codes, cookies, session tokens, or API keys into
-Charterion, Remote Desktop Commander, GitHub issues, or task prompts.
-Charterion does not store them. Do not use the daily browser profile for the
+Hive, Remote Desktop Commander, GitHub issues, or task prompts.
+Hive does not store them. Do not use the daily browser profile for the
 managed fleet.
 ## 6. Remote deployment with Remote Desktop Commander
 
 Remote Desktop Commander is an operator-side remote-control tool. It is not
-part of Charterion and does not itself grant GitHub authority.
+part of Hive and does not itself grant GitHub authority.
 
 | Layer | Responsibility |
 | --- | --- |
 | ChatGPT Work + Remote Desktop Commander | Connect to Windows, terminal and file actions |
-| Charterion extension | ChatGPT Web observation and browser protocol |
+| Hive extension | ChatGPT Web observation and browser protocol |
 | Native Host | Browser-to-local-Kernel bridge |
 | gamd Kernel | Durable state, SQLite, leases, evidence and governance |
 | Dedicated browser profile | Disposable ChatGPT Web execution surface |
@@ -135,11 +137,11 @@ commands execute on the intended Windows machine.
 
 ### 6.2 Deploy remotely
 
-Clone or copy Charterion inside the allowed root, then run the release or source
+Clone or copy Hive inside the allowed root, then run the release or source
 procedure above:
 
 ~~~powershell
-$repo = "E:\\Agent-Research-Workspace\\projects\\charterion"
+$repo = "E:\\Agent-Research-Workspace\\projects\\hive"
 Set-Location $repo
 npm ci
 powershell -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\setup-windows.ps1 -NoStart
@@ -218,8 +220,8 @@ GAM.cmd start --json
 Close the managed browser, rerun setup, and inspect:
 
 ~~~text
-%USERPROFILE%\\.charterion\\native-host\\gam-native-host.json
-%USERPROFILE%\\.charterion\\native-host\\com.charterion.control.json
+%USERPROFILE%\\.hive\\native-host\\gam-native-host.json
+%USERPROFILE%\\.hive\\native-host\\com.charterion.control.json
 ~~~
 
 allowed_origins must contain the extension origin derived from the current
@@ -259,7 +261,7 @@ HKCU\\Software\\Microsoft\\Edge\\NativeMessagingHosts\\com.charterion.control
 ~~~
 
 Remove only those two exact registry values and the exact runtime home after
-confirming that no other Charterion instance uses them. Never delete a shared
+confirming that no other Hive or legacy Charterion instance uses them. Never delete a shared
 home, unrelated browser profile, or another agent's worktree.
 
 ## 10. Security and release rules
@@ -268,7 +270,7 @@ home, unrelated browser profile, or another agent's worktree.
 - Restrict Remote Desktop Commander to the smallest practical filesystem root.
 - Never expose passwords, MFA codes, cookies, browser profiles, admin tokens, or
   private keys in prompts, logs, commits, or issue reports.
-- Charterion is a coordination and policy layer, not an OS sandbox.
+- Hive is a coordination and policy layer, not an OS sandbox.
 - Use a VM or container when stronger host isolation is required.
 - Run npm run verify:full before treating a source build as release-ready.
 - For releases, follow [CI/CD](CI_CD.md) and attach only verified archives.

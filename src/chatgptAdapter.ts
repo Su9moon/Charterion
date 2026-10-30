@@ -1,8 +1,9 @@
 import type { AgentStatus, ChatSnapshot, ObservationConfidence } from './contracts';
 
-export const CHATGPT_ADAPTER_VERSION = '2026-08-30.2';
+export const CHATGPT_ADAPTER_VERSION = '2026-10-27.1';
 
 const COMPOSER_SELECTORS = [
+  'form[data-chatgpt-composer] [data-composer-markdown][contenteditable="true"][role="textbox"]',
   'form[data-type="unified-composer"] #prompt-textarea[contenteditable="true"]',
   '#prompt-textarea[contenteditable="true"]',
   '#prompt-textarea',
@@ -52,7 +53,7 @@ export function extractConversationId(url: string): string | undefined {
     const value = direct ?? customGpt;
     if (!value) return undefined;
     const decoded = decodeURIComponent(value);
-    return decoded !== 'new' && !/^WEB:/i.test(decoded) ? decoded : undefined;
+    return decoded !== 'new' && !/^WEB:/i.test(decoded) && !/^local-chatgpt:/i.test(decoded) ? decoded : undefined;
   } catch {
     return undefined;
   }
@@ -103,15 +104,22 @@ export function isGenerating(doc: Document): boolean {
 }
 
 export function assistantMessages(doc: Document): HTMLElement[] {
-  return Array.from(doc.querySelectorAll<HTMLElement>('[data-message-author-role="assistant"]'));
+  const messages: HTMLElement[] = [];
+  for (const node of doc.querySelectorAll<HTMLElement>('[data-message-author-role="assistant"], [data-markdown-text-style="assistant-message"]')) {
+    const message = node.closest<HTMLElement>('[data-message-author-role="assistant"]') ??
+      node.closest<HTMLElement>('[data-chatgpt-selection-message-id]');
+    if (message && !messages.includes(message)) messages.push(message);
+  }
+  return messages;
 }
 
 export function assistantMessageId(message: HTMLElement | undefined): string | undefined {
   if (!message) return undefined;
-  const direct = message.getAttribute('data-message-id');
+  const direct = message.getAttribute('data-message-id') ?? message.getAttribute('data-chatgpt-selection-message-id');
   if (direct) return `message:${direct}`;
-  const identifiedAncestor = message.closest<HTMLElement>('[data-message-id]');
-  if (identifiedAncestor?.dataset.messageId) return `message:${identifiedAncestor.dataset.messageId}`;
+  const identifiedAncestor = message.closest<HTMLElement>('[data-message-id], [data-chatgpt-selection-message-id]');
+  const id = identifiedAncestor?.getAttribute('data-message-id') ?? identifiedAncestor?.getAttribute('data-chatgpt-selection-message-id');
+  if (id) return `message:${id}`;
   const turn = message.closest<HTMLElement>('[data-testid^="conversation-turn-"], [data-turn-id]');
   const turnId = turn?.getAttribute('data-turn-id') ?? turn?.getAttribute('data-testid');
   return turnId ? `turn:${turnId}` : undefined;

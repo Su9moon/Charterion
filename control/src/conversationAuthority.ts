@@ -140,6 +140,7 @@ export class ConversationAuthority {
   acceptCanonical(slot: AgentSlot, conversationKey: string, now: number): { generation: number; rollover?: AgentConversationRollover } {
     const active = this.activeRollover(slot.id);
     if (!active) return { generation: this.recordCanonical(slot, conversationKey, now) };
+    if (conversationKey === active.fromConversationKey) throw new Error('Conversation rollover cannot reuse its source Conversation');
     if (!['opening','bootstrapping'].includes(active.status)) throw new Error('Conversation rollover cannot accept a canonical conversation yet');
     if (active.toConversationKey && active.toConversationKey !== conversationKey) throw new Error('Conversation rollover cannot change its canonical destination');
     const conflict = this.database.db.prepare('SELECT slot_id FROM agent_conversations WHERE project_id=? AND conversation_key=?').get(slot.projectId, conversationKey) as { slot_id?: string } | undefined;

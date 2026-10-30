@@ -18,7 +18,7 @@ function canonicalConversationKey(value: string): string {
   const key = required(value, 'Conversation key');
   if (!key.startsWith('conversation:')) throw new Error('Only canonical ChatGPT conversation identities may bind an Organization Agent');
   const suffix = key.slice('conversation:'.length);
-  if (!suffix || suffix === 'new' || /^WEB:/i.test(suffix)) throw new Error('Conversation key must be durable and canonical');
+  if (!suffix || suffix === 'new' || /^WEB:/i.test(suffix) || /^local-chatgpt(?::|%3A)/i.test(suffix)) throw new Error('Conversation key must be durable and canonical');
   return key;
 }
 function conversationFrom(row: Row): OrganizationAgentConversationRecord {
