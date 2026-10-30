@@ -871,15 +871,9 @@ async function openConsole(): Promise<void> {
   const url = validatedRadarUrl(await readNativeRadarUrl());
   await chrome.tabs.create({ url });
 }
-void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch((error) => reportIncident('side-panel-configuration-failed', 'extension', { error: String(error) }));
-chrome.action.onClicked.addListener(() => {
-  void openConsole().then(async () => {
-    await chrome.action.setBadgeText({ text: '' }); await chrome.action.setTitle({ title: '打开控制台' });
-  }).catch(async () => {
-    await chrome.action.setBadgeText({ text: '!' });
-    await chrome.action.setTitle({ title: '控制台不可用：请检查 Native Host，并以 GAM_RADAR_PORT=0 启动 Kernel' });
-  });
-});
+// Toolbar action opens Chrome's native side panel, not the status radar.
+// The radar remains available through the side panel's "Open Console" button.
+void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch((error) => reportIncident('side-panel-configuration-failed', 'extension', { error: String(error) }));
 chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
   if (tab.url?.startsWith('https://chatgpt.com/') && (changeInfo.status === 'complete' || changeInfo.url !== undefined)) {
     void notifyManagerChanged();

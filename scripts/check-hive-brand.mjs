@@ -12,7 +12,7 @@ const pkg = json('package.json');
 const lock = json('package-lock.json');
 const schema = json('docs/readme/README_SCHEMA.json');
 requireTrue(manifest.name === 'Hive', 'Extension manifest must be Hive');
-requireTrue(manifest.action?.default_title === '打开 Hive 控制台', 'Toolbar title must be Hive');
+requireTrue(manifest.action?.default_title === '打开 Hive 侧边栏', 'Toolbar title must describe the Hive Side Panel');
 requireTrue(manifest.side_panel?.default_path === 'dist/sidepanel.html', 'Side Panel entry must be preserved');
 requireTrue(typeof manifest.key === 'string' && manifest.key.length > 100, 'Stable extension key missing');
 requireTrue(pkg.name === 'hive' && lock.name === 'hive' && lock.packages?.['']?.name === 'hive',
