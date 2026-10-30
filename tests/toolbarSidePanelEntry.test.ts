@@ -14,8 +14,8 @@ describe('Hive toolbar and radar navigation contract', () => {
     expect(manifest.permissions).toContain('sidePanel');
     expect(manifest.side_panel?.default_path).toBe('dist/sidepanel.html');
     expect(manifest.action?.default_title).toContain('侧边栏');
-    expect(background).toContain('chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })');
-    expect(background).not.toMatch(/chrome\.action\.onClicked\.addListener\s*\(/);
+    expect(background).toContain('installToolbarPanelAction(chrome,');
+    expect(background).not.toContain('openPanelOnActionClick: true');
   });
 
   it('keeps the status radar behind the explicit Open Console action inside the panel', () => {
