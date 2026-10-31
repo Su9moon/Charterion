@@ -9,7 +9,7 @@ export function projectGroupCards(snapshot: NativeControlSnapshot, cards: HTMLEl
     summary.textContent = `${group.name} · ${group.id}`;
     const lead = document.createElement('div');
     lead.className = 'control-agent-row';
-    lead.textContent = [group.leadRole, group.leadIdentity, group.leadConversationKey, 'binding metadata', 'browser NOT_VERIFIED'].join(' · ');
+    lead.textContent = [group.leadRole, group.leadIdentity, group.leadConversationKey, 'project scope · Group Conversation', 'Role Charter NOT_VERIFIED', 'PENDING_RUNTIME · managed Tab/lease NOT_VERIFIED'].join(' · ');
     node.append(summary, lead);
     for (const member of group.members) {
       const index = snapshot.projects.findIndex(project => project.id === member.projectId);
