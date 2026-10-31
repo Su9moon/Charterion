@@ -873,6 +873,28 @@ export class ControlDatabase {
     `));
   }
 
+  private migrateV31(): void {
+    this.transaction(() => this.db.exec(`
+      CREATE TABLE IF NOT EXISTS role_charter_snapshots (
+        digest TEXT PRIMARY KEY, version TEXT NOT NULL UNIQUE, content TEXT NOT NULL
+      ) STRICT;
+      CREATE TABLE IF NOT EXISTS role_charter_bindings (
+        identity TEXT PRIMARY KEY, group_id TEXT NOT NULL REFERENCES project_groups(id),
+        project_id TEXT REFERENCES projects(id), slot_id TEXT UNIQUE REFERENCES agent_slots(id),
+        conversation_key TEXT NOT NULL UNIQUE,
+        digest TEXT NOT NULL REFERENCES role_charter_snapshots(digest)
+      ) STRICT;
+      CREATE TRIGGER IF NOT EXISTS role_charter_snapshot_immutable BEFORE UPDATE ON role_charter_snapshots
+      BEGIN SELECT RAISE(ABORT, 'Role charter snapshot is immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS role_charter_snapshot_delete BEFORE DELETE ON role_charter_snapshots
+      BEGIN SELECT RAISE(ABORT, 'Role charter history is immutable'); END;
+      CREATE TRIGGER IF NOT EXISTS role_charter_binding_delete BEFORE DELETE ON role_charter_bindings
+      BEGIN SELECT RAISE(ABORT, 'Approved atomic replacement required'); END;
+      CREATE TRIGGER IF NOT EXISTS role_charter_binding_immutable BEFORE UPDATE ON role_charter_bindings
+      BEGIN SELECT RAISE(ABORT, 'Approved atomic replacement required'); END;
+    `));
+  }
+
   private createConversationContinuityTables(): void {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS agent_conversations (

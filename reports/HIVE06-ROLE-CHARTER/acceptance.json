@@ -1,0 +1,61 @@
+{
+  "task": "T-000491",
+  "execution": "NOT_READY",
+  "success": false,
+  "sourceSHA": "68557a1ff49e960b7741f95f64eb9d7393ece6d6",
+  "featureBranch": "source/T-000491",
+  "featureCommit": null,
+  "finalGitSHA": null,
+  "gitACK": "Pinned T-000490 confirmed; no Git mutations/publication; bridge commit pending",
+  "PR": null,
+  "sourceLocation": "/home/jjyy/.local/state/codex-bridge-dev/lane/hive-registry-p0-20261031T054942Z/source-workspaces/ccb4764675b26d484d463bfe1a613a3bef541690167558fb973887bd57c63487/T-000491/repository",
+  "stages": {
+    "rc01": {
+      "status": "PARTIAL",
+      "evidence": "rc01.md",
+      "commit": null
+    },
+    "rc02": {
+      "status": "PARTIAL",
+      "evidence": "rc02.md",
+      "commit": null
+    },
+    "rc03": {
+      "status": "PARTIAL",
+      "evidence": "rc03.md",
+      "commit": null
+    }
+  },
+  "tests": [
+    {
+      "command": "python3 scripts/check-role-charter-source.py",
+      "outcome": "passed",
+      "passed": 4,
+      "failed": 0,
+      "kind": "source and extracted SQL only"
+    },
+    {
+      "command": "git diff --check",
+      "outcome": "passed"
+    },
+    {
+      "command": "npm --version",
+      "outcome": "failed",
+      "reason": "WSL 1 unsupported; cannot determine Node.js install directory"
+    },
+    {
+      "command": "npm run check && npm run check:control",
+      "outcome": "not_run"
+    },
+    {
+      "command": "npm test -- control/tests/jointRoleCharter.test.ts tests/roleCharterDelivery.test.ts control/tests/databaseMigration.test.ts control/tests/projectGroupContracts.test.ts",
+      "outcome": "not_run"
+    },
+    {
+      "command": "npm run build && npm run build:control",
+      "outcome": "not_run"
+    }
+  ],
+  "runtimeE2E": "NOT_RUN; Windows authorized follow-up required",
+  "resultPackage": "result-package.sha256; SHA256 of sorted per-file SHA256 manifest, excludes manifest itself"
+}
