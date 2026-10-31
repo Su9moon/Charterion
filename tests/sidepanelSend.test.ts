@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
 
 afterEach(() => { vi.unstubAllGlobals(); vi.resetModules(); });
 it.each(['disconnected', 'duplicate'] as const)('sends only after explicit ordinary tab selection and retains attributed reply history (%s)', async scenario => {
-  document.documentElement.innerHTML = readFileSync(new URL('../src/sidepanel.html', import.meta.url), 'utf8');
+  document.documentElement.innerHTML = readFileSync(resolve(process.cwd(), 'src/sidepanel.html'), 'utf8');
   const tab = { tabId: 42, windowId: 1, active: true, binding: { role: '', project: '', notes: '' },
     snapshot: { conversationKey: 'conversation:ordinary', title: 'Ordinary chat', status: 'idle', confidence: 'direct',
       latestAssistantText: 'reply for ordinary', observedAt: Date.now() },
