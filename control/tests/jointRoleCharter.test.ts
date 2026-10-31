@@ -66,3 +66,46 @@ it('projects scope without converting tool visibility into authority', () => {
   expect(projectJointRoleScope('joint-chief', 'Su9moon/Hive', 'implementation').decision).toBe('CHANGE_PROPOSAL_REQUIRED');
   expect(projectJointRoleScope('hive-developer', 'Su9moon/Hive', 'new-service')).toEqual({ decision: 'CHANGE_PROPOSAL_REQUIRED', executionAuthority: 'CB_HOST' });
 });
+
+it('does not treat a snapshot or partial bindings as an effective charter', () => {
+  const db = new ControlDatabase(':memory:');
+  try {
+    seed(db);
+    const authority = new JointRoleCharterAuthority(db);
+    expect(authority.read()).toBeUndefined();
+    db.db.prepare('INSERT INTO role_charter_snapshots VALUES(?,?,?)').run(digest, charter.version, content);
+    expect(() => authority.read()).toThrow(/effective role charter bindings/);
+    const role = charter.roles[0];
+    db.db.prepare('INSERT INTO role_charter_bindings VALUES(?,?,?,?,?,?)')
+      .run(role.identity, charter.groupId, null, null, role.conversationKey, digest);
+    expect(() => authority.read()).toThrow(/effective role charter bindings/);
+    expect(authority.importApproved(content, sources)).toBe(digest);
+    expect(authority.read()).toBe(content);
+  } finally { db.close(); }
+});
+it('rejects a preexisting wrong project binding without committing other identities', () => {
+  const db = new ControlDatabase(':memory:');
+  try {
+    seed(db);
+    db.db.prepare('INSERT INTO role_charter_snapshots VALUES(?,?,?)').run(digest, charter.version, content);
+    const role = charter.roles[1];
+    db.db.prepare('INSERT INTO role_charter_bindings VALUES(?,?,?,?,?,?)')
+      .run(role.identity, charter.groupId, charter.roles[2].projectId, role.slotId, role.conversationKey, digest);
+    const authority = new JointRoleCharterAuthority(db);
+    expect(() => authority.importApproved(content, sources)).toThrow(/atomic replacement/);
+    expect(db.db.prepare('SELECT * FROM role_charter_bindings').all()).toHaveLength(1);
+    expect(() => authority.read()).toThrow(/effective role charter bindings/);
+  } finally { db.close(); }
+});
+
+it('rejects a preexisting snapshot with a forged digest instead of ignoring the conflict', () => {
+  const db = new ControlDatabase(':memory:');
+  try {
+    seed(db);
+    db.db.prepare('INSERT INTO role_charter_snapshots VALUES(?,?,?)').run(digest, charter.version, 'forged');
+    const authority = new JointRoleCharterAuthority(db);
+    expect(() => authority.importApproved(content, sources)).toThrow(/tampering/);
+    expect(() => authority.read()).toThrow(/tampering/);
+    expect(db.db.prepare('SELECT * FROM role_charter_bindings').all()).toHaveLength(0);
+  } finally { db.close(); }
+});

@@ -137,9 +137,12 @@ export class JointRoleCharterAuthority {
       }
       this.database.db.prepare('INSERT OR IGNORE INTO role_charter_snapshots(digest,version,content) VALUES(?,?,?)')
         .run(JOINT_ROLE_CHARTER_DIGEST, JOINT_ROLE_CHARTER.version, content);
+      const snapshot = this.database.db.prepare('SELECT version,content FROM role_charter_snapshots WHERE digest=?').get(JOINT_ROLE_CHARTER_DIGEST);
+      if (!snapshot || snapshot.version !== JOINT_ROLE_CHARTER.version || snapshot.content !== content) throw new Error('Stored role charter tampering');
       for (const role of JOINT_ROLE_CHARTER.roles) {
         const existing = this.database.db.prepare('SELECT * FROM role_charter_bindings WHERE identity=?').get(role.identity);
-        if (existing && (existing.digest !== JOINT_ROLE_CHARTER_DIGEST || existing.conversation_key !== role.conversationKey)) throw new Error('Approved atomic replacement required');
+        if (existing && (existing.digest !== JOINT_ROLE_CHARTER_DIGEST || existing.conversation_key !== role.conversationKey
+          || existing.group_id !== JOINT_ROLE_CHARTER.groupId || existing.project_id !== role.projectId || existing.slot_id !== role.slotId)) throw new Error('Approved atomic replacement required');
         this.database.db.prepare('INSERT OR IGNORE INTO role_charter_bindings(identity,group_id,project_id,slot_id,conversation_key,digest) VALUES(?,?,?,?,?,?)')
           .run(role.identity, JOINT_ROLE_CHARTER.groupId, role.projectId, role.slotId, role.conversationKey, JOINT_ROLE_CHARTER_DIGEST);
       }
@@ -148,10 +151,20 @@ export class JointRoleCharterAuthority {
   }
 
   read(): string | undefined {
-    const row = this.database.db.prepare('SELECT content FROM role_charter_snapshots WHERE digest=?').get(JOINT_ROLE_CHARTER_DIGEST);
+    const row = this.database.db.prepare('SELECT version,content FROM role_charter_snapshots WHERE digest=?').get(JOINT_ROLE_CHARTER_DIGEST);
     if (!row) return undefined;
     const content = String(row.content);
-    if (content !== JOINT_ROLE_CHARTER_CONTENT || roleCharterDigest(content) !== JOINT_ROLE_CHARTER_DIGEST) throw new Error('Stored role charter tampering');
+    if (row.version !== JOINT_ROLE_CHARTER.version || content !== JOINT_ROLE_CHARTER_CONTENT || roleCharterDigest(content) !== JOINT_ROLE_CHARTER_DIGEST) throw new Error('Stored role charter tampering');
+    // A snapshot is history, not proof that every identity has an effective binding.
+    // Read all rows in one SQLite statement so partial/cross-project state fails closed.
+    const bindings = this.database.db.prepare('SELECT * FROM role_charter_bindings WHERE group_id=? OR digest=?')
+      .all(JOINT_ROLE_CHARTER.groupId, JOINT_ROLE_CHARTER_DIGEST);
+    if (bindings.length !== JOINT_ROLE_CHARTER.roles.length || JOINT_ROLE_CHARTER.roles.some(role =>
+      !bindings.some(binding => binding.identity === role.identity && binding.digest === JOINT_ROLE_CHARTER_DIGEST
+        && binding.group_id === JOINT_ROLE_CHARTER.groupId && binding.project_id === role.projectId
+        && binding.slot_id === role.slotId && binding.conversation_key === role.conversationKey))) {
+      throw new Error('Incomplete or mismatched effective role charter bindings');
+    }
     return content;
   }
 }

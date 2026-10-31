@@ -1,61 +1,85 @@
 {
-  "task": "T-000491",
-  "execution": "NOT_READY",
+  "task": "T-000492",
+  "execution": "partial",
+  "business_status": "failed",
+  "status": "NOT_READY",
   "success": false,
-  "sourceSHA": "68557a1ff49e960b7741f95f64eb9d7393ece6d6",
-  "featureBranch": "source/T-000491",
+  "sourceSHA": "026f8ac53a1b8a559b111978e73ed20f2c006dd2",
+  "predecessorEvidenceBranch": "evidence/T-000491-20081b16353c5fde7db2",
   "featureCommit": null,
   "finalGitSHA": null,
-  "gitACK": "Pinned T-000490 confirmed; no Git mutations/publication; bridge commit pending",
-  "PR": null,
-  "sourceLocation": "/home/jjyy/.local/state/codex-bridge-dev/lane/hive-registry-p0-20261031T054942Z/source-workspaces/ccb4764675b26d484d463bfe1a613a3bef541690167558fb973887bd57c63487/T-000491/repository",
+  "gitACK": "Exact pinned HEAD verified; initial clean tree; no Git mutations/publication; bridge owns final commit",
   "stages": {
     "rc01": {
-      "status": "PARTIAL",
-      "evidence": "rc01.md",
-      "commit": null
+      "status": "NOT_READY",
+      "evidence": "rc01.md"
     },
     "rc02": {
-      "status": "PARTIAL",
-      "evidence": "rc02.md",
-      "commit": null
+      "status": "NOT_READY",
+      "evidence": "rc02.md"
     },
     "rc03": {
-      "status": "PARTIAL",
-      "evidence": "rc03.md",
-      "commit": null
+      "status": "NOT_READY",
+      "evidence": "rc03.md"
     }
   },
+  "blockedScope": [
+    "RC01 approved replacement lacks trusted Role Charter approval authority; immutable binding triggers prevent version switch"
+  ],
   "tests": [
     {
       "command": "python3 scripts/check-role-charter-source.py",
       "outcome": "passed",
       "passed": 4,
-      "failed": 0,
-      "kind": "source and extracted SQL only"
+      "kind": "static/source and extracted SQL"
+    },
+    {
+      "command": "python3 scripts/check-role-charter-sqlite.py",
+      "outcome": "passed",
+      "passed": 5,
+      "kind": "isolated extracted V31 SQLite, not ControlDatabase"
     },
     {
       "command": "git diff --check",
       "outcome": "passed"
     },
     {
-      "command": "npm --version",
-      "outcome": "failed",
-      "reason": "WSL 1 unsupported; cannot determine Node.js install directory"
+      "command": "npm run check",
+      "outcome": "not_run",
+      "reason": "Node/TypeScript/Vitest/esbuild unavailable; npm launcher fails under WSL 1"
     },
     {
-      "command": "npm run check && npm run check:control",
-      "outcome": "not_run"
+      "command": "npm run check:control",
+      "outcome": "not_run",
+      "reason": "Node/TypeScript/Vitest/esbuild unavailable; npm launcher fails under WSL 1"
     },
     {
       "command": "npm test -- control/tests/jointRoleCharter.test.ts tests/roleCharterDelivery.test.ts control/tests/databaseMigration.test.ts control/tests/projectGroupContracts.test.ts",
-      "outcome": "not_run"
+      "outcome": "not_run",
+      "reason": "Node/TypeScript/Vitest/esbuild unavailable; npm launcher fails under WSL 1"
     },
     {
-      "command": "npm run build && npm run build:control",
-      "outcome": "not_run"
+      "command": "npm test",
+      "outcome": "not_run",
+      "reason": "Node/TypeScript/Vitest/esbuild unavailable; npm launcher fails under WSL 1"
+    },
+    {
+      "command": "npm run build",
+      "outcome": "not_run",
+      "reason": "Node/TypeScript/Vitest/esbuild unavailable; npm launcher fails under WSL 1"
+    },
+    {
+      "command": "npm run build:control",
+      "outcome": "not_run",
+      "reason": "Node/TypeScript/Vitest/esbuild unavailable; npm launcher fails under WSL 1"
     }
   ],
-  "runtimeE2E": "NOT_RUN; Windows authorized follow-up required",
-  "resultPackage": "result-package.sha256; SHA256 of sorted per-file SHA256 manifest, excludes manifest itself"
+  "environmentProbe": {
+    "command": "npm --version",
+    "exitCode": 1,
+    "error": "WSL 1 unsupported; cannot determine Node.js install directory"
+  },
+  "priorWindowsTests": "PR #20 TARGETED/FULL exit1; detailed logs unavailable; unresolved and not attributed to this RC",
+  "runtimeE2E": "NOT_RUN; live interaction forbidden",
+  "resultPackage": "result-package.sha256; sorted per-file SHA256 manifest excludes itself"
 }
