@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const background = readFileSync(new URL('../src/background.ts', import.meta.url), 'utf8');
+const toolbarAction = readFileSync(new URL('../src/toolbarPanelAction.ts', import.meta.url), 'utf8');
 const sidePanel = readFileSync(new URL('../src/sidepanel.ts', import.meta.url), 'utf8');
 const manifest = JSON.parse(readFileSync(new URL('../manifest.json', import.meta.url), 'utf8')) as {
   action?: { default_title?: string };
@@ -14,8 +15,13 @@ describe('Hive toolbar and radar navigation contract', () => {
     expect(manifest.permissions).toContain('sidePanel');
     expect(manifest.side_panel?.default_path).toBe('dist/sidepanel.html');
     expect(manifest.action?.default_title).toContain('侧边栏');
-    expect(background).toContain('chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })');
-    expect(background).not.toMatch(/chrome\.action\.onClicked\.addListener\s*\(/);
+    expect(background).toContain('installToolbarPanelAction(chrome,');
+    expect(background).not.toContain('openPanelOnActionClick: true');
+    expect(toolbarAction).toContain('api.action.onClicked.addListener((tab) => {');
+    expect(toolbarAction).toContain('api.sidePanel.open({ windowId: tab.windowId })');
+    expect(toolbarAction).not.toContain('openConsole');
+    expect(toolbarAction).not.toContain('chrome.tabs.create');
+    expect(toolbarAction).not.toContain('manager:open-console');
   });
 
   it('keeps the status radar behind the explicit Open Console action inside the panel', () => {

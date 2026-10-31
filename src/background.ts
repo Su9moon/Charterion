@@ -28,6 +28,7 @@ import { controlFeedbackMessages } from './controlFeedback';
 import { ContentRuntimeFence } from './contentRuntimeFence';
 import { readNativeRadarUrl } from './nativeControl';
 import { validatedRadarUrl } from './radarLauncher';
+import { installToolbarPanelAction } from './toolbarPanelAction';
 import { browserOperationPolicy } from './browserOperationPolicy';
 import { createBindingRegistry } from './bindingRegistry';
 import { recoveryStateForTab, snapshotForTab } from './contentRuntimeBridge';
@@ -871,9 +872,12 @@ async function openConsole(): Promise<void> {
   const url = validatedRadarUrl(await readNativeRadarUrl());
   await chrome.tabs.create({ url });
 }
-// Toolbar action opens Chrome's native side panel, not the status radar.
-// The radar remains available through the side panel's "Open Console" button.
-void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch((error) => reportIncident('side-panel-configuration-failed', 'extension', { error: String(error) }));
+// Chrome Dev may reset openPanelOnActionClick to false after restart.
+// Use the action's user gesture to open the native side panel explicitly;
+// the radar remains behind the panel's "Open Console" button.
+installToolbarPanelAction(chrome, (phase, error) => {
+  void reportIncident(phase === 'open' ? 'side-panel-open-failed' : 'side-panel-configuration-failed', 'extension', { error: String(error) });
+});
 chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
   if (tab.url?.startsWith('https://chatgpt.com/') && (changeInfo.status === 'complete' || changeInfo.url !== undefined)) {
     void notifyManagerChanged();
