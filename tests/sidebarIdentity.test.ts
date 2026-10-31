@@ -12,7 +12,7 @@ function tab(tabId = 1): ManagedTab {
       status: 'idle', confidence: 'direct', signals: [], assistantMessageCount: 0, latestAssistantText: '', observedAt: now } };
 }
 function kernel(): NativeControlSnapshot {
-  return { projects: [{ id: 'project', status: 'active' }], agents: [{ id: 'slot', projectId: 'project', role: 'Developer',
+  return { projects: [{ id: 'project', name: 'Hive', status: 'active' }], agents: [{ id: 'slot', projectId: 'project', role: 'Developer',
     status: 'idle', desiredState: 'active', browserState: 'open', browserTabId: 1, browserProfileId: 'profile',
     conversationKey: 'conversation:abc', browserLeaseId: 'lease', browserLeaseEpoch: 2, browserObservedAt: now,
     browserRuntimeObservedAt: now, browserPageStatus: 'idle', browserQuarantined: false, rolloverState: 'idle' }],
@@ -28,6 +28,11 @@ describe('sidebar authority and grouping', () => {
     expect(identities.map(x => x.idle)).toEqual([true, false, false]);
     expect(identities.slice(0, 2).every(x => x.duplicate)).toBe(true);
     expect(identities[1]!.agent?.id).toBe('slot');
+    const groups = renderSidebarGroups(identities, identity => {
+      const row = document.createElement('div'); row.dataset.tabId = String(identity.tab.tabId); return row;
+    }, false, () => {});
+    expect(Array.from(groups[0]!.querySelectorAll('[data-tab-id]'), row => (row as HTMLElement).dataset.tabId)).toEqual(['1']);
+    expect(Array.from(groups[1]!.querySelectorAll('[data-tab-id]'), row => (row as HTMLElement).dataset.tabId)).toEqual(['2', '3']);
   });
 
   it('collapses ordinary tabs by default and preserves explicit expansion and selection', () => {
@@ -55,7 +60,7 @@ describe('sidebar authority and grouping', () => {
     expect(sidebarIdentities([ordinary], kernel(), now)[0]?.state).toBe('stale');
   });
 
-  it.each(['expired', 'epoch', 'project', 'stale', 'quarantine', 'canonical', 'binding', 'resource'])(
+  it.each(['expired', 'epoch', 'project', 'stale', 'quarantine', 'canonical', 'binding', 'role', 'project-name', 'resource'])(
     'rejects invalid authority: %s', fault => {
       const snapshot = kernel(); const browser = tab();
       if (fault === 'expired') snapshot.leases[0]!.expiresAt = now;
@@ -65,9 +70,18 @@ describe('sidebar authority and grouping', () => {
       if (fault === 'quarantine') snapshot.agents[0]!.browserQuarantined = true;
       if (fault === 'canonical') browser.snapshot.conversationKey = 'url:https://chatgpt.com/c/abc';
       if (fault === 'binding') browser.binding.agentSlotId = 'old';
+      if (fault === 'role') browser.binding.role = 'Reviewer';
+      if (fault === 'project-name') browser.binding.project = 'Old Hive';
       if (fault === 'resource') snapshot.leases[0]!.resourceId = 'browser-tab:other:1';
       expect(sidebarIdentities([browser], snapshot, now)[0]).toMatchObject({ state: 'stale', idle: false });
     });
+
+  it.each(['idle', 'assigned'] as const)('selects a bound %s slot only with fresh direct idle evidence', status => {
+    const snapshot = kernel(); snapshot.agents[0]!.status = status;
+    expect(sidebarIdentities([tab()], snapshot, now)[0]).toMatchObject({ state: 'managed', idle: true });
+    snapshot.agents[0]!.browserRuntimeObservedAt = now - 30_001;
+    expect(sidebarIdentities([tab()], snapshot, now)[0]?.idle).toBe(false);
+  });
 
   it('marks conflicting canonical mappings ambiguous', () => {
     const snapshot = kernel(); snapshot.agents.push({ ...snapshot.agents[0]!, id: 'other' });
@@ -81,7 +95,10 @@ describe('sidebar authority and grouping', () => {
     }
     const browser = tab(); browser.snapshot.confidence = 'inferred';
     expect(sidebarIdentities([browser], kernel(), now)[0]?.idle).toBe(false);
-    const snapshot = kernel(); snapshot.agents[0]!.status = 'assigned';
-    expect(sidebarIdentities([tab()], snapshot, now)[0]?.idle).toBe(false);
+    for (const status of ['generating', 'unknown'] as const) {
+      const snapshot = kernel(); snapshot.agents[0]!.status = 'assigned';
+      snapshot.agents[0]!.browserPageStatus = status;
+      expect(sidebarIdentities([tab()], snapshot, now)[0]?.idle).toBe(false);
+    }
   });
 });

@@ -31,13 +31,14 @@ export function sidebarIdentities(tabs: readonly ManagedTab[], snapshot?: Native
       !['suspended', 'retired'].includes(agent.status) && agent.browserState === 'open' &&
       !agent.browserQuarantined && agent.rolloverState === 'idle' &&
       tab.binding.agentSlotId === agent.id && tab.binding.projectId === agent.projectId &&
+      tab.binding.role === agent.role && tab.binding.project === project.name &&
       fresh(agent.browserObservedAt) && fresh(tab.snapshot.observedAt) &&
       lease?.status === 'active' && lease.holderId === agent.id && lease.projectId === agent.projectId &&
       lease.epoch === agent.browserLeaseEpoch && lease.mode === 'exclusive' &&
       lease.resourceId === `browser-tab:${agent.browserProfileId}:${tab.tabId}` &&
       (lease.expiresAt === undefined || lease.expiresAt > now);
     return { ...base, agent, state: verified ? 'managed' : 'stale',
-      idle: Boolean(verified && agent.status === 'idle' && agent.browserPageStatus === 'idle' &&
+      idle: Boolean(verified && ['idle', 'assigned'].includes(agent.status) && agent.browserPageStatus === 'idle' &&
         fresh(agent.browserRuntimeObservedAt) && tab.snapshot.status === 'idle' && tab.snapshot.confidence === 'direct') };
   });
 }

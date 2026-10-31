@@ -1,0 +1,21 @@
+
+> hive@0.5.1 check
+> npm run check:brand && npm run check:native-rpc-contract && npm run check:version-metadata && tsc --noEmit
+
+
+> hive@0.5.1 check:brand
+> node scripts/check-hive-brand.mjs
+
+HIVE_BRAND_STATIC_PASS
+
+> hive@0.5.1 check:native-rpc-contract
+> node scripts/generate-native-rpc-contract.mjs --check && node scripts/check-native-rpc-routing.mjs
+
+NATIVE_RPC_CONTRACT_CHECK_PASS methods=30
+NATIVE_RPC_ROUTING_CHECK_PASS declared=30 routed=126 persistent=22
+
+> hive@0.5.1 check:version-metadata
+> node scripts/sync-version-metadata.mjs --check
+
+VERSION_METADATA_CHECK_PASS version=0.5.1 readmes=2
+sh: 1: tsc: not found

@@ -1,0 +1,139 @@
+diff --git a/src/sidebarIdentity.ts b/src/sidebarIdentity.ts
+index ffb1363..696fd35 100644
+--- a/src/sidebarIdentity.ts
++++ b/src/sidebarIdentity.ts
+@@ -31,13 +31,14 @@ export function sidebarIdentities(tabs: readonly ManagedTab[], snapshot?: Native
+       !['suspended', 'retired'].includes(agent.status) && agent.browserState === 'open' &&
+       !agent.browserQuarantined && agent.rolloverState === 'idle' &&
+       tab.binding.agentSlotId === agent.id && tab.binding.projectId === agent.projectId &&
++      tab.binding.role === agent.role && tab.binding.project === project.name &&
+       fresh(agent.browserObservedAt) && fresh(tab.snapshot.observedAt) &&
+       lease?.status === 'active' && lease.holderId === agent.id && lease.projectId === agent.projectId &&
+       lease.epoch === agent.browserLeaseEpoch && lease.mode === 'exclusive' &&
+       lease.resourceId === `browser-tab:${agent.browserProfileId}:${tab.tabId}` &&
+       (lease.expiresAt === undefined || lease.expiresAt > now);
+     return { ...base, agent, state: verified ? 'managed' : 'stale',
+-      idle: Boolean(verified && agent.status === 'idle' && agent.browserPageStatus === 'idle' &&
++      idle: Boolean(verified && ['idle', 'assigned'].includes(agent.status) && agent.browserPageStatus === 'idle' &&
+         fresh(agent.browserRuntimeObservedAt) && tab.snapshot.status === 'idle' && tab.snapshot.confidence === 'direct') };
+   });
+ }
+diff --git a/tests/sidebarIdentity.test.ts b/tests/sidebarIdentity.test.ts
+index 6aacee7..a44e25f 100644
+--- a/tests/sidebarIdentity.test.ts
++++ b/tests/sidebarIdentity.test.ts
+@@ -12,7 +12,7 @@ function tab(tabId = 1): ManagedTab {
+       status: 'idle', confidence: 'direct', signals: [], assistantMessageCount: 0, latestAssistantText: '', observedAt: now } };
+ }
+ function kernel(): NativeControlSnapshot {
+-  return { projects: [{ id: 'project', status: 'active' }], agents: [{ id: 'slot', projectId: 'project', role: 'Developer',
++  return { projects: [{ id: 'project', name: 'Hive', status: 'active' }], agents: [{ id: 'slot', projectId: 'project', role: 'Developer',
+     status: 'idle', desiredState: 'active', browserState: 'open', browserTabId: 1, browserProfileId: 'profile',
+     conversationKey: 'conversation:abc', browserLeaseId: 'lease', browserLeaseEpoch: 2, browserObservedAt: now,
+     browserRuntimeObservedAt: now, browserPageStatus: 'idle', browserQuarantined: false, rolloverState: 'idle' }],
+@@ -28,6 +28,11 @@ describe('sidebar authority and grouping', () => {
+     expect(identities.map(x => x.idle)).toEqual([true, false, false]);
+     expect(identities.slice(0, 2).every(x => x.duplicate)).toBe(true);
+     expect(identities[1]!.agent?.id).toBe('slot');
++    const groups = renderSidebarGroups(identities, identity => {
++      const row = document.createElement('div'); row.dataset.tabId = String(identity.tab.tabId); return row;
++    }, false, () => {});
++    expect(Array.from(groups[0]!.querySelectorAll('[data-tab-id]'), row => (row as HTMLElement).dataset.tabId)).toEqual(['1']);
++    expect(Array.from(groups[1]!.querySelectorAll('[data-tab-id]'), row => (row as HTMLElement).dataset.tabId)).toEqual(['2', '3']);
+   });
+ 
+   it('collapses ordinary tabs by default and preserves explicit expansion and selection', () => {
+@@ -55,7 +60,7 @@ describe('sidebar authority and grouping', () => {
+     expect(sidebarIdentities([ordinary], kernel(), now)[0]?.state).toBe('stale');
+   });
+ 
+-  it.each(['expired', 'epoch', 'project', 'stale', 'quarantine', 'canonical', 'binding', 'resource'])(
++  it.each(['expired', 'epoch', 'project', 'stale', 'quarantine', 'canonical', 'binding', 'role', 'project-name', 'resource'])(
+     'rejects invalid authority: %s', fault => {
+       const snapshot = kernel(); const browser = tab();
+       if (fault === 'expired') snapshot.leases[0]!.expiresAt = now;
+@@ -65,10 +70,19 @@ describe('sidebar authority and grouping', () => {
+       if (fault === 'quarantine') snapshot.agents[0]!.browserQuarantined = true;
+       if (fault === 'canonical') browser.snapshot.conversationKey = 'url:https://chatgpt.com/c/abc';
+       if (fault === 'binding') browser.binding.agentSlotId = 'old';
++      if (fault === 'role') browser.binding.role = 'Reviewer';
++      if (fault === 'project-name') browser.binding.project = 'Old Hive';
+       if (fault === 'resource') snapshot.leases[0]!.resourceId = 'browser-tab:other:1';
+       expect(sidebarIdentities([browser], snapshot, now)[0]).toMatchObject({ state: 'stale', idle: false });
+     });
+ 
++  it.each(['idle', 'assigned'] as const)('selects a bound %s slot only with fresh direct idle evidence', status => {
++    const snapshot = kernel(); snapshot.agents[0]!.status = status;
++    expect(sidebarIdentities([tab()], snapshot, now)[0]).toMatchObject({ state: 'managed', idle: true });
++    snapshot.agents[0]!.browserRuntimeObservedAt = now - 30_001;
++    expect(sidebarIdentities([tab()], snapshot, now)[0]?.idle).toBe(false);
++  });
++
+   it('marks conflicting canonical mappings ambiguous', () => {
+     const snapshot = kernel(); snapshot.agents.push({ ...snapshot.agents[0]!, id: 'other' });
+     expect(sidebarIdentities([tab()], snapshot, now)[0]).toMatchObject({ state: 'ambiguous', idle: false });
+@@ -81,7 +95,10 @@ describe('sidebar authority and grouping', () => {
+     }
+     const browser = tab(); browser.snapshot.confidence = 'inferred';
+     expect(sidebarIdentities([browser], kernel(), now)[0]?.idle).toBe(false);
+-    const snapshot = kernel(); snapshot.agents[0]!.status = 'assigned';
+-    expect(sidebarIdentities([tab()], snapshot, now)[0]?.idle).toBe(false);
++    for (const status of ['generating', 'unknown'] as const) {
++      const snapshot = kernel(); snapshot.agents[0]!.status = 'assigned';
++      snapshot.agents[0]!.browserPageStatus = status;
++      expect(sidebarIdentities([tab()], snapshot, now)[0]?.idle).toBe(false);
++    }
+   });
+ });
+diff --git a/tests/sidepanelSend.test.ts b/tests/sidepanelSend.test.ts
+index f3a586a..0fb875b 100644
+--- a/tests/sidepanelSend.test.ts
++++ b/tests/sidepanelSend.test.ts
+@@ -3,24 +3,43 @@ import { readFileSync } from 'node:fs';
+ import { afterEach, expect, it, vi } from 'vitest';
+ 
+ afterEach(() => { vi.unstubAllGlobals(); vi.resetModules(); });
+-it('sends only after explicit ordinary tab selection and retains attributed reply history', async () => {
++it.each(['disconnected', 'duplicate'] as const)('sends only after explicit ordinary tab selection and retains attributed reply history (%s)', async scenario => {
+   document.documentElement.innerHTML = readFileSync(new URL('../src/sidepanel.html', import.meta.url), 'utf8');
+   const tab = { tabId: 42, windowId: 1, active: true, binding: { role: '', project: '', notes: '' },
+     snapshot: { conversationKey: 'conversation:ordinary', title: 'Ordinary chat', status: 'idle', confidence: 'direct',
+       latestAssistantText: 'reply for ordinary', observedAt: Date.now() },
+     lastAttempt: { state: 'reply-observed', replyMessageId: 'ordinary-reply-id' } };
++  const now = Date.now();
++  const owner = { ...tab, tabId: 1, binding: { agentSlotId: 'slot', projectId: 'project', role: 'Developer', project: 'Hive', notes: '' } };
++  const snapshot = {
++    browserRuntime: [], resources: [], changeRequests: [], workerRequests: [], reviews: [], mergeQueue: [],
++    projects: [{ id: 'project', name: 'Hive', status: 'active' }],
++    agents: [{ id: 'slot', projectId: 'project', role: 'Developer', status: 'assigned', desiredState: 'active',
++      conversationKey: tab.snapshot.conversationKey, browserState: 'open', browserTabId: 1, browserProfileId: 'profile',
++      browserLeaseId: 'lease', browserLeaseEpoch: 2, browserObservedAt: now, browserRuntimeObservedAt: now,
++      browserPageStatus: 'idle', browserQuarantined: false, rolloverState: 'idle' }],
++    leases: [{ id: 'lease', holderId: 'slot', projectId: 'project', epoch: 2, status: 'active', mode: 'exclusive', resourceId: 'browser-tab:profile:1' }],
++  };
+   const sendMessage = vi.fn(async (message: { type: string }) => {
+-    if (message.type === 'manager:control-snapshot') return { ok: false, error: 'disconnected' };
+-    if (message.type === 'manager:list') return { ok: true, tabs: [tab], tasks: [], messages: [], supervisorEnabled: false };
++    if (message.type === 'manager:control-snapshot') return scenario === 'duplicate' ? { ok: true, snapshot } : { ok: false, error: 'disconnected' };
++    if (message.type === 'manager:list') return { ok: true, tabs: scenario === 'duplicate' ? [owner, tab] : [tab], tasks: [], messages: [], supervisorEnabled: false };
+     if (message.type === 'manager:send') return { ok: true, results: [{ tabId: 42, ok: true }] };
+     throw new Error(`Unexpected message ${message.type}`);
+   });
+   vi.stubGlobal('chrome', { runtime: { sendMessage, onMessage: { addListener: vi.fn() } } });
+   await import('../src/sidepanel');
+   await vi.waitFor(() => expect(document.querySelector('#agents details input')).not.toBeNull());
++  if (scenario === 'duplicate') {
++    await vi.waitFor(() => expect(document.querySelectorAll('#agents > section input')).toHaveLength(1));
++    expect(document.querySelectorAll('#agents details input')).toHaveLength(1);
++  }
+   expect(sendMessage.mock.calls.some(([message]) => message.type === 'manager:send')).toBe(false);
+   document.getElementById('select-idle')!.click();
+-  expect((document.querySelector('#agents input') as HTMLInputElement).checked).toBe(false);
++  expect((document.querySelector('#agents details input') as HTMLInputElement).checked).toBe(false);
++  if (scenario === 'duplicate') {
++    expect((document.querySelector('#agents > section input') as HTMLInputElement).checked).toBe(true);
++    document.getElementById('clear-selection')!.click();
++  }
+   const ordinary = document.querySelector('#agents details') as HTMLDetailsElement;
+   expect(ordinary.open).toBe(false);
+   ordinary.open = true;
