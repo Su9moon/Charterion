@@ -1,0 +1,5 @@
+Node: /home/jjyy/.local/opt/node-v22.23.4-linux-x64/bin/node v22.23.4
+Repository node_modules absent; checked host Node installation and /tmp/hive-npm-cache: no cached acceptance dependencies.
+No install attempted for T-000490.
+registry.npmmirror.com: BLOCKED_DNS [Errno -3] Temporary failure in name resolution
+registry.npmjs.org: BLOCKED_DNS [Errno -3] Temporary failure in name resolution

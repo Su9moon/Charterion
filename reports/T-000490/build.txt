@@ -1,0 +1,26 @@
+
+> hive@0.5.1 build
+> npm run generate:native-rpc-contract && node scripts/build.mjs
+
+
+> hive@0.5.1 generate:native-rpc-contract
+> node scripts/generate-native-rpc-contract.mjs
+
+NATIVE_RPC_CONTRACT_GENERATED methods=30
+node:internal/modules/package_json_reader:314
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'esbuild' imported from /home/jjyy/.local/state/codex-bridge-dev/lane/hive-registry-p0-20261031T054942Z/source-workspaces/ccb4764675b26d484d463bfe1a613a3bef541690167558fb973887bd57c63487/T-000490/repository/scripts/build.mjs
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:314:9)
+    at packageResolve (node:internal/modules/esm/resolve:772:81)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:989:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:747:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:724:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:320:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:182:49) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v22.23.4

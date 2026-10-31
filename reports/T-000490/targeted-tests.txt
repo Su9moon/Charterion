@@ -1,0 +1,5 @@
+
+> hive@0.5.1 test
+> vitest run --pool=forks --fileParallelism=false tests/sidebarIdentity.test.ts tests/sidepanelSend.test.ts tests/managedTabProjection.test.ts tests/replyCorrelation.test.ts tests/attemptLedger.test.ts tests/contentReplyRevision.test.ts
+
+sh: 1: vitest: not found

@@ -1,0 +1,5 @@
+PASS: direct production TypeScript identity smoke; DOM/send tests remain blocked
+(node:4) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/jjyy/.local/state/codex-bridge-dev/lane/hive-registry-p0-20261031T054942Z/source-workspaces/ccb4764675b26d484d463bfe1a613a3bef541690167558fb973887bd57c63487/T-000490/repository/reports/T-000490/identity-smoke.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /home/jjyy/.local/state/codex-bridge-dev/lane/hive-registry-p0-20261031T054942Z/source-workspaces/ccb4764675b26d484d463bfe1a613a3bef541690167558fb973887bd57c63487/T-000490/repository/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)

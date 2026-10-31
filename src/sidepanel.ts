@@ -1,3 +1,4 @@
+import { sidebarIdentities, renderSidebarGroups, type SidebarIdentity } from './sidebarIdentity';
 import { projectGroupCards } from './projectGroupCards';
 import type {
   AgentMessageType,
@@ -48,6 +49,7 @@ const stateLabels: Record<string, string> = {
 const displayState = (value: string) => stateLabels[value] ?? value;
 const selected = new Set<number>();
 let tabs: ManagedTab[] = [];
+let ordinaryOpen = false;
 let tasks: ManagedTask[] = [];
 let messages: ManagedMessage[] = [];
 let supervisorEnabled = false;
@@ -112,7 +114,8 @@ async function persistBinding(
   });
 }
 
-function renderAgent(tab: ManagedTab): HTMLElement {
+function renderAgent(identity: SidebarIdentity): HTMLElement {
+  const { tab } = identity;
   const card = el('article', 'agent-card');
   const head = el('div', 'agent-head');
   const checkbox = el('input', 'agent-select');
@@ -121,7 +124,7 @@ function renderAgent(tab: ManagedTab): HTMLElement {
   checkbox.addEventListener('change', () => checkbox.checked ? selected.add(tab.tabId) : selected.delete(tab.tabId));
   const title = el('div', 'agent-title');
   const strong = el('strong');
-  strong.textContent = tab.binding.role || tab.snapshot.title;
+  strong.textContent = identity.state === 'managed' ? identity.agent!.role : tab.snapshot.title;
   const small = el('small');
   small.textContent = tab.binding.project || tab.snapshot.title;
   title.append(strong, small);
@@ -129,6 +132,10 @@ function renderAgent(tab: ManagedTab): HTMLElement {
   badge.textContent = displayState(tab.snapshot.status);
   head.append(checkbox, title, badge);
   card.append(head);
+
+  const metadata = el('small');
+  metadata.textContent = `Tab ID: ${tab.tabId} · Conversation: ${tab.snapshot.conversationKey || 'unavailable'} · Project: ${identity.agent?.projectId ?? tab.binding.projectId ?? 'unavailable'} · Role: ${(identity.agent?.role ?? tab.binding.role) || 'unavailable'} · ${identity.state} · AgentSlot: ${identity.agent?.id ?? 'unavailable'}${identity.duplicate ? ' · duplicate conversation / additional tab instances' : ''}${identity.agent && identity.agent.browserTabId !== tab.tabId ? ' · additional tab, not lease owner' : ''}`;
+  card.append(metadata);
 
   const grid = el('div', 'binding-grid');
   const role = bindingInput('角色 / Role', tab.binding.role);
@@ -139,7 +146,7 @@ function renderAgent(tab: ManagedTab): HTMLElement {
     void persistBinding(tab, inputs).catch((error) => setStatus(sendStatus, String(error), true));
   });
   grid.append(role.wrap, project.wrap, notes.wrap);
-  card.append(grid);
+  if (identity.state === 'managed') card.append(grid);
 
   if (tab.snapshot.latestAssistantText) {
     const latest = el('div', 'latest');
@@ -455,6 +462,7 @@ async function refreshControlOnce(force = false): Promise<void> {
     controlSummary.textContent = error instanceof Error ? error.message : String(error);
   }
   renderControl();
+  render();
 }
 
 function refreshControl(force = false): Promise<void> {
@@ -478,7 +486,7 @@ function refreshControl(force = false): Promise<void> {
 }
 
 function render(): void {
-  agentsRoot.replaceChildren(...tabs.map(renderAgent));
+  agentsRoot.replaceChildren(...renderSidebarGroups(sidebarIdentities(tabs, controlSnapshot), renderAgent, ordinaryOpen, open => { ordinaryOpen = open; }));
   tasksRoot.replaceChildren(...tasks.map(renderTask));
   messagesRoot.replaceChildren(...messages.map(renderMessage));
   renderDag();
@@ -654,7 +662,8 @@ required<HTMLInputElement>('supervisor-enabled').addEventListener('change', (eve
 required<HTMLSelectElement>('task-kind').addEventListener('change', updateTaskKindFields);
 required<HTMLSelectElement>('task-review-target').addEventListener('change', ensureReviewTargetDependency);
 required<HTMLButtonElement>('select-idle').addEventListener('click', () => {
-  for (const tab of tabs) if (tab.snapshot.status === 'idle') selected.add(tab.tabId);
+  selected.clear();
+  for (const identity of sidebarIdentities(tabs, controlSnapshot)) if (identity.idle) selected.add(identity.tab.tabId);
   render();
 });
 required<HTMLButtonElement>('clear-selection').addEventListener('click', () => {
